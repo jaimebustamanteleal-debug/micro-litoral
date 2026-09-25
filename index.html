@@ -291,13 +291,17 @@
   </div>
 
   <script>
-    // Solicitud implícita e inmediata de GPS al cargar para WebView Native APK
+    // Registro para funcionamiento Offline
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('Soporte Offline Activo'))
+          .catch(err => console.log('Error asignando caché', err));
+      });
+    }
+
     if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => console.log("GPS Permitido"),
-        (err) => console.log("GPS Pendiente de Permiso"),
-        { enableHighAccuracy: true }
-      );
+      navigator.geolocation.getCurrentPosition(() => {}, () => {}, { enableHighAccuracy: true });
     }
 
     let savedStopsData = localStorage.getItem("learnedStopsCoordinates");
@@ -392,6 +396,16 @@
         state.userName = e.target.value.trim() || "Pasajero";
         localStorage.setItem("userName", state.userName);
         document.getElementById("headerGreeting").innerText = `Hola, ${state.userName}`;
+      });
+
+      document.getElementById("selectStartStop").addEventListener("change", (e) => {
+        state.startStopId = e.target.value;
+        renderMetroMap();
+      });
+
+      document.getElementById("selectEndStop").addEventListener("change", (e) => {
+        state.endStopId = e.target.value;
+        renderMetroMap();
       });
 
       document.getElementById("selectDirection").addEventListener("change", (e) => {
@@ -530,7 +544,11 @@
       state.atDestinationTime = null;
 
       const stops = getActiveStops();
-      state.currentStopIndex = stops.findIndex(s => s.id === state.startStopId);
+      state.startStopId = document.getElementById("selectStartStop").value;
+      state.endStopId = document.getElementById("selectEndStop").value;
+      
+      const startIndex = stops.findIndex(s => s.id === state.startStopId);
+      state.currentStopIndex = startIndex !== -1 ? startIndex : 0;
 
       document.getElementById("viewSetup").classList.add("hidden");
       document.getElementById("viewHistorySummary").classList.add("hidden");
