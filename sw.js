@@ -1,8 +1,7 @@
-const CACHE_NAME = 'micro-litoral-v1';
+const CACHE_NAME = 'micro-litoral-v2';
 const ASSETS = [
   './',
-  './index.html',
-  './manifest.json'
+  './index.html'
 ];
 
 self.addEventListener('install', (e) => {
@@ -13,7 +12,16 @@ self.addEventListener('install', (e) => {
 });
 
 self.addEventListener('activate', (e) => {
-  e.waitUntil(clients.claim());
+  e.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.map((key) => {
+          if (key !== CACHE_NAME) return caches.delete(key);
+        })
+      );
+    })
+  );
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', (e) => {
