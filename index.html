@@ -47,7 +47,7 @@
     .metro-track-wrapper { position: relative; min-width: 2500px; padding-top: 20px; }
     
     .metro-line-bg { position: absolute; top: 35px; left: 20px; right: 20px; height: 8px; background: #1f2937; border-radius: 4px; }
-    .metro-line-fill { position: absolute; top: 35px; left: 20px; height: 8px; background: linear-gradient(90deg, var(--accent), var(--purple)); border-radius: 4px; width: 0%; transition: width 0.4s ease; }
+    .metro-line-fill { position: absolute; top: 35px; height: 8px; background: linear-gradient(90deg, var(--accent), var(--purple)); border-radius: 4px; transition: all 0.4s ease; }
     
     .metro-user-segment { position: absolute; top: 33px; height: 12px; background: rgba(52, 211, 153, 0.3); border: 2px solid var(--success); border-radius: 6px; pointer-events: none; z-index: 2; transition: all 0.3s; }
 
@@ -105,8 +105,8 @@
       <div>
         <label>Sentido:</label>
         <select id="selectDirection">
-          <option value="IDA">IDA: El Yeco ➔ Tejas</option>
-          <option value="VUELTA">VUELTA: Tejas ➔ El Yeco</option>
+          <option value="IDA">IDA: El Yeco ➔ Tejas (Izquierda a Derecha)</option>
+          <option value="VUELTA">VUELTA: Tejas ➔ El Yeco (Derecha a Izquierda)</option>
         </select>
       </div>
 
@@ -305,7 +305,8 @@
     let savedStopsData = localStorage.getItem("learnedStopsCoordinates");
     let savedTimeLogs = JSON.parse(localStorage.getItem("stopTimeLogs") || "{}");
     
-    const INITIAL_STOPS = [
+    // LISTA FIJA DE ESTACIONES (SIEMPRE EL YECO A LA IZQUIERDA Y TEJAS A LA DERECHA)
+    const BASE_STOPS = [
       { id: "el_yeco", name: "El Yeco", dist: 0, stdMin: 0, lat: -33.3280, lng: -71.6600 },
       { id: "mirasol", name: "Mirasol", dist: 3.2, stdMin: 5, lat: -33.3450, lng: -71.6580 },
       { id: "san_alfonso", name: "San Alfonso", dist: 6.5, stdMin: 10, lat: -33.3550, lng: -71.6550 },
@@ -348,7 +349,7 @@
       { id: "tejas", name: "Tejas", dist: 55.5, stdMin: 118, lat: -33.6320, lng: -71.6230 }
     ];
 
-    let ROUTE_STOPS = savedStopsData ? JSON.parse(savedStopsData) : INITIAL_STOPS;
+    let ROUTE_STOPS = savedStopsData ? JSON.parse(savedStopsData) : BASE_STOPS;
 
     let state = {
       userName: localStorage.getItem("userName") || "Pasajero",
@@ -356,7 +357,7 @@
       startStopId: "el_yeco",
       endStopId: "tejas",
       isTripActive: false,
-      currentStopIndex: 0,
+      currentBaseIndex: 0,
       tripStartTime: null,
       selectedCapacity: "DESOCUPADO",
       watchPositionId: null,
@@ -377,17 +378,6 @@
       renderHistoryTable();
       renderMetroMap();
     });
-
-    function getActiveStops() {
-      if (state.direction === "IDA") return ROUTE_STOPS;
-      const maxDist = ROUTE_STOPS[ROUTE_STOPS.length - 1].dist;
-      const maxMin = ROUTE_STOPS[ROUTE_STOPS.length - 1].stdMin;
-      return [...ROUTE_STOPS].reverse().map(s => ({
-        ...s,
-        dist: parseFloat((maxDist - s.dist).toFixed(1)),
-        stdMin: maxMin - s.stdMin
-      }));
-    }
 
     function initUI() {
       document.getElementById("inputName").value = state.userName;
@@ -427,7 +417,7 @@
           localStorage.removeItem("tripHistory");
           localStorage.removeItem("learnedStopsCoordinates");
           localStorage.removeItem("stopTimeLogs");
-          ROUTE_STOPS = INITIAL_STOPS;
+          ROUTE_STOPS = BASE_STOPS;
           savedTimeLogs = {};
           state.tripHistory = [];
           renderHistoryTable();
@@ -453,24 +443,33 @@
     }
 
     function populateStopsDropdowns() {
-      const stops = getActiveStops();
       const selectStart = document.getElementById("selectStartStop");
       const selectEnd = document.getElementById("selectEndStop");
 
       selectStart.innerHTML = ""; selectEnd.innerHTML = "";
-      stops.forEach((s) => {
-        selectStart.appendChild(new Option(s.name, s.id));
-        selectEnd.appendChild(new Option(s.name, s.id));
-      });
 
-      selectStart.value = stops[0].id;
-      selectEnd.value = stops[stops.length - 1].id;
+      if (state.direction === "IDA") {
+        ROUTE_STOPS.forEach((s) => {
+          selectStart.appendChild(new Option(s.name, s.id));
+          selectEnd.appendChild(new Option(s.name, s.id));
+        });
+        selectStart.value = ROUTE_STOPS[0].id;
+        selectEnd.value = ROUTE_STOPS[ROUTE_STOPS.length - 1].id;
+      } else {
+        // VUELTA: Menú de selección en orden Tejas -> El Yeco
+        [...ROUTE_STOPS].reverse().forEach((s) => {
+          selectStart.appendChild(new Option(s.name, s.id));
+          selectEnd.appendChild(new Option(s.name, s.id));
+        });
+        selectStart.value = ROUTE_STOPS[ROUTE_STOPS.length - 1].id;
+        selectEnd.value = ROUTE_STOPS[0].id;
+      }
+
       state.startStopId = selectStart.value;
       state.endStopId = selectEnd.value;
     }
 
     function renderHistoryTable() {
-      const stops = getActiveStops();
       const tbody = document.getElementById("avgStopsTableBody");
       tbody.innerHTML = "";
 
@@ -480,7 +479,9 @@
       document.getElementById("histTotalTrips").innerText = state.tripHistory.length;
       document.getElementById("histTotalKm").innerText = `${totalKm.toFixed(1)} km`;
 
-      stops.forEach(s => {
+      const listToRender = state.direction === "IDA" ? ROUTE_STOPS : [...ROUTE_STOPS].reverse();
+
+      listToRender.forEach(s => {
         const lastLoggedTime = savedTimeLogs[s.id] || "--:--";
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -550,15 +551,14 @@
       state.lastStopCheckTime = new Date();
       state.atDestinationTime = null;
 
-      const stops = getActiveStops();
       state.startStopId = document.getElementById("selectStartStop").value;
       state.endStopId = document.getElementById("selectEndStop").value;
       
-      const startIndex = stops.findIndex(s => s.id === state.startStopId);
-      state.currentStopIndex = startIndex !== -1 ? startIndex : 0;
+      // FIJA EL ÍNDICE EN LA LISTA BASE DE ESTACIONES
+      const baseIndex = ROUTE_STOPS.findIndex(s => s.id === state.startStopId);
+      state.currentBaseIndex = baseIndex !== -1 ? baseIndex : 0;
 
-      // GUARDAR REGISTRO DE HORA
-      recordStopTime(stops[state.currentStopIndex].id);
+      recordStopTime(state.startStopId);
 
       document.getElementById("viewSetup").classList.add("hidden");
       document.getElementById("viewHistorySummary").classList.add("hidden");
@@ -596,12 +596,11 @@
             state.currentSpeed = Math.round(speedKmH);
             document.getElementById("gpsCurrentSpeed").innerText = `${state.currentSpeed} km/h`;
 
-            const stops = getActiveStops();
-            const currStop = stops[state.currentStopIndex];
-            const endObj = stops.find(s => s.id === state.endStopId);
+            const currStop = ROUTE_STOPS[state.currentBaseIndex];
+            const endObj = ROUTE_STOPS.find(s => s.id === state.endStopId);
 
             let minDistanceKm = 999;
-            stops.forEach(s => {
+            ROUTE_STOPS.forEach(s => {
               const d = calculateDistanceKm(state.lastLat, state.lastLng, s.lat, s.lng);
               if (d < minDistanceKm) minDistanceKm = d;
             });
@@ -613,9 +612,13 @@
               offRouteBanner.classList.add("hidden");
             }
 
+            // AUTO-AVANCE SOLO A LA SIGUIENTE PARADA CERCANA (SIN SALTARSE PARADAS)
             const distToCurrent = calculateDistanceKm(state.lastLat, state.lastLng, currStop.lat, currStop.lng);
-            if (distToCurrent <= 0.08 && state.currentStopIndex < stops.length - 1) {
-              markNextStop();
+            if (distToCurrent <= 0.08) {
+              const targetEndIndex = ROUTE_STOPS.findIndex(s => s.id === state.endStopId);
+              if (state.currentBaseIndex !== targetEndIndex) {
+                markNextStop();
+              }
             }
 
             if (currStop.id === endObj.id) {
@@ -646,24 +649,24 @@
     }
 
     function markNextStop() {
-      const stops = getActiveStops();
-      const currStop = stops[state.currentStopIndex];
+      const currStop = ROUTE_STOPS[state.currentBaseIndex];
 
       if (state.lastLat && state.lastLng) {
-        const stopIndexMaster = ROUTE_STOPS.findIndex(s => s.id === currStop.id);
-        if (stopIndexMaster !== -1) {
-          ROUTE_STOPS[stopIndexMaster].lat = state.lastLat;
-          ROUTE_STOPS[stopIndexMaster].lng = state.lastLng;
-          localStorage.setItem("learnedStopsCoordinates", JSON.stringify(ROUTE_STOPS));
-        }
+        ROUTE_STOPS[state.currentBaseIndex].lat = state.lastLat;
+        ROUTE_STOPS[state.currentBaseIndex].lng = state.lastLng;
+        localStorage.setItem("learnedStopsCoordinates", JSON.stringify(ROUTE_STOPS));
       }
 
       recordStopTime(currStop.id);
 
-      const endIndex = stops.findIndex(s => s.id === state.endStopId);
+      const targetEndIndex = ROUTE_STOPS.findIndex(s => s.id === state.endStopId);
 
-      if (state.currentStopIndex < endIndex) {
-        state.currentStopIndex++;
+      if (state.currentBaseIndex !== targetEndIndex) {
+        if (state.direction === "IDA") {
+          state.currentBaseIndex++;
+        } else {
+          state.currentBaseIndex--;
+        }
         state.lastStopCheckTime = new Date();
         saveActiveStateToStorage();
         renderMetroMap();
@@ -681,13 +684,19 @@
         return;
       }
 
-      const stops = getActiveStops();
-      const startObj = stops.find(s => s.id === state.startStopId);
-      const endObj = stops.find(s => s.id === state.endStopId);
-      const currObj = stops[state.currentStopIndex];
+      const startObj = ROUTE_STOPS.find(s => s.id === state.startStopId);
+      const endObj = ROUTE_STOPS.find(s => s.id === state.endStopId);
+      const currObj = ROUTE_STOPS[state.currentBaseIndex];
 
-      const endIndex = stops.findIndex(s => s.id === state.endStopId);
-      const stopsRemaining = endIndex - state.currentStopIndex;
+      const startIndex = ROUTE_STOPS.findIndex(s => s.id === state.startStopId);
+      const endIndex = ROUTE_STOPS.findIndex(s => s.id === state.endStopId);
+
+      let stopsRemaining = 0;
+      if (state.direction === "IDA") {
+        stopsRemaining = endIndex - state.currentBaseIndex;
+      } else {
+        stopsRemaining = state.currentBaseIndex - endIndex;
+      }
 
       const dropBanner = document.getElementById("dropAlertBanner");
       const dropIcon = document.getElementById("dropAlertIcon");
@@ -738,8 +747,8 @@
         dropDesc.innerText = `Faltan ${stopsRemaining} paradas para tu destino.`;
       }
 
-      const totalDist = Math.max(0.1, endObj.dist - startObj.dist);
-      const coveredDist = Math.max(0, currObj.dist - startObj.dist);
+      const totalDist = Math.max(0.1, Math.abs(endObj.dist - startObj.dist));
+      const coveredDist = Math.max(0, Math.abs(currObj.dist - startObj.dist));
       const progressPct = Math.min(100, Math.round((coveredDist / totalDist) * 100));
 
       document.getElementById("activeNextStopName").innerText = currObj.name;
@@ -756,7 +765,8 @@
         document.getElementById("busEvaluationCard").classList.remove("hidden");
       }
 
-      const diffMin = elapsedMins - (currObj.stdMin - startObj.stdMin);
+      const expectedMins = Math.abs(currObj.stdMin - startObj.stdMin);
+      const diffMin = elapsedMins - expectedMins;
       const led = document.getElementById("trafficLed");
       const title = document.getElementById("trafficTitle");
       
@@ -788,13 +798,12 @@
     }
 
     function finishTrip() {
-      const stops = getActiveStops();
-      const startObj = stops.find(s => s.id === state.startStopId);
-      const endObj = stops.find(s => s.id === state.endStopId);
+      const startObj = ROUTE_STOPS.find(s => s.id === state.startStopId);
+      const endObj = ROUTE_STOPS.find(s => s.id === state.endStopId);
 
       recordStopTime(endObj.id);
 
-      const kmTraveled = Math.max(0.1, endObj.dist - startObj.dist);
+      const kmTraveled = Math.max(0.1, Math.abs(endObj.dist - startObj.dist));
       const totalMins = Math.max(1, Math.round((new Date() - state.tripStartTime) / 60000));
 
       const carFuelCost = Math.round(kmTraveled * (1400 / 12));
@@ -872,34 +881,39 @@
     function renderMetroMap() {
       const container = document.getElementById("metroNodesContainer");
       const lane = document.getElementById("metroBusesTopLane");
+      const fill = document.getElementById("metroLineFill");
       const userSegment = document.getElementById("metroUserSegment");
       
       container.innerHTML = ""; lane.innerHTML = "";
 
-      const stops = getActiveStops();
-      const totalDist = stops[stops.length - 1].dist;
+      const totalDist = ROUTE_STOPS[ROUTE_STOPS.length - 1].dist;
 
-      const startIndex = stops.findIndex(s => s.id === state.startStopId);
-      const endIndex = stops.findIndex(s => s.id === state.endStopId);
+      const startIndex = ROUTE_STOPS.findIndex(s => s.id === state.startStopId);
+      const endIndex = ROUTE_STOPS.findIndex(s => s.id === state.endStopId);
 
-      const startObj = stops[startIndex >= 0 ? startIndex : 0];
-      const endObj = stops[endIndex >= 0 ? endIndex : stops.length - 1];
+      const startObj = ROUTE_STOPS[startIndex >= 0 ? startIndex : 0];
+      const endObj = ROUTE_STOPS[endIndex >= 0 ? endIndex : ROUTE_STOPS.length - 1];
 
       const startPct = (startObj.dist / totalDist) * 100;
       const endPct = (endObj.dist / totalDist) * 100;
 
+      // Dibuja el tramo del usuario en verde
       userSegment.classList.remove("hidden");
-      userSegment.style.left = `${startPct}%`;
+      userSegment.style.left = `${Math.min(startPct, endPct)}%`;
       userSegment.style.width = `${Math.abs(endPct - startPct)}%`;
 
-      stops.forEach((s, idx) => {
+      ROUTE_STOPS.forEach((s, idx) => {
         const node = document.createElement("div");
         node.className = "metro-node";
 
         if (s.id === state.startStopId || s.id === state.endStopId) node.classList.add("target");
         if (state.isTripActive) {
-          if (idx < state.currentStopIndex) node.classList.add("visited");
-          if (idx === state.currentStopIndex) node.classList.add("active");
+          if (state.direction === "IDA") {
+            if (idx < state.currentBaseIndex) node.classList.add("visited");
+          } else {
+            if (idx > state.currentBaseIndex) node.classList.add("visited");
+          }
+          if (idx === state.currentBaseIndex) node.classList.add("active");
         }
 
         node.innerHTML = `
@@ -909,13 +923,23 @@
         container.appendChild(node);
       });
 
-      const currStop = state.isTripActive ? stops[state.currentStopIndex] : startObj;
-      const pct = (currStop.dist / totalDist) * 100;
-      document.getElementById("metroLineFill").style.width = `${pct}%`;
+      const currStop = state.isTripActive ? ROUTE_STOPS[state.currentBaseIndex] : startObj;
+      const currPct = (currStop.dist / totalDist) * 100;
+
+      // Ajusta la barra de avance según el sentido
+      if (state.direction === "IDA") {
+        fill.style.left = "20px";
+        fill.style.right = "auto";
+        fill.style.width = `${currPct}%`;
+      } else {
+        fill.style.left = `${currPct}%`;
+        fill.style.right = "20px";
+        fill.style.width = `${100 - currPct}%`;
+      }
 
       const busMarker = document.createElement("div");
       busMarker.className = "bus-icon-marker my-bus";
-      busMarker.style.left = `${pct}%`;
+      busMarker.style.left = `${currPct}%`;
       busMarker.innerHTML = `<div class="bus-tag">Tu Micro</div>🚌`;
       lane.appendChild(busMarker);
     }
