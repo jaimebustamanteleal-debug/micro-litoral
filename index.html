@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Micro Litoral GPS</title>
+  <meta name="theme-color" content="#090d16">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #111827;
+      --border: #1f2937;
+      --accent: #38bdf8;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --success: #34d399;
+      --warning: #fbbf24;
+      --danger: #f87171;
+      --purple: #c084fc;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; }
+    body { background: var(--bg); color: var(--text); padding: 12px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+    .app-container { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 12px; }
+
+    header { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 14px; text-align: center; }
+    header h1 { font-size: 1.2rem; color: var(--accent); }
+    header p { font-size: 0.8rem; color: var(--muted); }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .card-title { font-size: 0.9rem; font-weight: 700; color: var(--accent); display: flex; justify-content: space-between; align-items: center; }
+
+    label { font-size: 0.78rem; color: var(--muted); font-weight: 600; }
+    select, input { background: #060911; border: 1px solid var(--border); color: var(--text); padding: 12px; border-radius: 10px; font-size: 0.9rem; width: 100%; outline: none; }
+
+    .btn { background: var(--accent); color: #060911; border: none; padding: 14px; border-radius: 12px; font-size: 1rem; font-weight: 800; cursor: pointer; text-align: center; display: flex; justify-content: center; align-items: center; gap: 8px; }
+    .btn:active { transform: scale(0.98); }
+    .btn-secondary { background: #1f2937; color: var(--text); border: 1px solid var(--border); }
+    .btn-danger { background: rgba(248, 113, 113, 0.15); color: var(--danger); border: 1px solid rgba(248, 113, 113, 0.3); }
+
+    .avg-table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 0.75rem; }
+    .avg-table th { text-align: left; color: var(--muted); padding: 6px; border-bottom: 1px solid var(--border); }
+    .avg-table td { padding: 6px; border-bottom: 1px solid #111827; }
+
+    .metro-container { background: #060911; border: 1px solid var(--border); border-radius: 12px; padding: 50px 10px 65px 10px; overflow-x: auto; position: relative; scrollbar-width: none; }
+    .metro-container::-webkit-scrollbar { display: none; }
+    .metro-track-wrapper { position: relative; min-width: 2500px; padding-top: 20px; }
+    
+    .metro-line-bg { position: absolute; top: 35px; left: 20px; right: 20px; height: 8px; background: #1f2937; border-radius: 4px; }
+    .metro-line-fill { position: absolute; top: 35px; left: 20px; height: 8px; background: linear-gradient(90deg, var(--accent), var(--purple)); border-radius: 4px; width: 0%; transition: width 0.4s ease; }
+    
+    .metro-user-segment { position: absolute; top: 33px; height: 12px; background: rgba(52, 211, 153, 0.3); border: 2px solid var(--success); border-radius: 6px; pointer-events: none; z-index: 2; transition: all 0.3s; }
+
+    .metro-stations { display: flex; justify-content: space-between; position: relative; z-index: 3; }
+    .metro-node { display: flex; flex-direction: column; align-items: center; position: relative; width: 40px; cursor: pointer; }
+    .metro-circle { width: 18px; height: 18px; border-radius: 50%; background: #060911; border: 4px solid #4b5563; transition: all 0.3s; }
+    .metro-node.visited .metro-circle { border-color: var(--accent); background: var(--accent); }
+    .metro-node.active .metro-circle { border-color: #fff; background: #ef4444; box-shadow: 0 0 12px #ef4444; transform: scale(1.3); }
+    .metro-node.target .metro-circle { border-color: var(--warning); box-shadow: 0 0 10px var(--warning); }
+    
+    .metro-label { position: absolute; top: 28px; left: 50%; transform: translateX(-10%) rotate(45deg); transform-origin: left top; font-size: 0.65rem; color: var(--muted); white-space: nowrap; font-weight: 600; width: 120px; text-align: left; }
+    .metro-node.active .metro-label { color: var(--text); font-weight: 800; }
+
+    .metro-buses-top-lane { position: absolute; top: -12px; left: 20px; right: 20px; height: 30px; pointer-events: none; z-index: 10; }
+    .bus-icon-marker { position: absolute; transform: translateX(-50%); font-size: 1.4rem; transition: left 0.5s ease; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.9)); }
+    .bus-icon-marker.my-bus { font-size: 1.7rem; top: -10px; animation: bounce 1.2s infinite; }
+    .bus-tag { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); background: #060911; border: 1px solid var(--border); font-size: 0.55rem; padding: 1px 5px; border-radius: 4px; white-space: nowrap; font-weight: 800; color: var(--success); }
+
+    @keyframes bounce { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-4px); } }
+
+    .capacity-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .cap-item { background: #060911; border: 1px solid var(--border); border-radius: 10px; padding: 8px 4px; text-align: center; font-size: 0.7rem; color: var(--muted); cursor: pointer; }
+    .cap-item.active { border-color: var(--accent); background: rgba(56, 189, 248, 0.15); color: var(--text); font-weight: 700; }
+
+    .status-banner { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 12px; background: #060911; border: 1px solid var(--border); transition: all 0.3s ease; }
+    .led { width: 14px; height: 14px; border-radius: 50%; box-shadow: 0 0 8px currentColor; flex-shrink: 0; }
+    .led-white { background: #fff; color: #fff; }
+    .led-green { background: #34d399; color: #34d399; }
+    .led-yellow { background: #fbbf24; color: #fbbf24; }
+    .led-red { background: #f87171; color: #f87171; }
+
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 20px; width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <header>
+      <h1 id="headerGreeting">Hola, Pasajero</h1>
+      <p id="headerSub">Monitoreo Litoral Central (GPS)</p>
+    </header>
+
+    <div id="viewSetup" class="card">
+      <div class="card-title">⚙️ Planificar Trayecto</div>
+      
+      <div>
+        <label>Tu Nombre:</label>
+        <input type="text" id="inputName" placeholder="Ej: Jaime">
+      </div>
+
+      <div>
+        <label>Sentido:</label>
+        <select id="selectDirection">
+          <option value="IDA">IDA: El Yeco ➔ Tejas</option>
+          <option value="VUELTA">VUELTA: Tejas ➔ El Yeco</option>
+        </select>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <div>
+          <label>Parada Inicio:</label>
+          <select id="selectStartStop"></select>
+        </div>
+        <div>
+          <label>Parada Destino:</label>
+          <select id="selectEndStop"></select>
+        </div>
+      </div>
+
+      <div style="background: #060911; padding: 12px; border-radius: 10px; border: 1px solid var(--border); text-align: center;">
+        <div style="font-size: 0.75rem; color: var(--muted);">Próxima Salida Estimada desde Origen</div>
+        <div id="setupNextDepartureTime" style="font-size: 1.2rem; font-weight: 800; color: var(--accent); margin-top: 2px;">--:--</div>
+        <div id="setupServiceStatus" style="font-size: 0.75rem; color: var(--warning); margin-top: 2px;"></div>
+      </div>
+
+      <button class="btn" id="btnStartTrip">🚀 Iniciar Viaje con GPS</button>
+    </div>
+
+    <div id="viewHistorySummary" class="card">
+      <div class="card-title">
+        <span>📊 Historial & Tiempos Promedio</span>
+        <button class="btn btn-danger" id="btnResetHistory" style="width:auto; padding:4px 8px; font-size:0.7rem;">Resetear</button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center;">
+        <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
+          <div id="histTotalTrips" style="font-size: 1rem; font-weight: 800; color: var(--accent);">0</div>
+          <div style="font-size: 0.65rem; color: var(--muted);">Viajes</div>
+        </div>
+        <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
+          <div id="histTotalKm" style="font-size: 1rem; font-weight: 800; color: var(--success);">0 km</div>
+          <div style="font-size: 0.65rem; color: var(--muted);">Recorridos</div>
+        </div>
+        <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
+          <div id="histAvgSpeed" style="font-size: 1rem; font-weight: 800; color: var(--warning);">30 km/h</div>
+          <div style="font-size: 0.65rem; color: var(--muted);">Vel. Prom.</div>
+        </div>
+      </div>
+
+      <div style="margin-top: 6px;">
+        <label>Tiempo Promedio Estimado por Paradero:</label>
+        <div style="max-height: 180px; overflow-y: auto; background: #060911; border: 1px solid var(--border); border-radius: 8px; padding: 4px; margin-top: 4px;">
+          <table class="avg-table">
+            <thead>
+              <tr>
+                <th>Hito / Paradero</th>
+                <th>Dist.</th>
+                <th>Tiempo Est.</th>
+              </tr>
+            </thead>
+            <tbody id="avgStopsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="viewActive" class="card hidden">
+      <div class="card-title">
+        <span id="activeNextStopHeader">Próxima Parada</span>
+        <span id="activeClock" style="color: var(--muted); font-size: 0.8rem;">00:00:00</span>
+      </div>
+
+      <div style="text-align: center; margin: 4px 0;">
+        <div style="font-size: 0.75rem; color: var(--muted);">Próximo Hito:</div>
+        <div id="activeNextStopName" style="font-size: 1.3rem; font-weight: 800; color: var(--accent);">---</div>
+        <div id="activeTripProgress" style="font-size: 0.8rem; color: var(--purple); font-weight: 700; margin-top: 2px;">Progreso: 0% (0.0 / 0.0 km)</div>
+      </div>
+
+      <div id="dropAlertBanner" class="status-banner" style="border-color: var(--success); background: rgba(52, 211, 153, 0.1);">
+        <span id="dropAlertIcon" style="font-size: 1.2rem;">🔔</span>
+        <div>
+          <div id="dropAlertTitle" style="font-size: 0.85rem; font-weight: 700; color: var(--success);">Calculando parada de bajada...</div>
+          <div id="dropAlertDesc" style="font-size: 0.72rem; color: var(--text);">Te notificaremos cuando queden pocas paradas.</div>
+        </div>
+      </div>
+
+      <div id="offRouteBanner" class="status-banner hidden" style="border-color: var(--danger); background: rgba(248, 113, 113, 0.1);">
+        <span style="font-size: 1.2rem;">📍⚠️</span>
+        <div>
+          <div style="font-size: 0.85rem; font-weight: 700; color: var(--danger);">Fuera de la Ruta</div>
+          <div style="font-size: 0.72rem; color: var(--text);">Acércate a una parada costera para retomar el seguimiento.</div>
+        </div>
+      </div>
+
+      <div class="status-banner">
+        <div id="trafficLed" class="led led-green"></div>
+        <div>
+          <div id="trafficTitle" style="font-size: 0.85rem; font-weight: 700;">A la hora (ETA Global)</div>
+          <div id="trafficDesc" style="font-size: 0.75rem; color: var(--muted);">Llegada est. a destino final: --:--</div>
+        </div>
+      </div>
+
+      <div id="specialStatusBanner" class="status-banner hidden" style="border-color: var(--warning);">
+        <span style="font-size: 1.2rem;">🛑</span>
+        <div>
+          <div id="specialStatusTitle" style="font-size: 0.85rem; font-weight: 700; color: var(--warning);">Esperando Pasajeros</div>
+          <div style="font-size: 0.72rem; color: var(--muted);">Pausa detectada en paradero principal.</div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center;">
+        <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
+          <div id="gpsCurrentSpeed" style="font-size: 1rem; font-weight: 800; color: var(--accent);">0 km/h</div>
+          <div style="font-size: 0.65rem; color: var(--muted);">Vel. Actual</div>
+        </div>
+        <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
+          <div id="gpsAvgSpeed" style="font-size: 1rem; font-weight: 800; color: var(--success);">0 km/h</div>
+          <div style="font-size: 0.65rem; color: var(--muted);">Vel. Promedio</div>
+        </div>
+        <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
+          <div id="segmentTime" style="font-size: 1rem; font-weight: 800; color: var(--warning);">0 min</div>
+          <div style="font-size: 0.65rem; color: var(--muted);">Tiempo Tramo</div>
+        </div>
+      </div>
+
+      <div>
+        <label>Ocupación de la Micro:</label>
+        <div class="capacity-grid" style="margin-top: 4px;">
+          <div class="cap-item active" data-cap="DESOCUPADO">🟢 Desocupado</div>
+          <div class="cap-item" data-cap="SIN_ASIENTOS">🟡 Sin Asientos</div>
+          <div class="cap-item" data-cap="PASILLO_LLENO">🟠 Pasillo Lleno</div>
+          <div class="cap-item" data-cap="COLAPSADO">🔴 Colapsado</div>
+        </div>
+      </div>
+
+      <div id="busEvaluationCard" class="card hidden" style="background: #060911; padding: 10px;">
+        <div style="font-size: 0.78rem; font-weight: 700; color: var(--purple);">🚌 Registrar y Calificar Máquina (> 50% trayecto)</div>
+        <div style="display: flex; gap: 6px; margin-top: 6px;">
+          <input type="text" id="inputBusPlate" placeholder="Patente (Ej: BJFW12)" style="padding: 6px; font-size: 0.8rem; text-transform: uppercase;">
+          <button class="btn btn-secondary" id="btnSaveBusReview" style="padding: 6px 10px; font-size: 0.75rem; width: auto;">Guardar</button>
+        </div>
+        <div id="previousBusReviewMsg" style="font-size: 0.7rem; color: var(--success); margin-top: 4px;"></div>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 4px;">
+        <button class="btn btn-secondary" id="btnManualMark" style="font-size: 0.8rem; padding: 10px;">📍 Marcar Manual</button>
+        <button class="btn btn-danger" id="btnCancelTrip" style="font-size: 0.8rem; padding: 10px;">❌ Cancelar</button>
+        <button class="btn btn-secondary" id="btnFinishTrip" style="font-size: 0.8rem; padding: 10px;">🏁 Terminar</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🗺️ Esquema de Ruta (Metro)</div>
+      <div class="metro-container">
+        <div class="metro-track-wrapper">
+          <div id="metroBusesTopLane" class="metro-buses-top-lane"></div>
+          <div class="metro-line-bg"></div>
+          <div id="metroUserSegment" class="metro-user-segment hidden"></div>
+          <div id="metroLineFill" class="metro-line-fill"></div>
+          <div id="metroNodesContainer" class="metro-stations"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="modal-overlay" id="summaryModal">
+    <div class="modal-card">
+      <h3 style="color: var(--success); text-align: center; font-size: 1.1rem;">🎉 ¡Viaje Exitoso!</h3>
+      <p style="text-align: center; font-size: 0.9rem; font-weight: 600;" id="modalGreeting">Gracias, Pasajero por registrar tu viaje.</p>
+
+      <div style="background: #060911; padding: 12px; border-radius: 12px; border: 1px solid var(--border);">
+        <div style="font-size: 0.8rem; font-weight: 800; color: var(--accent); margin-bottom: 6px;">📊 Datos de este Viaje:</div>
+        <div style="font-size: 0.82rem;" id="modalTripKm">• Km recorridos: 0 km</div>
+        <div style="font-size: 0.82rem; margin-top: 2px;" id="modalTripTime">• Tiempo total: 00h:00m</div>
+        <div style="font-size: 0.82rem; margin-top: 2px; font-weight: 700; color: var(--success);" id="modalTripSavings">• Ahorro en este viaje: $0</div>
+      </div>
+
+      <div style="background: #060911; padding: 12px; border-radius: 12px; border: 1px solid var(--border);">
+        <div style="font-size: 0.8rem; font-weight: 800; color: var(--purple); margin-bottom: 6px;">📅 Acumulado Periódico:</div>
+        <div style="font-size: 0.78rem;" id="modalWeeklyStats">Esta Semana: 0 km | 00h:00m | Ahorro: $0</div>
+        <div style="font-size: 0.78rem; margin-top: 4px;" id="modalMonthlyStats">Este Mes: 0 km | 00h:00m | Ahorro: $0</div>
+      </div>
+
+      <button class="btn" id="btnCloseSummary">Aceptar y Cerrar</button>
+    </div>
+  </div>
+
+  <script>
+    // Solicitud implícita e inmediata de GPS al cargar para WebView Native APK
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => console.log("GPS Permitido"),
+        (err) => console.log("GPS Pendiente de Permiso"),
+        { enableHighAccuracy: true }
+      );
+    }
+
+    let savedStopsData = localStorage.getItem("learnedStopsCoordinates");
+    
+    const INITIAL_STOPS = [
+      { id: "el_yeco", name: "El Yeco", dist: 0, stdMin: 0, lat: -33.3280, lng: -71.6600 },
+      { id: "mirasol", name: "Mirasol", dist: 3.2, stdMin: 5, lat: -33.3450, lng: -71.6580 },
+      { id: "san_alfonso", name: "San Alfonso", dist: 6.5, stdMin: 10, lat: -33.3550, lng: -71.6550 },
+      { id: "camino_casablanca", name: "Camino a Casablanca", dist: 8.1, stdMin: 13, lat: -33.3620, lng: -71.6520 },
+      { id: "casa_ideas", name: "Casa Ideas", dist: 9.2, stdMin: 15, lat: -33.3680, lng: -71.6500 },
+      { id: "lider_alg", name: "Líder", dist: 11.8, stdMin: 21, isLongStop: true, lat: -33.3780, lng: -71.6440 },
+      { id: "esval", name: "Esval", dist: 12.7, stdMin: 23, lat: -33.3830, lng: -71.6420 },
+      { id: "vivero", name: "Vivero", dist: 13.5, stdMin: 25, lat: -33.3880, lng: -71.6400 },
+      { id: "la_portada", name: "La Portada", dist: 14.3, stdMin: 27, lat: -33.3920, lng: -71.6980 },
+      { id: "las_balandras", name: "Las Balandras", dist: 15.1, stdMin: 29, lat: -33.3960, lng: -71.6960 },
+      { id: "el_quisco_playa", name: "El Quisco Playa", dist: 16.2, stdMin: 32, lat: -33.3980, lng: -71.6970 },
+      { id: "el_quisco_centro", name: "El Quisco Centro", dist: 17.0, stdMin: 34, isLongStop: true, lat: -33.4000, lng: -71.6975 },
+      { id: "capilla_sud", name: "Capilla SUD", dist: 17.8, stdMin: 36, lat: -33.4050, lng: -71.6960 },
+      { id: "huallilemu", name: "Huallilemu", dist: 19.0, stdMin: 39, lat: -33.4120, lng: -71.6950 },
+      { id: "puente_mecanico", name: "Puente Mecánico", dist: 20.2, stdMin: 42, lat: -33.4200, lng: -71.6930 },
+      { id: "punta_tralca", name: "Punta de Tralca", dist: 21.3, stdMin: 44, lat: -33.4270, lng: -71.6920 },
+      { id: "aramco", name: "Aramco", dist: 22.4, stdMin: 46, lat: -33.4330, lng: -71.6910 },
+      { id: "isla_negra", name: "Isla Negra", dist: 23.5, stdMin: 48, lat: -33.4420, lng: -71.6880 },
+      { id: "playa_las_agatas", name: "Playa Las Ágatas", dist: 24.6, stdMin: 50, lat: -33.4480, lng: -71.6850 },
+      { id: "el_tabo_plaza", name: "El Tabo Plaza", dist: 25.5, stdMin: 52, isLongStop: true, lat: -33.4540, lng: -71.6820 },
+      { id: "el_tabo_centro", name: "El Tabo Centro", dist: 26.3, stdMin: 54, lat: -33.4580, lng: -71.6800 },
+      { id: "monolito", name: "Monolito", dist: 27.5, stdMin: 57, lat: -33.4650, lng: -71.6750 },
+      { id: "el_tabito", name: "El Tabito", dist: 29.0, stdMin: 60, lat: -33.4730, lng: -71.6700 },
+      { id: "las_cruces", name: "Las Cruces", dist: 33.5, stdMin: 68, lat: -33.4980, lng: -71.6300 },
+      { id: "playas_blancas", name: "Playas Blancas", dist: 36.2, stdMin: 73, lat: -33.5120, lng: -71.6180 },
+      { id: "san_sebastian", name: "San Sebastián", dist: 39.0, stdMin: 78, lat: -33.5280, lng: -71.6080 },
+      { id: "terminal_cartagena", name: "Terminal de Cartagena", dist: 40.5, stdMin: 81, lat: -33.5350, lng: -71.6020 },
+      { id: "playa_chica", name: "Playa Chica", dist: 41.6, stdMin: 83, lat: -33.5420, lng: -71.5990 },
+      { id: "plaza_cartagena", name: "Plaza de Cartagena", dist: 42.4, stdMin: 85, lat: -33.5460, lng: -71.5980 },
+      { id: "playa_grande", name: "Playa Grande", dist: 43.5, stdMin: 88, lat: -33.5530, lng: -71.5960 },
+      { id: "estacion_trenes", name: "Estación de Trenes", dist: 44.8, stdMin: 91, lat: -33.5620, lng: -71.6000 },
+      { id: "corazones", name: "Corazones", dist: 45.6, stdMin: 93, lat: -33.5680, lng: -71.6040 },
+      { id: "pelancura", name: "Pelancura", dist: 47.0, stdMin: 96, lat: -33.5780, lng: -71.6100 },
+      { id: "san_antonio_centro", name: "San Antonio Centro", dist: 49.0, stdMin: 101, isLongStop: true, lat: -33.5920, lng: -71.6160 },
+      { id: "tottus", name: "Tottus", dist: 50.0, stdMin: 104, lat: -33.5980, lng: -71.6180 },
+      { id: "imsa", name: "IMSA", dist: 50.8, stdMin: 106, lat: -33.6020, lng: -71.6190 },
+      { id: "estadio", name: "Estadio", dist: 51.6, stdMin: 108, lat: -33.6080, lng: -71.6200 },
+      { id: "lider_sa", name: "Líder (SA)", dist: 52.5, stdMin: 111, lat: -33.6140, lng: -71.6210 },
+      { id: "llolleo", name: "Llolleo", dist: 54.0, stdMin: 115, lat: -33.6230, lng: -71.6220 },
+      { id: "tejas", name: "Tejas", dist: 55.5, stdMin: 118, lat: -33.6320, lng: -71.6230 }
+    ];
+
+    let ROUTE_STOPS = savedStopsData ? JSON.parse(savedStopsData) : INITIAL_STOPS;
+
+    let state = {
+      userName: localStorage.getItem("userName") || "Pasajero",
+      direction: "IDA",
+      startStopId: "el_yeco",
+      endStopId: "tejas",
+      isTripActive: false,
+      currentStopIndex: 0,
+      tripStartTime: null,
+      selectedCapacity: "DESOCUPADO",
+      watchPositionId: null,
+      currentSpeed: 0,
+      avgSpeed: 0,
+      lastStopCheckTime: null,
+      lastLat: null,
+      lastLng: null,
+      atDestinationTime: null,
+      evaluatedPlate: "",
+      busReviews: JSON.parse(localStorage.getItem("busReviews") || "{}"),
+      tripHistory: JSON.parse(localStorage.getItem("tripHistory") || "[]")
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+      initUI();
+      restoreSessionIfExists();
+      renderHistoryTable();
+      renderMetroMap();
+    });
+
+    function getActiveStops() {
+      if (state.direction === "IDA") return ROUTE_STOPS;
+      const maxDist = ROUTE_STOPS[ROUTE_STOPS.length - 1].dist;
+      const maxMin = ROUTE_STOPS[ROUTE_STOPS.length - 1].stdMin;
+      return [...ROUTE_STOPS].reverse().map(s => ({
+        ...s,
+        dist: parseFloat((maxDist - s.dist).toFixed(1)),
+        stdMin: maxMin - s.stdMin
+      }));
+    }
+
+    function initUI() {
+      document.getElementById("inputName").value = state.userName;
+      document.getElementById("inputName").addEventListener("input", (e) => {
+        state.userName = e.target.value.trim() || "Pasajero";
+        localStorage.setItem("userName", state.userName);
+        document.getElementById("headerGreeting").innerText = `Hola, ${state.userName}`;
+      });
+
+      document.getElementById("selectDirection").addEventListener("change", (e) => {
+        state.direction = e.target.value;
+        populateStopsDropdowns();
+        renderHistoryTable();
+        renderMetroMap();
+        updateDepartureSchedule();
+      });
+
+      populateStopsDropdowns();
+
+      document.getElementById("btnStartTrip").addEventListener("click", startTrip);
+      document.getElementById("btnManualMark").addEventListener("click", markNextStop);
+      document.getElementById("btnCancelTrip").addEventListener("click", cancelTrip);
+      document.getElementById("btnFinishTrip").addEventListener("click", finishTrip);
+
+      document.getElementById("btnResetHistory").addEventListener("click", () => {
+        if (confirm("¿Resetear historial de viajes guardados?")) {
+          localStorage.removeItem("tripHistory");
+          localStorage.removeItem("learnedStopsCoordinates");
+          ROUTE_STOPS = INITIAL_STOPS;
+          state.tripHistory = [];
+          renderHistoryTable();
+        }
+      });
+
+      document.querySelectorAll(".cap-item").forEach(item => {
+        item.addEventListener("click", (e) => {
+          document.querySelectorAll(".cap-item").forEach(i => i.classList.remove("active"));
+          e.target.classList.add("active");
+          state.selectedCapacity = e.target.getAttribute("data-cap");
+          saveActiveStateToStorage();
+        });
+      });
+
+      document.getElementById("btnSaveBusReview").addEventListener("click", saveBusReview);
+      document.getElementById("btnCloseSummary").addEventListener("click", () => {
+        document.getElementById("summaryModal").classList.remove("active");
+        resetToSetupView();
+      });
+
+      setInterval(updateClockAndETA, 1000);
+    }
+
+    function populateStopsDropdowns() {
+      const stops = getActiveStops();
+      const selectStart = document.getElementById("selectStartStop");
+      const selectEnd = document.getElementById("selectEndStop");
+
+      selectStart.innerHTML = ""; selectEnd.innerHTML = "";
+      stops.forEach((s) => {
+        selectStart.appendChild(new Option(s.name, s.id));
+        selectEnd.appendChild(new Option(s.name, s.id));
+      });
+
+      selectStart.value = stops[0].id;
+      selectEnd.value = stops[stops.length - 1].id;
+      state.startStopId = selectStart.value;
+      state.endStopId = selectEnd.value;
+    }
+
+    function renderHistoryTable() {
+      const stops = getActiveStops();
+      const tbody = document.getElementById("avgStopsTableBody");
+      tbody.innerHTML = "";
+
+      let totalKm = 0;
+      state.tripHistory.forEach(t => totalKm += t.km);
+
+      document.getElementById("histTotalTrips").innerText = state.tripHistory.length;
+      document.getElementById("histTotalKm").innerText = `${totalKm.toFixed(1)} km`;
+
+      stops.forEach(s => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><b>${s.name}</b></td>
+          <td>${s.dist} km</td>
+          <td>~${s.stdMin} min</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function saveActiveStateToStorage() {
+      if (state.isTripActive) {
+        localStorage.setItem("activeTripState", JSON.stringify({
+          ...state,
+          tripStartTime: state.tripStartTime ? state.tripStartTime.toISOString() : null
+        }));
+      } else {
+        localStorage.removeItem("activeTripState");
+      }
+    }
+
+    function restoreSessionIfExists() {
+      const saved = localStorage.getItem("activeTripState");
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          state = { ...state, ...parsed, tripStartTime: new Date(parsed.tripStartTime) };
+          if (state.isTripActive) {
+            document.getElementById("viewSetup").classList.add("hidden");
+            document.getElementById("viewHistorySummary").classList.add("hidden");
+            document.getElementById("viewActive").classList.remove("hidden");
+            initGPS();
+            renderMetroMap();
+          }
+        } catch(e) { console.error("Error restaurando sesión", e); }
+      }
+    }
+
+    function updateDepartureSchedule() {
+      const now = new Date();
+      const currentMinOfDay = now.getHours() * 60 + now.getMinutes();
+      const lastBusMin = 19 * 60;
+
+      if (currentMinOfDay > lastBusMin + 120) {
+        document.getElementById("setupServiceStatus").innerText = "⚠️ No hay más salidas por hoy";
+        document.getElementById("setupNextDepartureTime").innerText = "--:--";
+      } else {
+        document.getElementById("setupServiceStatus").innerText = "";
+        let nextMin = 7 * 60;
+        while (nextMin <= currentMinOfDay && nextMin <= lastBusMin) nextMin += 15;
+        
+        const h = Math.floor(nextMin / 60);
+        const m = nextMin % 60;
+        document.getElementById("setupNextDepartureTime").innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')} hrs`;
+      }
+    }
+
+    function startTrip() {
+      state.isTripActive = true;
+      state.tripStartTime = new Date();
+      state.lastStopCheckTime = new Date();
+      state.atDestinationTime = null;
+
+      const stops = getActiveStops();
+      state.currentStopIndex = stops.findIndex(s => s.id === state.startStopId);
+
+      document.getElementById("viewSetup").classList.add("hidden");
+      document.getElementById("viewHistorySummary").classList.add("hidden");
+      document.getElementById("viewActive").classList.remove("hidden");
+
+      saveActiveStateToStorage();
+      initGPS();
+      renderMetroMap();
+    }
+
+    function calculateDistanceKm(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    function initGPS() {
+      if ("geolocation" in navigator) {
+        state.watchPositionId = navigator.geolocation.watchPosition(
+          (pos) => {
+            state.lastLat = pos.coords.latitude;
+            state.lastLng = pos.coords.longitude;
+            const speedKmH = pos.coords.speed ? (pos.coords.speed * 3.6) : 0;
+            
+            state.currentSpeed = Math.round(speedKmH);
+            document.getElementById("gpsCurrentSpeed").innerText = `${state.currentSpeed} km/h`;
+
+            const stops = getActiveStops();
+            const currStop = stops[state.currentStopIndex];
+            const endObj = stops.find(s => s.id === state.endStopId);
+
+            let minDistanceKm = 999;
+            stops.forEach(s => {
+              const d = calculateDistanceKm(state.lastLat, state.lastLng, s.lat, s.lng);
+              if (d < minDistanceKm) minDistanceKm = d;
+            });
+
+            const offRouteBanner = document.getElementById("offRouteBanner");
+            if (minDistanceKm > 0.3) {
+              offRouteBanner.classList.remove("hidden");
+            } else {
+              offRouteBanner.classList.add("hidden");
+            }
+
+            const distToCurrent = calculateDistanceKm(state.lastLat, state.lastLng, currStop.lat, currStop.lng);
+            if (distToCurrent <= 0.08 && state.currentStopIndex < stops.length - 1) {
+              markNextStop();
+            }
+
+            if (currStop.id === endObj.id) {
+              if (!state.atDestinationTime) state.atDestinationTime = new Date();
+              const secondsAtDest = (new Date() - state.atDestinationTime) / 1000;
+
+              if (state.currentSpeed < 6 && secondsAtDest >= 15) {
+                finishTrip();
+                return;
+              }
+            }
+
+            const specialBanner = document.getElementById("specialStatusBanner");
+            if (state.currentSpeed < 3 && currStop.isLongStop) {
+              specialBanner.classList.remove("hidden");
+              document.getElementById("specialStatusTitle").innerText = "Esperando Pasajeros";
+            } else if (state.currentSpeed < 3 && !currStop.isLongStop) {
+              specialBanner.classList.remove("hidden");
+              document.getElementById("specialStatusTitle").innerText = "Tránsito Pesado";
+            } else {
+              specialBanner.classList.add("hidden");
+            }
+          },
+          (err) => console.log(err),
+          { enableHighAccuracy: true, maximumAge: 3000, timeout: 5000 }
+        );
+      }
+    }
+
+    function markNextStop() {
+      const stops = getActiveStops();
+      const currStop = stops[state.currentStopIndex];
+
+      if (state.lastLat && state.lastLng) {
+        const stopIndexMaster = ROUTE_STOPS.findIndex(s => s.id === currStop.id);
+        if (stopIndexMaster !== -1) {
+          ROUTE_STOPS[stopIndexMaster].lat = state.lastLat;
+          ROUTE_STOPS[stopIndexMaster].lng = state.lastLng;
+          localStorage.setItem("learnedStopsCoordinates", JSON.stringify(ROUTE_STOPS));
+        }
+      }
+
+      const endIndex = stops.findIndex(s => s.id === state.endStopId);
+
+      if (state.currentStopIndex < endIndex) {
+        state.currentStopIndex++;
+        state.lastStopCheckTime = new Date();
+        saveActiveStateToStorage();
+        renderMetroMap();
+      } else {
+        finishTrip();
+      }
+    }
+
+    function updateClockAndETA() {
+      const now = new Date();
+      document.getElementById("activeClock").innerText = now.toTimeString().split(' ')[0];
+
+      if (!state.isTripActive) {
+        updateDepartureSchedule();
+        return;
+      }
+
+      const stops = getActiveStops();
+      const startObj = stops.find(s => s.id === state.startStopId);
+      const endObj = stops.find(s => s.id === state.endStopId);
+      const currObj = stops[state.currentStopIndex];
+
+      const endIndex = stops.findIndex(s => s.id === state.endStopId);
+      const stopsRemaining = endIndex - state.currentStopIndex;
+
+      const dropBanner = document.getElementById("dropAlertBanner");
+      const dropIcon = document.getElementById("dropAlertIcon");
+      const dropTitle = document.getElementById("dropAlertTitle");
+      const dropDesc = document.getElementById("dropAlertDesc");
+
+      if (stopsRemaining < 0) {
+        dropBanner.style.borderColor = "var(--danger)";
+        dropBanner.style.background = "rgba(248, 113, 113, 0.15)";
+        dropIcon.innerText = "🚨";
+        dropTitle.innerText = "¡Te pasaste de tu parada!";
+        dropTitle.style.color = "var(--danger)";
+        dropDesc.innerText = `Pasaste tu destino (${endObj.name}). Solicita la parada inmediatamente.`;
+      } else if (stopsRemaining === 0) {
+        dropBanner.style.borderColor = "var(--success)";
+        dropBanner.style.background = "rgba(52, 211, 153, 0.15)";
+        dropIcon.innerText = "📍";
+        dropTitle.innerText = `Has llegado a tu destino (${endObj.name})`;
+        dropTitle.style.color = "var(--success)";
+        dropDesc.innerText = `Al bajarte o detenerte, el viaje se guardará automáticamente.`;
+      } else if (stopsRemaining === 1) {
+        dropBanner.style.borderColor = "var(--warning)";
+        dropBanner.style.background = "rgba(251, 191, 36, 0.15)";
+        dropIcon.innerText = "⚠️";
+        dropTitle.innerText = "¡Prepárate! Te bajas en la siguiente parada";
+        dropTitle.style.color = "var(--warning)";
+        dropDesc.innerText = `Siguiente Hito: ${endObj.name}`;
+      } else if (stopsRemaining === 2) {
+        dropBanner.style.borderColor = "var(--accent)";
+        dropBanner.style.background = "rgba(56, 189, 248, 0.15)";
+        dropIcon.innerText = "🔔";
+        dropTitle.innerText = "Te bajas en 2 paradas";
+        dropTitle.style.color = "var(--accent)";
+        dropDesc.innerText = `Destino: ${endObj.name}`;
+      } else if (stopsRemaining <= 5) {
+        dropBanner.style.borderColor = "var(--accent)";
+        dropBanner.style.background = "rgba(56, 189, 248, 0.1)";
+        dropIcon.innerText = "📢";
+        dropTitle.innerText = `Aviso: En ${stopsRemaining} paradas debes bajar`;
+        dropTitle.style.color = "var(--accent)";
+        dropDesc.innerText = `Destino: ${endObj.name}`;
+      } else {
+        dropBanner.style.borderColor = "var(--border)";
+        dropBanner.style.background = "#060911";
+        dropIcon.innerText = "🚌";
+        dropTitle.innerText = `En trayecto a ${endObj.name}`;
+        dropTitle.style.color = "var(--text)";
+        dropDesc.innerText = `Faltan ${stopsRemaining} paradas para tu destino.`;
+      }
+
+      const totalDist = Math.max(0.1, endObj.dist - startObj.dist);
+      const coveredDist = Math.max(0, currObj.dist - startObj.dist);
+      const progressPct = Math.min(100, Math.round((coveredDist / totalDist) * 100));
+
+      document.getElementById("activeNextStopName").innerText = currObj.name;
+      document.getElementById("activeTripProgress").innerText = `Progreso: ${progressPct}% (${coveredDist.toFixed(1)} / ${totalDist.toFixed(1)} km)`;
+
+      const elapsedMins = Math.max(1, (now - state.tripStartTime) / 60000);
+      state.avgSpeed = Math.round((coveredDist / (elapsedMins / 60)));
+      document.getElementById("gpsAvgSpeed").innerText = `${isNaN(state.avgSpeed) ? 0 : state.avgSpeed} km/h`;
+
+      const segmentMins = Math.round((now - state.lastStopCheckTime) / 60000);
+      document.getElementById("segmentTime").innerText = `${segmentMins} min`;
+
+      if (progressPct >= 50) {
+        document.getElementById("busEvaluationCard").classList.remove("hidden");
+      }
+
+      const diffMin = elapsedMins - (currObj.stdMin - startObj.stdMin);
+      const led = document.getElementById("trafficLed");
+      const title = document.getElementById("trafficTitle");
+      
+      if (diffMin <= -2) {
+        led.className = "led led-white"; title.innerText = "⚪ Adelantado a Destino";
+      } else if (diffMin <= 1) {
+        led.className = "led led-green"; title.innerText = "🟢 A la Hora (ETA Optimal)";
+      } else if (diffMin <= 5) {
+        led.className = "led led-yellow"; title.innerText = "🟡 Leve Atraso Global";
+      } else {
+        led.className = "led led-red"; title.innerText = "🔴 Muy Atrasado a Destino";
+      }
+    }
+
+    function saveBusReview() {
+      const plate = document.getElementById("inputBusPlate").value.trim().toUpperCase();
+      if (plate) {
+        state.busReviews[plate] = { date: new Date().toLocaleDateString(), review: "Máquina registrada recientemente" };
+        localStorage.setItem("busReviews", JSON.stringify(state.busReviews));
+        document.getElementById("previousBusReviewMsg").innerText = `✓ Guardada información de patente ${plate}`;
+      }
+    }
+
+    function cancelTrip() {
+      if (state.watchPositionId) navigator.geolocation.clearWatch(state.watchPositionId);
+      state.isTripActive = false;
+      saveActiveStateToStorage();
+      resetToSetupView();
+    }
+
+    function finishTrip() {
+      const stops = getActiveStops();
+      const startObj = stops.find(s => s.id === state.startStopId);
+      const endObj = stops.find(s => s.id === state.endStopId);
+
+      const kmTraveled = Math.max(0.1, endObj.dist - startObj.dist);
+      const totalMins = Math.max(1, Math.round((new Date() - state.tripStartTime) / 60000));
+
+      const carFuelCost = Math.round(kmTraveled * (1400 / 12));
+      const busFare = 1400;
+      const tripSavings = Math.max(0, carFuelCost - busFare);
+
+      const tripRecord = {
+        date: new Date().toISOString(),
+        km: kmTraveled,
+        mins: totalMins,
+        savings: tripSavings
+      };
+
+      state.tripHistory.push(tripRecord);
+      localStorage.setItem("tripHistory", JSON.stringify(state.tripHistory));
+
+      const hours = Math.floor(totalMins / 60);
+      const mins = Math.round(totalMins % 60);
+      const timeFormatted = `${String(hours).padStart(2,'0')}h:${String(mins).padStart(2,'0')}m`;
+
+      document.getElementById("modalGreeting").innerText = `Gracias ${state.userName} por registrar tu viaje.`;
+      document.getElementById("modalTripKm").innerText = `• Km recorridos: ${kmTraveled.toFixed(1)} km`;
+      document.getElementById("modalTripTime").innerText = `• Tiempo total: ${timeFormatted}`;
+      document.getElementById("modalTripSavings").innerText = `• Ahorro en este viaje: $${tripSavings.toLocaleString('es-CL')}`;
+
+      calculateAccumulatedStats();
+      document.getElementById("summaryModal").classList.add("active");
+
+      if (state.watchPositionId) navigator.geolocation.clearWatch(state.watchPositionId);
+      state.isTripActive = false;
+      saveActiveStateToStorage();
+    }
+
+    function calculateAccumulatedStats() {
+      const now = new Date();
+      let weekKm = 0, weekMins = 0, weekSavings = 0;
+      let monthKm = 0, monthMins = 0, monthSavings = 0;
+
+      state.tripHistory.forEach(trip => {
+        const d = new Date(trip.date);
+        const diffDays = (now - d) / (1000 * 3600 * 24);
+
+        if (diffDays <= 7) {
+          weekKm += trip.km;
+          weekMins += trip.mins;
+          weekSavings += trip.savings;
+        }
+        if (diffDays <= 30) {
+          monthKm += trip.km;
+          monthMins += trip.mins;
+          monthSavings += trip.savings;
+        }
+      });
+
+      const wH = Math.floor(weekMins / 60);
+      const wM = Math.round(weekMins % 60);
+      const wTime = `${String(wH).padStart(2,'0')}h:${String(wM).padStart(2,'0')}m`;
+
+      const mH = Math.floor(monthMins / 60);
+      const mM = Math.round(monthMins % 60);
+      const mTime = `${String(mH).padStart(2,'0')}h:${String(mM).padStart(2,'0')}m`;
+
+      document.getElementById("modalWeeklyStats").innerText = `Esta Semana: ${weekKm.toFixed(1)} km | ${wTime} | Ahorro: $${weekSavings.toLocaleString('es-CL')}`;
+      document.getElementById("modalMonthlyStats").innerText = `Este Mes: ${monthKm.toFixed(1)} km | ${mTime} | Ahorro: $${monthSavings.toLocaleString('es-CL')}`;
+    }
+
+    function resetToSetupView() {
+      document.getElementById("viewActive").classList.add("hidden");
+      document.getElementById("viewSetup").classList.remove("hidden");
+      document.getElementById("viewHistorySummary").classList.remove("hidden");
+      renderHistoryTable();
+      renderMetroMap();
+    }
+
+    function renderMetroMap() {
+      const container = document.getElementById("metroNodesContainer");
+      const lane = document.getElementById("metroBusesTopLane");
+      const userSegment = document.getElementById("metroUserSegment");
+      
+      container.innerHTML = ""; lane.innerHTML = "";
+
+      const stops = getActiveStops();
+      const totalDist = stops[stops.length - 1].dist;
+
+      const startIndex = stops.findIndex(s => s.id === state.startStopId);
+      const endIndex = stops.findIndex(s => s.id === state.endStopId);
+
+      const startObj = stops[startIndex >= 0 ? startIndex : 0];
+      const endObj = stops[endIndex >= 0 ? endIndex : stops.length - 1];
+
+      const startPct = (startObj.dist / totalDist) * 100;
+      const endPct = (endObj.dist / totalDist) * 100;
+
+      userSegment.classList.remove("hidden");
+      userSegment.style.left = `${startPct}%`;
+      userSegment.style.width = `${Math.abs(endPct - startPct)}%`;
+
+      stops.forEach((s, idx) => {
+        const node = document.createElement("div");
+        node.className = "metro-node";
+
+        if (s.id === state.startStopId || s.id === state.endStopId) node.classList.add("target");
+        if (state.isTripActive) {
+          if (idx < state.currentStopIndex) node.classList.add("visited");
+          if (idx === state.currentStopIndex) node.classList.add("active");
+        }
+
+        node.innerHTML = `
+          <div class="metro-circle"></div>
+          <div class="metro-label">${s.name}</div>
+        `;
+        container.appendChild(node);
+      });
+
+      const currStop = state.isTripActive ? stops[state.currentStopIndex] : startObj;
+      const pct = (currStop.dist / totalDist) * 100;
+      document.getElementById("metroLineFill").style.width = `${pct}%`;
+
+      const busMarker = document.createElement("div");
+      busMarker.className = "bus-icon-marker my-bus";
+      busMarker.style.left = `${pct}%`;
+      busMarker.innerHTML = `<div class="bus-tag">Tu Micro</div>🚌`;
+      lane.appendChild(busMarker);
+    }
+  </script>
+</body>
+</html>
