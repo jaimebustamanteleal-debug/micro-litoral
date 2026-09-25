@@ -1,4 +1,4 @@
-const CACHE_NAME = 'micro-litoral-v3';
+const CACHE_NAME = 'micro-litoral-v5';
 const ASSETS = [
   './',
   './index.html'
