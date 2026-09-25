@@ -122,7 +122,7 @@
       </div>
 
       <div style="background: #060911; padding: 12px; border-radius: 10px; border: 1px solid var(--border); text-align: center;">
-        <div style="font-size: 0.75rem; color: var(--muted);">Próxima Salida Estimada desde Origen</div>
+        <div style="font-size: 0.75rem; color: var(--muted);">Próxima Salida desde Origen (7:15 AM - 7:30 PM)</div>
         <div id="setupNextDepartureTime" style="font-size: 1.2rem; font-weight: 800; color: var(--accent); margin-top: 2px;">--:--</div>
         <div id="setupServiceStatus" style="font-size: 0.75rem; color: var(--warning); margin-top: 2px;"></div>
       </div>
@@ -132,7 +132,7 @@
 
     <div id="viewHistorySummary" class="card">
       <div class="card-title">
-        <span>📊 Historial & Tiempos Promedio</span>
+        <span>📊 Historial & Tiempos Registrados</span>
         <button class="btn btn-danger" id="btnResetHistory" style="width:auto; padding:4px 8px; font-size:0.7rem;">Resetear</button>
       </div>
 
@@ -152,14 +152,15 @@
       </div>
 
       <div style="margin-top: 6px;">
-        <label>Tiempo Promedio Estimado por Paradero:</label>
+        <label>Horarios Promedio Registrados por Paradero:</label>
         <div style="max-height: 180px; overflow-y: auto; background: #060911; border: 1px solid var(--border); border-radius: 8px; padding: 4px; margin-top: 4px;">
           <table class="avg-table">
             <thead>
               <tr>
-                <th>Hito / Paradero</th>
+                <th>Paradero</th>
                 <th>Dist.</th>
-                <th>Tiempo Est.</th>
+                <th>Est. Parada</th>
+                <th>Última Hora Marcada</th>
               </tr>
             </thead>
             <tbody id="avgStopsTableBody"></tbody>
@@ -291,12 +292,9 @@
   </div>
 
   <script>
-    // Registro para funcionamiento Offline
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('Soporte Offline Activo'))
-          .catch(err => console.log('Error asignando caché', err));
+        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
       });
     }
 
@@ -305,6 +303,7 @@
     }
 
     let savedStopsData = localStorage.getItem("learnedStopsCoordinates");
+    let savedTimeLogs = JSON.parse(localStorage.getItem("stopTimeLogs") || "{}");
     
     const INITIAL_STOPS = [
       { id: "el_yeco", name: "El Yeco", dist: 0, stdMin: 0, lat: -33.3280, lng: -71.6600 },
@@ -424,10 +423,12 @@
       document.getElementById("btnFinishTrip").addEventListener("click", finishTrip);
 
       document.getElementById("btnResetHistory").addEventListener("click", () => {
-        if (confirm("¿Resetear historial de viajes guardados?")) {
+        if (confirm("¿Resetear historial de viajes e historial de horarios?")) {
           localStorage.removeItem("tripHistory");
           localStorage.removeItem("learnedStopsCoordinates");
+          localStorage.removeItem("stopTimeLogs");
           ROUTE_STOPS = INITIAL_STOPS;
+          savedTimeLogs = {};
           state.tripHistory = [];
           renderHistoryTable();
         }
@@ -480,11 +481,13 @@
       document.getElementById("histTotalKm").innerText = `${totalKm.toFixed(1)} km`;
 
       stops.forEach(s => {
+        const lastLoggedTime = savedTimeLogs[s.id] || "--:--";
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td><b>${s.name}</b></td>
           <td>${s.dist} km</td>
           <td>~${s.stdMin} min</td>
+          <td style="color:var(--accent); font-weight:700;">${lastLoggedTime}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -521,15 +524,19 @@
     function updateDepartureSchedule() {
       const now = new Date();
       const currentMinOfDay = now.getHours() * 60 + now.getMinutes();
-      const lastBusMin = 19 * 60;
+      const startMinBus = 7 * 60 + 15; // 7:15 AM
+      const lastMinBus = 19 * 60 + 30;  // 7:30 PM
 
-      if (currentMinOfDay > lastBusMin + 120) {
-        document.getElementById("setupServiceStatus").innerText = "⚠️ No hay más salidas por hoy";
+      if (currentMinOfDay < startMinBus) {
+        document.getElementById("setupServiceStatus").innerText = "⏰ Próximo primer bus a las 07:15 hrs";
+        document.getElementById("setupNextDepartureTime").innerText = "07:15 hrs";
+      } else if (currentMinOfDay > lastMinBus) {
+        document.getElementById("setupServiceStatus").innerText = "⚠️ Fuera de horario (Salidas hasta las 19:30 hrs)";
         document.getElementById("setupNextDepartureTime").innerText = "--:--";
       } else {
-        document.getElementById("setupServiceStatus").innerText = "";
-        let nextMin = 7 * 60;
-        while (nextMin <= currentMinOfDay && nextMin <= lastBusMin) nextMin += 15;
+        document.getElementById("setupServiceStatus").innerText = "🟢 Servicio Frecuente activo (cada 15 min)";
+        let nextMin = startMinBus;
+        while (nextMin <= currentMinOfDay && nextMin <= lastMinBus) nextMin += 15;
         
         const h = Math.floor(nextMin / 60);
         const m = nextMin % 60;
@@ -550,6 +557,9 @@
       const startIndex = stops.findIndex(s => s.id === state.startStopId);
       state.currentStopIndex = startIndex !== -1 ? startIndex : 0;
 
+      // GUARDAR REGISTRO DE HORA
+      recordStopTime(stops[state.currentStopIndex].id);
+
       document.getElementById("viewSetup").classList.add("hidden");
       document.getElementById("viewHistorySummary").classList.add("hidden");
       document.getElementById("viewActive").classList.remove("hidden");
@@ -557,6 +567,12 @@
       saveActiveStateToStorage();
       initGPS();
       renderMetroMap();
+    }
+
+    function recordStopTime(stopId) {
+      const timeStr = new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+      savedTimeLogs[stopId] = timeStr;
+      localStorage.setItem("stopTimeLogs", JSON.stringify(savedTimeLogs));
     }
 
     function calculateDistanceKm(lat1, lon1, lat2, lon2) {
@@ -641,6 +657,8 @@
           localStorage.setItem("learnedStopsCoordinates", JSON.stringify(ROUTE_STOPS));
         }
       }
+
+      recordStopTime(currStop.id);
 
       const endIndex = stops.findIndex(s => s.id === state.endStopId);
 
@@ -773,6 +791,8 @@
       const stops = getActiveStops();
       const startObj = stops.find(s => s.id === state.startStopId);
       const endObj = stops.find(s => s.id === state.endStopId);
+
+      recordStopTime(endObj.id);
 
       const kmTraveled = Math.max(0.1, endObj.dist - startObj.dist);
       const totalMins = Math.max(1, Math.round((new Date() - state.tripStartTime) / 60000));
