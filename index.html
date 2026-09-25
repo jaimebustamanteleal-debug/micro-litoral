@@ -79,6 +79,8 @@
     .led-yellow { background: #fbbf24; color: #fbbf24; }
     .led-red { background: #f87171; color: #f87171; }
 
+    .fun-fact-banner { background: linear-gradient(135deg, rgba(192, 132, 252, 0.15), rgba(56, 189, 248, 0.15)); border: 1px solid var(--purple); border-radius: 12px; padding: 12px; display: flex; gap: 10px; align-items: flex-start; }
+
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
     .modal-overlay.active { opacity: 1; pointer-events: auto; }
     .modal-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 20px; width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
@@ -105,8 +107,8 @@
       <div>
         <label>Sentido:</label>
         <select id="selectDirection">
-          <option value="IDA">IDA: El Yeco ➔ Tejas (Izquierda a Derecha)</option>
-          <option value="VUELTA">VUELTA: Tejas ➔ El Yeco (Derecha a Izquierda)</option>
+          <option value="IDA">IDA: El Yeco ➔ Tejas</option>
+          <option value="VUELTA">VUELTA: Tejas ➔ El Yeco</option>
         </select>
       </div>
 
@@ -122,9 +124,17 @@
       </div>
 
       <div style="background: #060911; padding: 12px; border-radius: 10px; border: 1px solid var(--border); text-align: center;">
-        <div style="font-size: 0.75rem; color: var(--muted);">Próxima Salida desde Origen (7:15 AM - 7:30 PM)</div>
-        <div id="setupNextDepartureTime" style="font-size: 1.2rem; font-weight: 800; color: var(--accent); margin-top: 2px;">--:--</div>
+        <div style="font-size: 0.75rem; color: var(--muted);">Próxima Salida (7:15 AM - 7:30 PM)</div>
+        <div id="setupNextDepartureMinutes" style="font-size: 1.3rem; font-weight: 800; color: var(--accent); margin-top: 2px;">En -- min</div>
         <div id="setupServiceStatus" style="font-size: 0.75rem; color: var(--warning); margin-top: 2px;"></div>
+      </div>
+
+      <div style="background: #060911; padding: 12px; border-radius: 10px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div id="fareLabelType" style="font-size: 0.7rem; color: var(--muted); font-weight: 700;">Valor del Pasaje:</div>
+          <div id="fareDisplayValue" style="font-size: 1.2rem; font-weight: 800; color: var(--success);">$0</div>
+        </div>
+        <div style="font-size: 0.7rem; color: var(--muted); text-align: right; max-width: 150px;" id="fareHelpMsg">Valor prefijado según tarifa del tramo</div>
       </div>
 
       <button class="btn" id="btnStartTrip">🚀 Iniciar Viaje con GPS</button>
@@ -154,6 +164,176 @@
       <div style="margin-top: 6px;">
         <label>Horarios Promedio Registrados por Paradero:</label>
         <div style="max-height: 180px; overflow-y: auto; background: #060911; border: 1px solid var(--border); border-radius: 8px; padding: 4px; margin-top: 4px;">
+          <table class="avg-table">
+            <thead>
+              <tr>
+                <th>Paradero</th>
+                <th>Dist.</th>
+                <th>Est. Parada</th>
+                <th>Última Hora Marcada</th>
+              </tr>
+            </thead>
+            <tbody id="avgStopsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="viewActive" class="card hidden">
+      <div class="card-title">
+        <span id="activeNextStopHeader">Próxima Parada</span>
+        <span id="activeClock" style="color: var(--muted); font-size: 0.8rem;">00:00:00</span>
+      </div>
+
+      <div style="text-align: center; margin: 4px 0;">
+        <div style="font-size: 0.75rem; color: var(--muted);">Próximo Hito:</div>
+        <div id="activeNextStopName" style="font-size: 1.3rem; font-weight: 800; color: var(--accent);">---</div>
+        <div id="activeTripProgress" style="font-size: 0.8rem; color: var(--purple); font-weight: 700; margin-top: 2px;">Progreso: 0% (0.0 / 0.0 km)</div>
+      </div>
+
+      <!-- BANNER DE DATOS CURIOSOS -->
+      <div id="funFactBanner" class="fun-fact-banner hidden">
+        <span style="font-size: 1.3rem;">💡</span>
+        <div>
+          <div style="font-size: 0.75rem; font-weight: 800; color: var(--purple);" id="funFactTitle">¿Sabías que...?</div>
+          <div style="font-size: 0.72rem; color: var(--text); margin-top: 2px;" id="funFactText">---</div>
+        </div>
+      </div>
+
+      <!-- BANNER TRIVIA -->
+      <div id="triviaBanner" class="status-banner hidden" style="border-color: var(--purple); background: rgba(192, 132, 252, 0.15); cursor: pointer;">
+        <span style="font-size: 1.3rem;">🧩</span>
+        <div>
+          <div style="font-size: 0.85rem; font-weight: 800; color: var(--purple);">¡Desafío del Litoral!</div>
+          <div style="font-size: 0.72rem; color: var(--text);">Toca aquí para responder 3 preguntas sobre los datos curiosos de tu viaje.</div>
+        </div>
+      </div>
+
+      <div id="dropAlertBanner" class="status-banner" style="border-color: var(--success); background: rgba(52, 211, 153, 0.1);">
+        <span id="dropAlertIcon" style="font-size: 1.2rem;">🔔</span>
+        <div>
+          <div id="dropAlertTitle" style="font-size: 0.85rem; font-weight: 700; color: var(--success);">Calculando parada de bajada...</div>
+          <div id="dropAlertDesc" style="font-size: 0.72rem; color: var(--text);">Te notificaremos cuando queden pocas paradas.</div>
+        </div>
+      </div>
+
+      <div id="offRouteBanner" class="status-banner hidden" style="border-color: var(--danger); background: rgba(248, 113, 113, 0.1);">
+        <span style="font-size: 1.2rem;">📍⚠️</span>
+        <div>
+          <div style="font-size: 0.85rem; font-weight: 700; color: var(--danger);">Fuera de la Ruta</div>
+          <div style="font-size: 0.72rem; color: var(--text);">Acércate a una parada costera para retomar el seguimiento.</div>
+        </div>
+      </div>
+
+      <div class="status-banner">
+        <div id="trafficLed" class="led led-green"></div>
+        <div>
+          <div id="trafficTitle" style="font-size: 0.85rem; font-weight: 700;">A la hora (ETA Global)</div>
+          <div id="trafficDesc" style="font-size: 0.75rem; color: var(--muted);">Llegada est. a destino final: --:--</div>
+        </div>
+      </div>
+
+      <div id="specialStatusBanner" class="status-banner hidden" style="border-color: var(--warning);">
+        <span style="font-size: 1.2rem;">🛑</span>
+        <div>
+          <div id="specialStatusTitle" style="font-size: 0.85rem; font-weight: 700; color: var(--warning);">Esperando Pasajeros</div>
+          <div style="font-size: 0.72rem; color: var(--muted);">Pausa detectada en paradero principal.</div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center;">
+        <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
+          <div id="gpsCurrentSpeed" style="font-size: 1rem; font-weight: 800; color: var(--accent);">0 km/h</div>
+          <div style="font-size: 0.65rem; color: var(--muted);">Vel. Actual</div>
+        </div>
+        <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
+          <div id="gpsAvgSpeed" style="font-size: 1rem; font-weight: 800; color: var(--success);">0 km/h</div>
+          <div style="font-size: 0.65rem; color: var(--muted);">Vel. Promedio</div>
+        </div>
+        <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
+          <div id="segmentTime" style="font-size: 1rem; font-weight: 800; color: var(--warning);">0 min</div>
+          <div style="font-size: 0.65rem; color: var(--muted);">Tiempo Tramo</div>
+        </div>
+      </div>
+
+      <div>
+        <label>Ocupación de la Micro:</label>
+        <div class="capacity-grid" style="margin-top: 4px;">
+          <div class="cap-item active" data-cap="DESOCUPADO">🟢 Desocupado</div>
+          <div class="cap-item" data-cap="SIN_ASIENTOS">🟡 Sin Asientos</div>
+          <div class="cap-item" data-cap="PASILLO_LLENO">🟠 Pasillo Lleno</div>
+          <div class="cap-item" data-cap="COLAPSADO">🔴 Colapsado</div>
+        </div>
+      </div>
+
+      <div id="busEvaluationCard" class="card hidden" style="background: #060911; padding: 10px;">
+        <div style="font-size: 0.78rem; font-weight: 700; color: var(--purple);">🚌 Registrar y Calificar Máquina (> 50% trayecto)</div>
+        <div style="display: flex; gap: 6px; margin-top: 6px;">
+          <input type="text" id="inputBusPlate" placeholder="Patente (Ej: BJFW12)" style="padding: 6px; font-size: 0.8rem; text-transform: uppercase;">
+          <button class="btn btn-secondary" id="btnSaveBusReview" style="padding: 6px 10px; font-size: 0.75rem; width: auto;">Guardar</button>
+        </div>
+        <div id="previousBusReviewMsg" style="font-size: 0.7rem; color: var(--success); margin-top: 4px;"></div>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 4px;">
+        <button class="btn btn-secondary" id="btnManualMark" style="font-size: 0.8rem; padding: 10px;">📍 Marcar Manual</button>
+        <button class="btn btn-danger" id="btnCancelTrip" style="font-size: 0.8rem; padding: 10px;">❌ Cancelar</button>
+        <button class="btn btn-secondary" id="btnFinishTrip" style="font-size: 0.8rem; padding: 10px;">🏁 Terminar</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🗺️ Esquema de Ruta (Metro)</div>
+      <div class="metro-container">
+        <div class="metro-track-wrapper">
+          <div id="metroBusesTopLane" class="metro-buses-top-lane"></div>
+          <div class="metro-line-bg"></div>
+          <div id="metroUserSegment" class="metro-user-segment hidden"></div>
+          <div id="metroLineFill" class="metro-line-fill"></div>
+          <div id="metroNodesContainer" class="metro-stations"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MODAL DE CONFIRMACIÓN DE TARIFA AL ABORDAR -->
+  <div class="modal-overlay" id="boardFareModal">
+    <div class="modal-card">
+      <h3 style="color: var(--warning); text-align: center; font-size: 1.1rem;">🚌 Confirmar Pasaje al Abordar</h3>
+      <p style="font-size: 0.82rem; text-align: center; color: var(--text);">Estás subiendo a la micro. ¿Cuánto te cobró el chofer exactamente?</p>
+
+      <div style="background: #060911; padding: 12px; border-radius: 12px; border: 1px solid var(--border);">
+        <label>Monto Pagado ($):</label>
+        <input type="number" id="inputBoardFare" style="font-size: 1.2rem; font-weight: 800; color: var(--success); text-align: center; margin-top: 4px;">
+      </div>
+
+      <button class="btn" id="btnConfirmBoardFare">✅ Guardar y Continuar Viaje</button>
+    </div>
+  </div>
+
+  <!-- MODAL TRIVIA -->
+  <div class="modal-overlay" id="triviaModal">
+    <div class="modal-card">
+      <h3 style="color: var(--purple); text-align: center; font-size: 1.1rem;">🧩 Trivia del Litoral Central</h3>
+      <p style="font-size: 0.8rem; text-align: center; color: var(--muted);" id="triviaProgressMsg">Pregunta 1 de 3</p>
+
+      <div style="background: #060911; padding: 12px; border-radius: 12px; border: 1px solid var(--border);">
+        <div style="font-size: 0.85rem; font-weight: 700; color: var(--text);" id="triviaQuestionText">¿Pregunta?</div>
+        <div id="triviaOptionsContainer" style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;"></div>
+      </div>
+
+      <button class="btn btn-secondary" id="btnCloseTrivia">Cerrar Trivia</button>
+    </div>
+  </div>
+
+  <!-- MODAL RESUMEN VIAJE -->
+  <div class="modal-overlay" id="summaryModal">
+    <div class="modal-card">
+      <h3 style="color: var(--success); text-align: center; font-size: 1.1rem;">🎉 ¡Viaje Exitoso!</h3>
+      <p style="text-align: center; font-size: 0.9rem; font-weight: 600;" id="modalGreeting">Gracias, Pasajero por registrar tu viaje.</p>
+
+      <div style="background: #060911; padding: 12px; border-radius: 12px; borderpx solid var(--border); border-radius: 8px; padding: 4px; margin-top: 4px;">
           <table class="avg-table">
             <thead>
               <tr>
