@@ -74,10 +74,7 @@
 
     .status-banner { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 12px; background: #060911; border: 1px solid var(--border); transition: all 0.3s ease; }
     .led { width: 14px; height: 14px; border-radius: 50%; box-shadow: 0 0 8px currentColor; flex-shrink: 0; }
-    .led-white { background: #fff; color: #fff; }
     .led-green { background: #34d399; color: #34d399; }
-    .led-yellow { background: #fbbf24; color: #fbbf24; }
-    .led-red { background: #f87171; color: #f87171; }
 
     .fun-fact-banner { background: linear-gradient(135deg, rgba(192, 132, 252, 0.15), rgba(56, 189, 248, 0.15)); border: 1px solid var(--purple); border-radius: 12px; padding: 12px; display: flex; gap: 10px; align-items: flex-start; }
 
@@ -95,6 +92,25 @@
       <h1 id="headerGreeting">Hola, Pasajero</h1>
       <p id="headerSub">Monitoreo Litoral Central (GPS)</p>
     </header>
+
+    <!-- BANNER DE AHORRO ACUMULADO AUTO VS BUS -->
+    <div class="card" style="background: rgba(52, 211, 153, 0.08); border-color: rgba(52, 211, 153, 0.3);">
+      <div class="card-title" style="color: var(--success);">💰 Ahorro Acumulado (Vs. Auto)</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center; margin-top: 2px;">
+        <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
+          <div id="savingsToday" style="font-size: 0.95rem; font-weight: 800; color: var(--success);">$0</div>
+          <div style="font-size: 0.65rem; color: var(--muted);">Hoy</div>
+        </div>
+        <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
+          <div id="savingsWeek" style="font-size: 0.95rem; font-weight: 800; color: var(--accent);">$0</div>
+          <div style="font-size: 0.65rem; color: var(--muted);">Esta Semana</div>
+        </div>
+        <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
+          <div id="savingsMonth" style="font-size: 0.95rem; font-weight: 800; color: var(--purple);">$0</div>
+          <div style="font-size: 0.65rem; color: var(--muted);">Este Mes</div>
+        </div>
+      </div>
+    </div>
 
     <div id="viewSetup" class="card">
       <div class="card-title">⚙️ Planificar Trayecto</div>
@@ -124,17 +140,9 @@
       </div>
 
       <div style="background: #060911; padding: 12px; border-radius: 10px; border: 1px solid var(--border); text-align: center;">
-        <div style="font-size: 0.75rem; color: var(--muted);">Próxima Salida (7:15 AM - 7:30 PM)</div>
+        <div style="font-size: 0.75rem; color: var(--muted);">Próximo Bus en Paradero Origina:</div>
         <div id="setupNextDepartureMinutes" style="font-size: 1.3rem; font-weight: 800; color: var(--accent); margin-top: 2px;">En -- min</div>
         <div id="setupServiceStatus" style="font-size: 0.75rem; color: var(--warning); margin-top: 2px;"></div>
-      </div>
-
-      <div style="background: #060911; padding: 12px; border-radius: 10px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
-        <div>
-          <div id="fareLabelType" style="font-size: 0.7rem; color: var(--muted); font-weight: 700;">Valor del Pasaje:</div>
-          <div id="fareDisplayValue" style="font-size: 1.2rem; font-weight: 800; color: var(--success);">$0</div>
-        </div>
-        <div style="font-size: 0.7rem; color: var(--muted); text-align: right; max-width: 150px;" id="fareHelpMsg">Valor prefijado según tarifa del tramo</div>
       </div>
 
       <button class="btn" id="btnStartTrip">🚀 Iniciar Viaje con GPS</button>
@@ -181,31 +189,29 @@
 
     <div id="viewActive" class="card hidden">
       <div class="card-title">
-        <span id="activeNextStopHeader">Próxima Parada</span>
+        <span>📍 Estado del Trayecto</span>
         <span id="activeClock" style="color: var(--muted); font-size: 0.8rem;">00:00:00</span>
       </div>
 
-      <div style="text-align: center; margin: 4px 0;">
-        <div style="font-size: 0.75rem; color: var(--muted);">Próximo Hito:</div>
-        <div id="activeNextStopName" style="font-size: 1.3rem; font-weight: 800; color: var(--accent);">---</div>
-        <div id="activeTripProgress" style="font-size: 0.8rem; color: var(--purple); font-weight: 700; margin-top: 2px;">Progreso: 0% (0.0 / 0.0 km)</div>
-      </div>
-
-      <!-- BANNER DE DATOS CURIOSOS -->
-      <div id="funFactBanner" class="fun-fact-banner hidden">
-        <span style="font-size: 1.3rem;">💡</span>
+      <!-- DESGLOSE DE ESTACIÓN ACTUAL Y PRÓXIMA PARADA -->
+      <div style="background: #060911; border: 1px solid var(--border); padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 8px;">
         <div>
-          <div style="font-size: 0.75rem; font-weight: 800; color: var(--purple);" id="funFactTitle">¿Sabías que...?</div>
-          <div style="font-size: 0.72rem; color: var(--text); margin-top: 2px;" id="funFactText">---</div>
+          <div style="font-size: 0.7rem; color: var(--muted); font-weight: 700;">📍 ESTACIÓN ACTUAL:</div>
+          <div id="activeCurrentStopName" style="font-size: 1.2rem; font-weight: 800; color: var(--success);">---</div>
         </div>
+        <div style="border-top: 1px dashed var(--border); pt: 6px;">
+          <div style="font-size: 0.7rem; color: var(--muted); font-weight: 700; margin-top: 4px;">➡️ PRÓXIMA PARADA:</div>
+          <div id="activeNextStopName" style="font-size: 1.1rem; font-weight: 800; color: var(--accent);">---</div>
+        </div>
+        <div id="activeTripProgress" style="font-size: 0.75rem; color: var(--purple); font-weight: 700; margin-top: 2px;">Progreso: 0% (0.0 / 0.0 km)</div>
       </div>
 
-      <!-- BANNER TRIVIA -->
-      <div id="triviaBanner" class="status-banner hidden" style="border-color: var(--purple); background: rgba(192, 132, 252, 0.15); cursor: pointer;">
-        <span style="font-size: 1.3rem;">🧩</span>
+      <!-- ETA INTELIGENTE PARADERO A PARADERO -->
+      <div class="status-banner">
+        <div class="led led-green"></div>
         <div>
-          <div style="font-size: 0.85rem; font-weight: 800; color: var(--purple);">¡Desafío del Litoral!</div>
-          <div style="font-size: 0.72rem; color: var(--text);">Toca aquí para responder 3 preguntas sobre los datos curiosos de tu viaje.</div>
+          <div id="trafficTitle" style="font-size: 0.85rem; font-weight: 700;">ETA Estimado a Destino</div>
+          <div id="trafficDesc" style="font-size: 0.75rem; color: var(--muted);">Llegas a las --:-- (Faltan -- min)</div>
         </div>
       </div>
 
@@ -222,22 +228,6 @@
         <div>
           <div style="font-size: 0.85rem; font-weight: 700; color: var(--danger);">Fuera de la Ruta</div>
           <div style="font-size: 0.72rem; color: var(--text);">Acércate a una parada costera para retomar el seguimiento.</div>
-        </div>
-      </div>
-
-      <div class="status-banner">
-        <div id="trafficLed" class="led led-green"></div>
-        <div>
-          <div id="trafficTitle" style="font-size: 0.85rem; font-weight: 700;">A la hora (ETA Global)</div>
-          <div id="trafficDesc" style="font-size: 0.75rem; color: var(--muted);">Llegada est. a destino final: --:--</div>
-        </div>
-      </div>
-
-      <div id="specialStatusBanner" class="status-banner hidden" style="border-color: var(--warning);">
-        <span style="font-size: 1.2rem;">🛑</span>
-        <div>
-          <div id="specialStatusTitle" style="font-size: 0.85rem; font-weight: 700; color: var(--warning);">Esperando Pasajeros</div>
-          <div style="font-size: 0.72rem; color: var(--muted);">Pausa detectada en paradero principal.</div>
         </div>
       </div>
 
@@ -266,15 +256,6 @@
         </div>
       </div>
 
-      <div id="busEvaluationCard" class="card hidden" style="background: #060911; padding: 10px;">
-        <div style="font-size: 0.78rem; font-weight: 700; color: var(--purple);">🚌 Registrar y Calificar Máquina (> 50% trayecto)</div>
-        <div style="display: flex; gap: 6px; margin-top: 6px;">
-          <input type="text" id="inputBusPlate" placeholder="Patente (Ej: BJFW12)" style="padding: 6px; font-size: 0.8rem; text-transform: uppercase;">
-          <button class="btn btn-secondary" id="btnSaveBusReview" style="padding: 6px 10px; font-size: 0.75rem; width: auto;">Guardar</button>
-        </div>
-        <div id="previousBusReviewMsg" style="font-size: 0.7rem; color: var(--success); margin-top: 4px;"></div>
-      </div>
-
       <div style="display: flex; gap: 8px; margin-top: 4px;">
         <button class="btn btn-secondary" id="btnManualMark" style="font-size: 0.8rem; padding: 10px;">📍 Marcar Manual</button>
         <button class="btn btn-danger" id="btnCancelTrip" style="font-size: 0.8rem; padding: 10px;">❌ Cancelar</button>
@@ -297,177 +278,21 @@
 
   </div>
 
-  <!-- MODAL DE CONFIRMACIÓN DE TARIFA AL ABORDAR -->
-  <div class="modal-overlay" id="boardFareModal">
-    <div class="modal-card">
-      <h3 style="color: var(--warning); text-align: center; font-size: 1.1rem;">🚌 Confirmar Pasaje al Abordar</h3>
-      <p style="font-size: 0.82rem; text-align: center; color: var(--text);">Estás subiendo a la micro. ¿Cuánto te cobró el chofer exactamente?</p>
-
-      <div style="background: #060911; padding: 12px; border-radius: 12px; border: 1px solid var(--border);">
-        <label>Monto Pagado ($):</label>
-        <input type="number" id="inputBoardFare" style="font-size: 1.2rem; font-weight: 800; color: var(--success); text-align: center; margin-top: 4px;">
-      </div>
-
-      <button class="btn" id="btnConfirmBoardFare">✅ Guardar y Continuar Viaje</button>
-    </div>
-  </div>
-
-  <!-- MODAL TRIVIA -->
-  <div class="modal-overlay" id="triviaModal">
-    <div class="modal-card">
-      <h3 style="color: var(--purple); text-align: center; font-size: 1.1rem;">🧩 Trivia del Litoral Central</h3>
-      <p style="font-size: 0.8rem; text-align: center; color: var(--muted);" id="triviaProgressMsg">Pregunta 1 de 3</p>
-
-      <div style="background: #060911; padding: 12px; border-radius: 12px; border: 1px solid var(--border);">
-        <div style="font-size: 0.85rem; font-weight: 700; color: var(--text);" id="triviaQuestionText">¿Pregunta?</div>
-        <div id="triviaOptionsContainer" style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;"></div>
-      </div>
-
-      <button class="btn btn-secondary" id="btnCloseTrivia">Cerrar Trivia</button>
-    </div>
-  </div>
-
-  <!-- MODAL RESUMEN VIAJE -->
+  <!-- MODAL RESUMEN VIAJE COMPLETO CON REGENERACIÓN -->
   <div class="modal-overlay" id="summaryModal">
     <div class="modal-card">
-      <h3 style="color: var(--success); text-align: center; font-size: 1.1rem;">🎉 ¡Viaje Exitoso!</h3>
-      <p style="text-align: center; font-size: 0.9rem; font-weight: 600;" id="modalGreeting">Gracias, Pasajero por registrar tu viaje.</p>
+      <h3 style="color: var(--success); text-align: center; font-size: 1.1rem;">🎉 ¡Viaje Finalizado!</h3>
+      <p style="text-align: center; font-size: 0.85rem; font-weight: 600;" id="modalGreeting">Resumen de tu trayecto.</p>
 
-      <div style="background: #060911; padding: 12px; border-radius: 12px; borderpx solid var(--border); border-radius: 8px; padding: 4px; margin-top: 4px;">
-          <table class="avg-table">
-            <thead>
-              <tr>
-                <th>Paradero</th>
-                <th>Dist.</th>
-                <th>Est. Parada</th>
-                <th>Última Hora Marcada</th>
-              </tr>
-            </thead>
-            <tbody id="avgStopsTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <div id="viewActive" class="card hidden">
-      <div class="card-title">
-        <span id="activeNextStopHeader">Próxima Parada</span>
-        <span id="activeClock" style="color: var(--muted); font-size: 0.8rem;">00:00:00</span>
+      <div style="background: #060911; padding: 12px; border-radius: 12px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px;">
+        <div style="font-size: 0.8rem; font-weight: 800; color: var(--accent); margin-bottom: 4px;">📊 Estadísticas de este Viaje:</div>
+        <div style="font-size: 0.82rem;" id="modalTripKm">• Distancia: 0 km</div>
+        <div style="font-size: 0.82rem;" id="modalTripTime">• Tiempo total: 00 min</div>
+        <div style="font-size: 0.82rem;" id="modalTripAvgSpeed">• Vel. Promedio: 0 km/h</div>
+        <div style="font-size: 0.85rem; margin-top: 4px; font-weight: 800; color: var(--success);" id="modalTripSavings">• Ahorro Neto (vs. Auto): $0</div>
       </div>
 
-      <div style="text-align: center; margin: 4px 0;">
-        <div style="font-size: 0.75rem; color: var(--muted);">Próximo Hito:</div>
-        <div id="activeNextStopName" style="font-size: 1.3rem; font-weight: 800; color: var(--accent);">---</div>
-        <div id="activeTripProgress" style="font-size: 0.8rem; color: var(--purple); font-weight: 700; margin-top: 2px;">Progreso: 0% (0.0 / 0.0 km)</div>
-      </div>
-
-      <div id="dropAlertBanner" class="status-banner" style="border-color: var(--success); background: rgba(52, 211, 153, 0.1);">
-        <span id="dropAlertIcon" style="font-size: 1.2rem;">🔔</span>
-        <div>
-          <div id="dropAlertTitle" style="font-size: 0.85rem; font-weight: 700; color: var(--success);">Calculando parada de bajada...</div>
-          <div id="dropAlertDesc" style="font-size: 0.72rem; color: var(--text);">Te notificaremos cuando queden pocas paradas.</div>
-        </div>
-      </div>
-
-      <div id="offRouteBanner" class="status-banner hidden" style="border-color: var(--danger); background: rgba(248, 113, 113, 0.1);">
-        <span style="font-size: 1.2rem;">📍⚠️</span>
-        <div>
-          <div style="font-size: 0.85rem; font-weight: 700; color: var(--danger);">Fuera de la Ruta</div>
-          <div style="font-size: 0.72rem; color: var(--text);">Acércate a una parada costera para retomar el seguimiento.</div>
-        </div>
-      </div>
-
-      <div class="status-banner">
-        <div id="trafficLed" class="led led-green"></div>
-        <div>
-          <div id="trafficTitle" style="font-size: 0.85rem; font-weight: 700;">A la hora (ETA Global)</div>
-          <div id="trafficDesc" style="font-size: 0.75rem; color: var(--muted);">Llegada est. a destino final: --:--</div>
-        </div>
-      </div>
-
-      <div id="specialStatusBanner" class="status-banner hidden" style="border-color: var(--warning);">
-        <span style="font-size: 1.2rem;">🛑</span>
-        <div>
-          <div id="specialStatusTitle" style="font-size: 0.85rem; font-weight: 700; color: var(--warning);">Esperando Pasajeros</div>
-          <div style="font-size: 0.72rem; color: var(--muted);">Pausa detectada en paradero principal.</div>
-        </div>
-      </div>
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center;">
-        <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
-          <div id="gpsCurrentSpeed" style="font-size: 1rem; font-weight: 800; color: var(--accent);">0 km/h</div>
-          <div style="font-size: 0.65rem; color: var(--muted);">Vel. Actual</div>
-        </div>
-        <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
-          <div id="gpsAvgSpeed" style="font-size: 1rem; font-weight: 800; color: var(--success);">0 km/h</div>
-          <div style="font-size: 0.65rem; color: var(--muted);">Vel. Promedio</div>
-        </div>
-        <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
-          <div id="segmentTime" style="font-size: 1rem; font-weight: 800; color: var(--warning);">0 min</div>
-          <div style="font-size: 0.65rem; color: var(--muted);">Tiempo Tramo</div>
-        </div>
-      </div>
-
-      <div>
-        <label>Ocupación de la Micro:</label>
-        <div class="capacity-grid" style="margin-top: 4px;">
-          <div class="cap-item active" data-cap="DESOCUPADO">🟢 Desocupado</div>
-          <div class="cap-item" data-cap="SIN_ASIENTOS">🟡 Sin Asientos</div>
-          <div class="cap-item" data-cap="PASILLO_LLENO">🟠 Pasillo Lleno</div>
-          <div class="cap-item" data-cap="COLAPSADO">🔴 Colapsado</div>
-        </div>
-      </div>
-
-      <div id="busEvaluationCard" class="card hidden" style="background: #060911; padding: 10px;">
-        <div style="font-size: 0.78rem; font-weight: 700; color: var(--purple);">🚌 Registrar y Calificar Máquina (> 50% trayecto)</div>
-        <div style="display: flex; gap: 6px; margin-top: 6px;">
-          <input type="text" id="inputBusPlate" placeholder="Patente (Ej: BJFW12)" style="padding: 6px; font-size: 0.8rem; text-transform: uppercase;">
-          <button class="btn btn-secondary" id="btnSaveBusReview" style="padding: 6px 10px; font-size: 0.75rem; width: auto;">Guardar</button>
-        </div>
-        <div id="previousBusReviewMsg" style="font-size: 0.7rem; color: var(--success); margin-top: 4px;"></div>
-      </div>
-
-      <div style="display: flex; gap: 8px; margin-top: 4px;">
-        <button class="btn btn-secondary" id="btnManualMark" style="font-size: 0.8rem; padding: 10px;">📍 Marcar Manual</button>
-        <button class="btn btn-danger" id="btnCancelTrip" style="font-size: 0.8rem; padding: 10px;">❌ Cancelar</button>
-        <button class="btn btn-secondary" id="btnFinishTrip" style="font-size: 0.8rem; padding: 10px;">🏁 Terminar</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">🗺️ Esquema de Ruta (Metro)</div>
-      <div class="metro-container">
-        <div class="metro-track-wrapper">
-          <div id="metroBusesTopLane" class="metro-buses-top-lane"></div>
-          <div class="metro-line-bg"></div>
-          <div id="metroUserSegment" class="metro-user-segment hidden"></div>
-          <div id="metroLineFill" class="metro-line-fill"></div>
-          <div id="metroNodesContainer" class="metro-stations"></div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <div class="modal-overlay" id="summaryModal">
-    <div class="modal-card">
-      <h3 style="color: var(--success); text-align: center; font-size: 1.1rem;">🎉 ¡Viaje Exitoso!</h3>
-      <p style="text-align: center; font-size: 0.9rem; font-weight: 600;" id="modalGreeting">Gracias, Pasajero por registrar tu viaje.</p>
-
-      <div style="background: #060911; padding: 12px; border-radius: 12px; border: 1px solid var(--border);">
-        <div style="font-size: 0.8rem; font-weight: 800; color: var(--accent); margin-bottom: 6px;">📊 Datos de este Viaje:</div>
-        <div style="font-size: 0.82rem;" id="modalTripKm">• Km recorridos: 0 km</div>
-        <div style="font-size: 0.82rem; margin-top: 2px;" id="modalTripTime">• Tiempo total: 00h:00m</div>
-        <div style="font-size: 0.82rem; margin-top: 2px; font-weight: 700; color: var(--success);" id="modalTripSavings">• Ahorro en este viaje: $0</div>
-      </div>
-
-      <div style="background: #060911; padding: 12px; border-radius: 12px; border: 1px solid var(--border);">
-        <div style="font-size: 0.8rem; font-weight: 800; color: var(--purple); margin-bottom: 6px;">📅 Acumulado Periódico:</div>
-        <div style="font-size: 0.78rem;" id="modalWeeklyStats">Esta Semana: 0 km | 00h:00m | Ahorro: $0</div>
-        <div style="font-size: 0.78rem; margin-top: 4px;" id="modalMonthlyStats">Este Mes: 0 km | 00h:00m | Ahorro: $0</div>
-      </div>
-
-      <button class="btn" id="btnCloseSummary">Aceptar y Cerrar</button>
+      <button class="btn" id="btnCloseSummary">🔄 Volver al Inicio</button>
     </div>
   </div>
 
@@ -485,7 +310,6 @@
     let savedStopsData = localStorage.getItem("learnedStopsCoordinates");
     let savedTimeLogs = JSON.parse(localStorage.getItem("stopTimeLogs") || "{}");
     
-    // LISTA FIJA DE ESTACIONES (SIEMPRE EL YECO A LA IZQUIERDA Y TEJAS A LA DERECHA)
     const BASE_STOPS = [
       { id: "el_yeco", name: "El Yeco", dist: 0, stdMin: 0, lat: -33.3280, lng: -71.6600 },
       { id: "mirasol", name: "Mirasol", dist: 3.2, stdMin: 5, lat: -33.3450, lng: -71.6580 },
@@ -538,6 +362,7 @@
       endStopId: "tejas",
       isTripActive: false,
       currentBaseIndex: 0,
+      inTransitBetween: false,
       tripStartTime: null,
       selectedCapacity: "DESOCUPADO",
       watchPositionId: null,
@@ -546,15 +371,13 @@
       lastStopCheckTime: null,
       lastLat: null,
       lastLng: null,
-      atDestinationTime: null,
-      evaluatedPlate: "",
-      busReviews: JSON.parse(localStorage.getItem("busReviews") || "{}"),
       tripHistory: JSON.parse(localStorage.getItem("tripHistory") || "[]")
     };
 
     document.addEventListener("DOMContentLoaded", () => {
       initUI();
       restoreSessionIfExists();
+      updateSavingsDashboard();
       renderHistoryTable();
       renderMetroMap();
     });
@@ -593,13 +416,14 @@
       document.getElementById("btnFinishTrip").addEventListener("click", finishTrip);
 
       document.getElementById("btnResetHistory").addEventListener("click", () => {
-        if (confirm("¿Resetear historial de viajes e historial de horarios?")) {
+        if (confirm("¿Resetear todo el historial de viajes y datos guardados?")) {
           localStorage.removeItem("tripHistory");
           localStorage.removeItem("learnedStopsCoordinates");
           localStorage.removeItem("stopTimeLogs");
           ROUTE_STOPS = BASE_STOPS;
           savedTimeLogs = {};
           state.tripHistory = [];
+          updateSavingsDashboard();
           renderHistoryTable();
         }
       });
@@ -613,7 +437,6 @@
         });
       });
 
-      document.getElementById("btnSaveBusReview").addEventListener("click", saveBusReview);
       document.getElementById("btnCloseSummary").addEventListener("click", () => {
         document.getElementById("summaryModal").classList.remove("active");
         resetToSetupView();
@@ -636,7 +459,6 @@
         selectStart.value = ROUTE_STOPS[0].id;
         selectEnd.value = ROUTE_STOPS[ROUTE_STOPS.length - 1].id;
       } else {
-        // VUELTA: Menú de selección en orden Tejas -> El Yeco
         [...ROUTE_STOPS].reverse().forEach((s) => {
           selectStart.appendChild(new Option(s.name, s.id));
           selectEnd.appendChild(new Option(s.name, s.id));
@@ -647,6 +469,38 @@
 
       state.startStopId = selectStart.value;
       state.endStopId = selectEnd.value;
+    }
+
+    function updateSavingsDashboard() {
+      const now = new Date();
+      let todaySavings = 0, weekSavings = 0, monthSavings = 0;
+
+      state.tripHistory.forEach(trip => {
+        const d = new Date(trip.date);
+        
+        // Mismo día (Reset 00:00 hrs)
+        if (d.toDateString() === now.toDateString()) {
+          todaySavings += trip.savings;
+        }
+
+        // Misma semana (Reset Lunes 00:00 hrs)
+        const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1; // Lunes = 0
+        const monday = new Date(now);
+        monday.setDate(now.getDate() - dayOfWeek);
+        monday.setHours(0,0,0,0);
+        if (d >= monday) {
+          weekSavings += trip.savings;
+        }
+
+        // Mismo mes (Reset día 1 a las 00:00 hrs)
+        if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
+          monthSavings += trip.savings;
+        }
+      });
+
+      document.getElementById("savingsToday").innerText = `$${Math.round(todaySavings).toLocaleString('es-CL')}`;
+      document.getElementById("savingsWeek").innerText = `$${Math.round(weekSavings).toLocaleString('es-CL')}`;
+      document.getElementById("savingsMonth").innerText = `$${Math.round(monthSavings).toLocaleString('es-CL')}`;
     }
 
     function renderHistoryTable() {
@@ -709,19 +563,19 @@
       const lastMinBus = 19 * 60 + 30;  // 7:30 PM
 
       if (currentMinOfDay < startMinBus) {
-        document.getElementById("setupServiceStatus").innerText = "⏰ Próximo primer bus a las 07:15 hrs";
-        document.getElementById("setupNextDepartureTime").innerText = "07:15 hrs";
+        const diff = startMinBus - currentMinOfDay;
+        document.getElementById("setupServiceStatus").innerText = "⏰ Primer bus sale a las 07:15 hrs";
+        document.getElementById("setupNextDepartureMinutes").innerText = `En ${diff} min`;
       } else if (currentMinOfDay > lastMinBus) {
-        document.getElementById("setupServiceStatus").innerText = "⚠️ Fuera de horario (Salidas hasta las 19:30 hrs)";
-        document.getElementById("setupNextDepartureTime").innerText = "--:--";
+        document.getElementById("setupServiceStatus").innerText = "⚠️ Fuera de servicio (Salidas hasta las 19:30 hrs)";
+        document.getElementById("setupNextDepartureMinutes").innerText = "En -- min";
       } else {
-        document.getElementById("setupServiceStatus").innerText = "🟢 Servicio Frecuente activo (cada 15 min)";
         let nextMin = startMinBus;
         while (nextMin <= currentMinOfDay && nextMin <= lastMinBus) nextMin += 15;
         
-        const h = Math.floor(nextMin / 60);
-        const m = nextMin % 60;
-        document.getElementById("setupNextDepartureTime").innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')} hrs`;
+        const diffMins = nextMin - currentMinOfDay;
+        document.getElementById("setupNextDepartureMinutes").innerText = `En aprox. ${diffMins} min`;
+        document.getElementById("setupServiceStatus").innerText = "🟢 Frecuencia constante (cada 15 min)";
       }
     }
 
@@ -729,12 +583,11 @@
       state.isTripActive = true;
       state.tripStartTime = new Date();
       state.lastStopCheckTime = new Date();
-      state.atDestinationTime = null;
+      state.inTransitBetween = false;
 
       state.startStopId = document.getElementById("selectStartStop").value;
       state.endStopId = document.getElementById("selectEndStop").value;
       
-      // FIJA EL ÍNDICE EN LA LISTA BASE DE ESTACIONES
       const baseIndex = ROUTE_STOPS.findIndex(s => s.id === state.startStopId);
       state.currentBaseIndex = baseIndex !== -1 ? baseIndex : 0;
 
@@ -776,8 +629,12 @@
             state.currentSpeed = Math.round(speedKmH);
             document.getElementById("gpsCurrentSpeed").innerText = `${state.currentSpeed} km/h`;
 
+            // SI MUEVE A > 8 KM/H CAMBIA A ESTADO "EN TRAYECTO ENTRE ESTACIONES"
+            if (state.currentSpeed > 8) {
+              state.inTransitBetween = true;
+            }
+
             const currStop = ROUTE_STOPS[state.currentBaseIndex];
-            const endObj = ROUTE_STOPS.find(s => s.id === state.endStopId);
 
             let minDistanceKm = 999;
             ROUTE_STOPS.forEach(s => {
@@ -792,35 +649,16 @@
               offRouteBanner.classList.add("hidden");
             }
 
-            // AUTO-AVANCE SOLO A LA SIGUIENTE PARADA CERCANA (SIN SALTARSE PARADAS)
             const distToCurrent = calculateDistanceKm(state.lastLat, state.lastLng, currStop.lat, currStop.lng);
             if (distToCurrent <= 0.08) {
+              state.inTransitBetween = false;
               const targetEndIndex = ROUTE_STOPS.findIndex(s => s.id === state.endStopId);
               if (state.currentBaseIndex !== targetEndIndex) {
                 markNextStop();
               }
             }
 
-            if (currStop.id === endObj.id) {
-              if (!state.atDestinationTime) state.atDestinationTime = new Date();
-              const secondsAtDest = (new Date() - state.atDestinationTime) / 1000;
-
-              if (state.currentSpeed < 6 && secondsAtDest >= 15) {
-                finishTrip();
-                return;
-              }
-            }
-
-            const specialBanner = document.getElementById("specialStatusBanner");
-            if (state.currentSpeed < 3 && currStop.isLongStop) {
-              specialBanner.classList.remove("hidden");
-              document.getElementById("specialStatusTitle").innerText = "Esperando Pasajeros";
-            } else if (state.currentSpeed < 3 && !currStop.isLongStop) {
-              specialBanner.classList.remove("hidden");
-              document.getElementById("specialStatusTitle").innerText = "Tránsito Pesado";
-            } else {
-              specialBanner.classList.add("hidden");
-            }
+            renderMetroMap();
           },
           (err) => console.log(err),
           { enableHighAccuracy: true, maximumAge: 3000, timeout: 5000 }
@@ -838,6 +676,7 @@
       }
 
       recordStopTime(currStop.id);
+      state.inTransitBetween = false;
 
       const targetEndIndex = ROUTE_STOPS.findIndex(s => s.id === state.endStopId);
 
@@ -868,55 +707,43 @@
       const endObj = ROUTE_STOPS.find(s => s.id === state.endStopId);
       const currObj = ROUTE_STOPS[state.currentBaseIndex];
 
-      const startIndex = ROUTE_STOPS.findIndex(s => s.id === state.startStopId);
       const endIndex = ROUTE_STOPS.findIndex(s => s.id === state.endStopId);
 
+      let nextIndex = state.currentBaseIndex;
       let stopsRemaining = 0;
+
       if (state.direction === "IDA") {
         stopsRemaining = endIndex - state.currentBaseIndex;
+        if (state.currentBaseIndex < endIndex) nextIndex = state.currentBaseIndex + 1;
       } else {
         stopsRemaining = state.currentBaseIndex - endIndex;
+        if (state.currentBaseIndex > endIndex) nextIndex = state.currentBaseIndex - 1;
       }
+
+      const nextObj = ROUTE_STOPS[nextIndex];
+
+      // NOMBRES EXPLÍCITOS DE PARADAS
+      document.getElementById("activeCurrentStopName").innerText = currObj.name;
+      document.getElementById("activeNextStopName").innerText = nextObj.name;
 
       const dropBanner = document.getElementById("dropAlertBanner");
       const dropIcon = document.getElementById("dropAlertIcon");
       const dropTitle = document.getElementById("dropAlertTitle");
       const dropDesc = document.getElementById("dropAlertDesc");
 
-      if (stopsRemaining < 0) {
-        dropBanner.style.borderColor = "var(--danger)";
-        dropBanner.style.background = "rgba(248, 113, 113, 0.15)";
-        dropIcon.innerText = "🚨";
-        dropTitle.innerText = "¡Te pasaste de tu parada!";
-        dropTitle.style.color = "var(--danger)";
-        dropDesc.innerText = `Pasaste tu destino (${endObj.name}). Solicita la parada inmediatamente.`;
-      } else if (stopsRemaining === 0) {
+      if (stopsRemaining <= 0) {
         dropBanner.style.borderColor = "var(--success)";
         dropBanner.style.background = "rgba(52, 211, 153, 0.15)";
         dropIcon.innerText = "📍";
         dropTitle.innerText = `Has llegado a tu destino (${endObj.name})`;
         dropTitle.style.color = "var(--success)";
-        dropDesc.innerText = `Al bajarte o detenerte, el viaje se guardará automáticamente.`;
+        dropDesc.innerText = `Puedes presionar Terminar para ver tu ahorro.`;
       } else if (stopsRemaining === 1) {
         dropBanner.style.borderColor = "var(--warning)";
         dropBanner.style.background = "rgba(251, 191, 36, 0.15)";
         dropIcon.innerText = "⚠️";
         dropTitle.innerText = "¡Prepárate! Te bajas en la siguiente parada";
         dropTitle.style.color = "var(--warning)";
-        dropDesc.innerText = `Siguiente Hito: ${endObj.name}`;
-      } else if (stopsRemaining === 2) {
-        dropBanner.style.borderColor = "var(--accent)";
-        dropBanner.style.background = "rgba(56, 189, 248, 0.15)";
-        dropIcon.innerText = "🔔";
-        dropTitle.innerText = "Te bajas en 2 paradas";
-        dropTitle.style.color = "var(--accent)";
-        dropDesc.innerText = `Destino: ${endObj.name}`;
-      } else if (stopsRemaining <= 5) {
-        dropBanner.style.borderColor = "var(--accent)";
-        dropBanner.style.background = "rgba(56, 189, 248, 0.1)";
-        dropIcon.innerText = "📢";
-        dropTitle.innerText = `Aviso: En ${stopsRemaining} paradas debes bajar`;
-        dropTitle.style.color = "var(--accent)";
         dropDesc.innerText = `Destino: ${endObj.name}`;
       } else {
         dropBanner.style.borderColor = "var(--border)";
@@ -931,7 +758,6 @@
       const coveredDist = Math.max(0, Math.abs(currObj.dist - startObj.dist));
       const progressPct = Math.min(100, Math.round((coveredDist / totalDist) * 100));
 
-      document.getElementById("activeNextStopName").innerText = currObj.name;
       document.getElementById("activeTripProgress").innerText = `Progreso: ${progressPct}% (${coveredDist.toFixed(1)} / ${totalDist.toFixed(1)} km)`;
 
       const elapsedMins = Math.max(1, (now - state.tripStartTime) / 60000);
@@ -941,33 +767,12 @@
       const segmentMins = Math.round((now - state.lastStopCheckTime) / 60000);
       document.getElementById("segmentTime").innerText = `${segmentMins} min`;
 
-      if (progressPct >= 50) {
-        document.getElementById("busEvaluationCard").classList.remove("hidden");
-      }
+      // CÁLCULO DE ETA BASADO EN MINUTOS ESTÁNDAR ENTRE ESTACIONES
+      const minsLeft = Math.max(0, Math.abs(endObj.stdMin - currObj.stdMin));
+      const etaTime = new Date(now.getTime() + minsLeft * 60000);
+      const etaFormatted = etaTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
 
-      const expectedMins = Math.abs(currObj.stdMin - startObj.stdMin);
-      const diffMin = elapsedMins - expectedMins;
-      const led = document.getElementById("trafficLed");
-      const title = document.getElementById("trafficTitle");
-      
-      if (diffMin <= -2) {
-        led.className = "led led-white"; title.innerText = "⚪ Adelantado a Destino";
-      } else if (diffMin <= 1) {
-        led.className = "led led-green"; title.innerText = "🟢 A la Hora (ETA Optimal)";
-      } else if (diffMin <= 5) {
-        led.className = "led led-yellow"; title.innerText = "🟡 Leve Atraso Global";
-      } else {
-        led.className = "led led-red"; title.innerText = "🔴 Muy Atrasado a Destino";
-      }
-    }
-
-    function saveBusReview() {
-      const plate = document.getElementById("inputBusPlate").value.trim().toUpperCase();
-      if (plate) {
-        state.busReviews[plate] = { date: new Date().toLocaleDateString(), review: "Máquina registrada recientemente" };
-        localStorage.setItem("busReviews", JSON.stringify(state.busReviews));
-        document.getElementById("previousBusReviewMsg").innerText = `✓ Guardada información de patente ${plate}`;
-      }
+      document.getElementById("trafficDesc").innerText = `Llegas a las ${etaFormatted} hrs (Faltan ~${minsLeft} min)`;
     }
 
     function cancelTrip() {
@@ -985,10 +790,12 @@
 
       const kmTraveled = Math.max(0.1, Math.abs(endObj.dist - startObj.dist));
       const totalMins = Math.max(1, Math.round((new Date() - state.tripStartTime) / 60000));
+      const avgSpeed = Math.round(kmTraveled / (totalMins / 60));
 
-      const carFuelCost = Math.round(kmTraveled * (1400 / 12));
-      const busFare = 1400;
-      const tripSavings = Math.max(0, carFuelCost - busFare);
+      // FÓRMULA DE AHORRO EXACTA
+      const autoCost = (kmTraveled / 12) * 1400;
+      const busCost = 1400;
+      const tripSavings = Math.max(0, autoCost - busCost);
 
       const tripRecord = {
         date: new Date().toISOString(),
@@ -1000,54 +807,18 @@
       state.tripHistory.push(tripRecord);
       localStorage.setItem("tripHistory", JSON.stringify(state.tripHistory));
 
-      const hours = Math.floor(totalMins / 60);
-      const mins = Math.round(totalMins % 60);
-      const timeFormatted = `${String(hours).padStart(2,'0')}h:${String(mins).padStart(2,'0')}m`;
+      document.getElementById("modalGreeting").innerText = `¡Excelente viaje, ${state.userName}!`;
+      document.getElementById("modalTripKm").innerText = `• Distancia: ${kmTraveled.toFixed(1)} km`;
+      document.getElementById("modalTripTime").innerText = `• Tiempo total: ${totalMins} min`;
+      document.getElementById("modalTripAvgSpeed").innerText = `• Vel. Promedio: ${isNaN(avgSpeed) ? 0 : avgSpeed} km/h`;
+      document.getElementById("modalTripSavings").innerText = `• Ahorro Neto (vs. Auto): $${Math.round(tripSavings).toLocaleString('es-CL')}`;
 
-      document.getElementById("modalGreeting").innerText = `Gracias ${state.userName} por registrar tu viaje.`;
-      document.getElementById("modalTripKm").innerText = `• Km recorridos: ${kmTraveled.toFixed(1)} km`;
-      document.getElementById("modalTripTime").innerText = `• Tiempo total: ${timeFormatted}`;
-      document.getElementById("modalTripSavings").innerText = `• Ahorro en este viaje: $${tripSavings.toLocaleString('es-CL')}`;
-
-      calculateAccumulatedStats();
+      updateSavingsDashboard();
       document.getElementById("summaryModal").classList.add("active");
 
       if (state.watchPositionId) navigator.geolocation.clearWatch(state.watchPositionId);
       state.isTripActive = false;
       saveActiveStateToStorage();
-    }
-
-    function calculateAccumulatedStats() {
-      const now = new Date();
-      let weekKm = 0, weekMins = 0, weekSavings = 0;
-      let monthKm = 0, monthMins = 0, monthSavings = 0;
-
-      state.tripHistory.forEach(trip => {
-        const d = new Date(trip.date);
-        const diffDays = (now - d) / (1000 * 3600 * 24);
-
-        if (diffDays <= 7) {
-          weekKm += trip.km;
-          weekMins += trip.mins;
-          weekSavings += trip.savings;
-        }
-        if (diffDays <= 30) {
-          monthKm += trip.km;
-          monthMins += trip.mins;
-          monthSavings += trip.savings;
-        }
-      });
-
-      const wH = Math.floor(weekMins / 60);
-      const wM = Math.round(weekMins % 60);
-      const wTime = `${String(wH).padStart(2,'0')}h:${String(wM).padStart(2,'0')}m`;
-
-      const mH = Math.floor(monthMins / 60);
-      const mM = Math.round(monthMins % 60);
-      const mTime = `${String(mH).padStart(2,'0')}h:${String(mM).padStart(2,'0')}m`;
-
-      document.getElementById("modalWeeklyStats").innerText = `Esta Semana: ${weekKm.toFixed(1)} km | ${wTime} | Ahorro: $${weekSavings.toLocaleString('es-CL')}`;
-      document.getElementById("modalMonthlyStats").innerText = `Este Mes: ${monthKm.toFixed(1)} km | ${mTime} | Ahorro: $${monthSavings.toLocaleString('es-CL')}`;
     }
 
     function resetToSetupView() {
@@ -1077,7 +848,6 @@
       const startPct = (startObj.dist / totalDist) * 100;
       const endPct = (endObj.dist / totalDist) * 100;
 
-      // Dibuja el tramo del usuario en verde
       userSegment.classList.remove("hidden");
       userSegment.style.left = `${Math.min(startPct, endPct)}%`;
       userSegment.style.width = `${Math.abs(endPct - startPct)}%`;
@@ -1104,9 +874,21 @@
       });
 
       const currStop = state.isTripActive ? ROUTE_STOPS[state.currentBaseIndex] : startObj;
-      const currPct = (currStop.dist / totalDist) * 100;
+      let currPct = (currStop.dist / totalDist) * 100;
 
-      // Ajusta la barra de avance según el sentido
+      // SI ESTÁ EN TRAYECTO AVANZA LIGERAMENTE AL ESPACIO INTERMEDIO DE LA SIGUIENTE ESTACIÓN
+      if (state.isTripActive && state.inTransitBetween) {
+        if (state.direction === "IDA" && state.currentBaseIndex < ROUTE_STOPS.length - 1) {
+          const nextStop = ROUTE_STOPS[state.currentBaseIndex + 1];
+          const nextPct = (nextStop.dist / totalDist) * 100;
+          currPct = currPct + ((nextPct - currPct) * 0.4);
+        } else if (state.direction === "VUELTA" && state.currentBaseIndex > 0) {
+          const nextStop = ROUTE_STOPS[state.currentBaseIndex - 1];
+          const nextPct = (nextStop.dist / totalDist) * 100;
+          currPct = currPct - ((currPct - nextPct) * 0.4);
+        }
+      }
+
       if (state.direction === "IDA") {
         fill.style.left = "20px";
         fill.style.right = "auto";
