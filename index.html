@@ -62,7 +62,7 @@
     .metro-fixed-node.current .metro-fixed-label { color: var(--text); font-weight: 800; }
 
     /* MAPA REAL LEAFLET BLOQUEADO */
-    #realMap { width: 100%; height: 180px; border-radius: 12px; border: 1px solid var(--border); pointer-events: none; z-index: 1; }
+    #realMap { width: 100%; height: 180px; border-radius: 12px; border: 1px solid var(--border); pointer-events: none; z-index: 1; background: #0b1329; }
 
     .gps-status-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 700; border: 1px solid var(--border); background: #060911; }
     .pulse-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
@@ -292,7 +292,7 @@
     </div>
 
     <footer>
-      <strong>Micro Litoral PWA v13.0</strong><br>
+      <strong>Micro Litoral PWA v14.0</strong><br>
       Desarrollado por <strong>Jaime Bustamante Leal</strong> con tecnología asistida por <strong>Gemini AI</strong>.<br>
       <span style="font-size: 0.62rem; color: var(--muted);">Aplicación independiente sin afiliación a Taxibuses San Antonio. Basado en datos públicos.</span>
     </footer>
@@ -328,7 +328,6 @@
       });
     }
 
-    // BASE DE DATOS ACTUALIZADA DE PARADAS (CONVERSIÓN EXACTA A DECIMALES)
     const STOPS_IDA = [
       { id: "s_1", name: "El Yeco", lat: -33.308778, lng: -71.642028, stdMin: 0 },
       { id: "s_3", name: "Escuela El Yeco", lat: -33.317139, lng: -71.642333, stdMin: 2 },
@@ -1077,7 +1076,7 @@
         dropBanner.style.borderColor = "var(--border)";
         dropBanner.style.background = "#060911";
         dropIcon.innerText = "🚌";
-        dropTitle.innerText = `Te notificaremos al aproximarte`;
+        dropTitle.innerText = `Te notifiedaremos al aproximarte`;
         dropTitle.style.color = "var(--text)";
         dropDesc.innerText = `Faltan ${stopsRemaining} paradas para tu destino.`;
       }
