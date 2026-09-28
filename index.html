@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Micro Litoral GPS</title>
   <meta name="theme-color" content="#090d16">
+  
+  <!-- Leaflet CSS (Mapa Real) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
   <style>
     :root {
       --bg: #090d16;
@@ -40,46 +44,39 @@
 
     .disclaimer-box { background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.25); border-radius: 10px; padding: 10px; font-size: 0.68rem; color: var(--muted); text-align: center; line-height: 1.3; }
 
-    .metro-container { background: #060911; border: 1px solid var(--border); border-radius: 12px; padding: 50px 10px 65px 10px; overflow-x: auto; position: relative; scrollbar-width: none; }
-    .metro-container::-webkit-scrollbar { display: none; }
-    .metro-track-wrapper { position: relative; min-width: 3200px; padding-top: 20px; }
-    
-    .metro-line-bg { position: absolute; top: 35px; left: 20px; right: 20px; height: 8px; background: #1f2937; border-radius: 4px; }
-    .metro-line-fill { position: absolute; top: 35px; height: 8px; background: linear-gradient(90deg, var(--accent), var(--purple)); border-radius: 4px; transition: all 0.4s ease; }
-    
-    .metro-user-segment { position: absolute; top: 33px; height: 12px; background: rgba(52, 211, 153, 0.3); border: 2px solid var(--success); border-radius: 6px; pointer-events: none; z-index: 2; transition: all 0.3s; }
+    /* BRÚJULA PRE-VIAJE */
+    .compass-box { background: #060911; border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: flex; align-items: center; gap: 12px; }
+    .compass-arrow { font-size: 1.8rem; transition: transform 0.3s ease; display: inline-block; }
 
-    .metro-stations { display: flex; justify-content: space-between; position: relative; z-index: 3; }
-    .metro-node { display: flex; flex-direction: column; align-items: center; position: relative; width: 40px; cursor: pointer; }
-    .metro-circle { width: 18px; height: 18px; border-radius: 50%; background: #060911; border: 4px solid #4b5563; transition: all 0.3s; }
-    .metro-node.visited .metro-circle { border-color: var(--accent); background: var(--accent); }
-    .metro-node.active .metro-circle { border-color: #fff; background: #ef4444; box-shadow: 0 0 12px #ef4444; transform: scale(1.3); }
-    .metro-node.target .metro-circle { border-color: var(--warning); box-shadow: 0 0 10px var(--warning); }
-    
-    .metro-label { position: absolute; top: 28px; left: 50%; transform: translateX(-10%) rotate(45deg); transform-origin: left top; font-size: 0.65rem; color: var(--muted); white-space: nowrap; font-weight: 600; width: 120px; text-align: left; }
-    .metro-node.active .metro-label { color: var(--text); font-weight: 800; }
+    /* MINIMAPA METRO 7 ESTACIONES FIJO */
+    .metro-fixed-container { background: #060911; border: 1px solid var(--border); border-radius: 12px; padding: 40px 10px 40px 10px; position: relative; width: 100%; overflow: hidden; }
+    .metro-fixed-track { position: relative; width: 100%; }
+    .metro-fixed-line-bg { position: absolute; top: 12px; left: 20px; right: 20px; height: 6px; background: #1f2937; border-radius: 3px; }
+    .metro-fixed-line-fill { position: absolute; top: 12px; left: 20px; height: 6px; background: linear-gradient(90deg, var(--accent), var(--purple)); border-radius: 3px; transition: width 0.3s; }
+    .metro-fixed-stations { display: flex; justify-content: space-between; position: relative; z-index: 3; }
+    .metro-fixed-node { display: flex; flex-direction: column; align-items: center; position: relative; width: 14%; }
+    .metro-fixed-circle { width: 14px; height: 14px; border-radius: 50%; background: #060911; border: 3px solid #4b5563; transition: all 0.3s; }
+    .metro-fixed-node.visited .metro-fixed-circle { border-color: var(--accent); background: var(--accent); }
+    .metro-fixed-node.current .metro-fixed-circle { border-color: #fff; background: #ef4444; box-shadow: 0 0 10px #ef4444; transform: scale(1.3); }
+    .metro-fixed-label { position: absolute; top: 20px; left: 50%; transform: translateX(-15%) rotate(40deg); transform-origin: left top; font-size: 0.58rem; color: var(--muted); white-space: nowrap; font-weight: 600; width: 75px; text-align: left; overflow: hidden; text-overflow: ellipsis; }
+    .metro-fixed-node.current .metro-fixed-label { color: var(--text); font-weight: 800; }
 
-    .metro-buses-top-lane { position: absolute; top: -12px; left: 20px; right: 20px; height: 30px; pointer-events: none; z-index: 10; }
-    .bus-icon-marker { position: absolute; transform: translateX(-50%); font-size: 1.7rem; top: -10px; transition: left 0.5s ease; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.9)); animation: bounce 1.2s infinite; }
-    
-    .bus-glow-live { filter: drop-shadow(0 0 10px rgba(52, 211, 153, 0.9)) drop-shadow(0 0 20px rgba(52, 211, 153, 0.6)); }
-    .bus-glow-offline { filter: drop-shadow(0 0 10px rgba(248, 113, 113, 0.9)) drop-shadow(0 0 20px rgba(248, 113, 113, 0.6)); }
-
-    .bus-tag { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); background: #060911; border: 1px solid var(--border); font-size: 0.55rem; padding: 1px 5px; border-radius: 4px; white-space: nowrap; font-weight: 800; color: var(--success); }
+    /* MAPA REAL LEAFLET BLOQUEADO */
+    #realMap { width: 100%; height: 180px; border-radius: 12px; border: 1px solid var(--border); pointer-events: none; z-index: 1; }
 
     .gps-status-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 700; border: 1px solid var(--border); background: #060911; }
     .pulse-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
     .pulse-green { background: var(--success); box-shadow: 0 0 8px var(--success); animation: pulse 1.5s infinite; }
     .pulse-red { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
 
-    @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.85); } 100% { opacity: 1; transform: scale(1); } }
-    @keyframes bounce { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-4px); } }
+    .speed-alert { color: var(--danger) !important; animation: pulse 0.8s infinite; }
 
-    .eta-box { padding: 12px; border-radius: 12px; font-weight: 800; text-align: center; border: 1px solid var(--border); transition: all 0.3s; }
-    .eta-early { background: rgba(255, 255, 255, 0.1); color: #fff; border-color: #fff; }
-    .eta-ontime { background: rgba(52, 211, 153, 0.15); color: var(--success); border-color: var(--success); }
-    .eta-late { background: rgba(251, 191, 36, 0.15); color: var(--warning); border-color: var(--warning); }
-    .eta-verylate { background: rgba(248, 113, 113, 0.15); color: var(--danger); border-color: var(--danger); }
+    @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.85); } 100% { opacity: 1; transform: scale(1); } }
+
+    .eta-box { padding: 14px; border-radius: 12px; font-weight: 800; border: 1px solid var(--border); transition: all 0.3s; display: flex; flex-direction: column; gap: 8px; }
+    .eta-ontime { background: rgba(52, 211, 153, 0.1); border-color: var(--success); }
+    .eta-late { background: rgba(251, 191, 36, 0.1); border-color: var(--warning); }
+    .eta-verylate { background: rgba(248, 113, 113, 0.1); border-color: var(--danger); }
 
     .status-banner { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 12px; background: #060911; border: 1px solid var(--border); transition: all 0.3s ease; }
 
@@ -101,7 +98,7 @@
       <p id="headerSub">Buscando señal GPS...</p>
     </header>
 
-    <!-- BANNER DE AHORRO ACUMULADO AUTO VS BUS -->
+    <!-- AHORRO ACUMULADO -->
     <div class="card" style="background: rgba(52, 211, 153, 0.08); border-color: rgba(52, 211, 153, 0.3);">
       <div class="card-title" style="color: var(--success);">💰 Ahorro Acumulado (Vs. Auto)</div>
       <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center; margin-top: 2px;">
@@ -153,6 +150,15 @@
         </div>
       </div>
 
+      <!-- BRÚJULA PRE-VIAJE -->
+      <div class="compass-box" id="compassContainer">
+        <div class="compass-arrow" id="compassArrow">🧭</div>
+        <div>
+          <div style="font-size: 0.8rem; font-weight: 800; color: var(--accent);" id="compassTitle">Orientación al Paradero</div>
+          <div style="font-size: 0.72rem; color: var(--muted);" id="compassDesc">Buscando dirección...</div>
+        </div>
+      </div>
+
       <!-- GUARDAR FAVORITO -->
       <div style="display: flex; gap: 6px;">
         <input type="text" id="favNameInput" placeholder="Nombre (Ej: Al Trabajo)">
@@ -172,10 +178,20 @@
       </div>
     </div>
 
+    <!-- VISTA EN VIAJE ACTIVO -->
     <div id="viewActive" class="card hidden">
       <div class="card-title">
-        <span id="activeDestinationHeader">Con destino a: ---</span>
+        <span>🚌 En Viaje Activo</span>
         <span id="activeClock" style="color: var(--muted); font-size: 0.8rem;">00:00:00</span>
+      </div>
+
+      <!-- MINIMAPA ESTILO METRO FIJO DE 7 ESTACIONES -->
+      <div class="metro-fixed-container">
+        <div class="metro-fixed-track">
+          <div class="metro-fixed-line-bg"></div>
+          <div id="metroFixedFill" class="metro-fixed-line-fill"></div>
+          <div id="metroFixedNodes" class="metro-fixed-stations"></div>
+        </div>
       </div>
 
       <!-- ESTADO DEL GPS EN VIVO / OFFLINE -->
@@ -187,7 +203,7 @@
         </div>
       </div>
 
-      <!-- BANNER EXPLÍCITO FUERA DE COBERTURA -->
+      <!-- FUERA DE COBERTURA -->
       <div id="offRouteCoverageBanner" class="status-banner hidden" style="border-color: var(--danger); background: rgba(248, 113, 113, 0.15);">
         <span style="font-size: 1.2rem;">📍⚠️</span>
         <div>
@@ -196,33 +212,47 @@
         </div>
       </div>
 
-      <!-- ESTACIÓN ACTUAL Y PRÓXIMA PARADA CON CORRECCIÓN RÁPIDA -->
-      <div style="background: #060911; border: 1px solid var(--border); padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 8px;">
-        <div>
-          <div style="font-size: 0.7rem; color: var(--muted); font-weight: 700;">📍 ESTACIÓN ACTUAL (ÚLTIMA PASADA):</div>
-          <div id="activeCurrentStopName" style="font-size: 1.1rem; font-weight: 800; color: var(--success);">---</div>
+      <!-- PRÓXIMA PARADA Y DISTANCIA EN METROS -->
+      <div style="background: #060911; border: 1px solid var(--border); padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 4px;">
+        <div style="font-size: 0.7rem; color: var(--muted); font-weight: 700;">➡️ PRÓXIMA PARADA:</div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div id="activeNextStopName" style="font-size: 1.1rem; font-weight: 800; color: var(--accent);">---</div>
+          <div id="activeNextStopDistance" style="font-size: 0.85rem; font-weight: 800; color: var(--success);">+-- m</div>
         </div>
-        <div style="border-top: 1px dashed var(--border); padding-top: 6px;">
-          <div id="nextStopLabelTitle" style="font-size: 0.7rem; color: var(--muted); font-weight: 700; margin-top: 4px;">➡️ PRÓXIMA PARADA:</div>
-          <div id="activeNextStopName" style="font-size: 1.2rem; font-weight: 800; color: var(--accent);">---</div>
+      </div>
+
+      <!-- CUADRO ETA INTEGRADO CON CAMBIO DE DESTINO EN VIAJE -->
+      <div id="etaBoxContainer" class="eta-box eta-ontime">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <label style="color: var(--text); font-weight: 800;">🎯 Destino:</label>
+          <select id="activeChangeEndStop" style="padding: 6px; font-size: 0.8rem; width: auto; max-width: 200px;"></select>
         </div>
         
-        <!-- CORREGIR POSICIÓN ACTUAL -->
-        <div style="border-top: 1px dashed var(--border); padding-top: 6px; display: flex; gap: 6px; align-items: center;">
-          <label style="font-size: 0.68rem; flex-shrink: 0;">Corregir Estación:</label>
-          <select id="correctStopSelect" style="padding: 4px; font-size: 0.75rem;"></select>
-          <button id="btnApplyCorrection" class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.75rem;">Ajustar</button>
+        <div id="etaBoxTime" style="font-size: 1.2rem; text-align: center; color: var(--accent);">Llegada aprox. a las --:-- hrs</div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; text-align: center; font-size: 0.72rem; border-top: 1px dashed var(--border); padding-top: 6px;">
+          <div>
+            <div style="color: var(--muted);">Paradas</div>
+            <div id="etaStopsLeft" style="font-size: 0.9rem; font-weight: 800;">--</div>
+          </div>
+          <div>
+            <div style="color: var(--muted);">Distancia</div>
+            <div id="etaKmLeft" style="font-size: 0.9rem; font-weight: 800;">-- km</div>
+          </div>
+          <div>
+            <div style="color: var(--muted);">Tiempo Restante</div>
+            <div id="etaTimeLeft" style="font-size: 0.9rem; font-weight: 800;">-- hr -- min</div>
+          </div>
         </div>
       </div>
 
-      <!-- CUADRO ETA CON PRONÓSTICO DE COLORES -->
-      <div id="etaBoxContainer" class="eta-box eta-ontime">
-        <div id="etaBoxStatus" style="font-size: 0.8rem; text-transform: uppercase;">A TIEMPO</div>
-        <div id="etaBoxTime" style="font-size: 1.4rem; margin: 2px 0;">ETA: --:-- hrs</div>
-        <div id="etaBoxStopsLeft" style="font-size: 0.75rem; font-weight: 600;">Faltan -- paradas</div>
+      <!-- MAPA URBANO REAL LEAFLET BLOQUEADO -->
+      <div style="display:flex; flex-direction:column; gap:4px;">
+        <label>🗺️ Entorno en Vivo (200m a la redonda):</label>
+        <div id="realMap"></div>
       </div>
 
-      <!-- BANNERS DE ALERTA DE BAJADA -->
+      <!-- ALERTAS DE BAJADA Y TRÁFICO -->
       <div id="dropAlertBanner" class="status-banner" style="border-color: var(--success); background: rgba(52, 211, 153, 0.1);">
         <span id="dropAlertIcon" style="font-size: 1.2rem;">🔔</span>
         <div>
@@ -231,28 +261,28 @@
         </div>
       </div>
 
-      <!-- ALERTA DE DETENCIÓN (ESPERANDO PASAJEROS / TRÁFICO) -->
-      <div id="trafficStatusBanner" class="status-banner hidden" style="border-color: var(--warning); background: rgba(251, 191, 36, 0.1);">
-        <span style="font-size: 1.2rem;">🛑</span>
-        <div>
-          <div id="trafficStatusTitle" style="font-size: 0.85rem; font-weight: 700; color: var(--warning);">En movimiento</div>
-          <div id="trafficStatusDesc" style="font-size: 0.72rem; color: var(--text);">Velocidad normal de ruta.</div>
-        </div>
-      </div>
-
-      <!-- CONTADORES DE VELOCIDAD Y TIEMPO -->
+      <!-- CONTADORES DE VELOCIDAD, TIEMPO Y AHORRO EN VIVO -->
       <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center;">
         <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
           <div id="gpsCurrentSpeed" style="font-size: 1rem; font-weight: 800; color: var(--accent);">0 km/h</div>
           <div style="font-size: 0.65rem; color: var(--muted);">Vel. Actual</div>
         </div>
         <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
-          <div id="gpsAvgSpeed" style="font-size: 1rem; font-weight: 800; color: var(--success);">0 km/h</div>
-          <div style="font-size: 0.65rem; color: var(--muted);">Vel. Promedio</div>
+          <div id="liveTripSavings" style="font-size: 1rem; font-weight: 800; color: var(--success);">$0</div>
+          <div style="font-size: 0.65rem; color: var(--muted);">Ahorro en Vivo</div>
         </div>
         <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
           <div id="segmentTime" style="font-size: 1rem; font-weight: 800; color: var(--warning);">0 min</div>
           <div style="font-size: 0.65rem; color: var(--muted);">Tiempo Viaje</div>
+        </div>
+      </div>
+
+      <!-- ALERTA DE EXCESO DE VELOCIDAD -->
+      <div id="speedingWarningBanner" class="status-banner hidden" style="border-color: var(--danger); background: rgba(248, 113, 113, 0.2);">
+        <span style="font-size: 1.2rem;">⚠️🚨</span>
+        <div>
+          <div style="font-size: 0.85rem; font-weight: 800; color: var(--danger);">¡EXCESO DE VELOCIDAD! (>55 km/h)</div>
+          <div style="font-size: 0.72rem; color: var(--text);">El vehículo ha superado el límite de seguridad de la ruta.</div>
         </div>
       </div>
 
@@ -262,21 +292,8 @@
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-title">📍 Esquema del Recorrido en Vivo</div>
-      <div class="metro-container">
-        <div class="metro-track-wrapper">
-          <div id="metroBusesTopLane" class="metro-buses-top-lane"></div>
-          <div class="metro-line-bg"></div>
-          <div id="metroUserSegment" class="metro-user-segment hidden"></div>
-          <div id="metroLineFill" class="metro-line-fill"></div>
-          <div id="metroNodesContainer" class="metro-stations"></div>
-        </div>
-      </div>
-    </div>
-
     <footer>
-      <strong>Micro Litoral PWA v11.1</strong><br>
+      <strong>Micro Litoral PWA v12.0</strong><br>
       Desarrollado por <strong>Jaime Bustamante Leal</strong> con tecnología asistida por <strong>Gemini AI</strong>.<br>
       <span style="font-size: 0.62rem; color: var(--muted);">Aplicación independiente sin afiliación a Taxibuses San Antonio. Basado en datos públicos.</span>
     </footer>
@@ -294,12 +311,16 @@
         <div style="font-size: 0.82rem;" id="modalTripKm">• Distancia: 0 km</div>
         <div style="font-size: 0.82rem;" id="modalTripTime">• Tiempo total: 00 min</div>
         <div style="font-size: 0.82rem;" id="modalTripAvgSpeed">• Vel. Promedio: 0 km/h</div>
-        <div style="font-size: 0.85rem; margin-top: 4px; font-weight: 800; color: var(--success);" id="modalTripSavings">• Ahorro Neto (vs. Auto): $0</div>
+        <div style="font-size: 0.82rem;" id="modalSpeedingEvents">• Excesos de velocidad (>55 km/h): 0 veces</div>
+        <div style="font-size: 0.85rem; margin-top: 4px; font-weight: 800;" id="modalTripSavings">• Ahorro Neto (vs. Auto): $0</div>
       </div>
 
       <button class="btn" id="btnCloseSummary">🔄 Volver al Inicio</button>
     </div>
   </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
     if ('serviceWorker' in navigator) {
@@ -467,16 +488,16 @@
       endStopId: STOPS_IDA[STOPS_IDA.length - 1].id,
       isTripActive: false,
       currentBaseIndex: 0,
-      inTransitBetween: false,
       isGpsLive: false,
-      userTouchedStartStop: false, // FLAG PARA PREVENIR BUCLE DE RESETEO
+      userTouchedStartStop: false,
       tripStartTime: null,
       watchPositionId: null,
       currentSpeed: 0,
       avgSpeed: 0,
       totalSpeedReadings: 0,
       sumSpeedReadings: 0,
-      lastStopCheckTime: null,
+      speedingEventsCount: 0,
+      isCurrentlySpeeding: false,
       lastLat: null,
       lastLng: null,
       hasMovedInTrip: false,
@@ -484,12 +505,16 @@
       favorites: JSON.parse(localStorage.getItem("favorites") || "[]")
     };
 
+    let realMap = null;
+    let busMarker = null;
+    let nextStopMarker = null;
+
     document.addEventListener("DOMContentLoaded", () => {
       initUI();
       restoreSessionIfExists();
       updateSavingsDashboard();
       renderFavorites();
-      renderMetroMap();
+      initLeafletMap();
     });
 
     function initUI() {
@@ -505,21 +530,24 @@
         ROUTE_STOPS = state.direction === "IDA" ? STOPS_IDA : STOPS_VUELTA;
         state.userTouchedStartStop = false;
         populateStopsDropdowns();
-        renderMetroMap();
         updateDepartureSchedule();
       });
 
       document.getElementById("selectStartStop").addEventListener("change", (e) => {
-        state.userTouchedStartStop = true; // USUARIO ELIGIÓ MANUALMENTE
+        state.userTouchedStartStop = true;
         state.startStopId = e.target.value;
         updateEndStopsDropdown();
         updateDepartureSchedule();
-        renderMetroMap();
       });
 
       document.getElementById("selectEndStop").addEventListener("change", (e) => {
         state.endStopId = e.target.value;
-        renderMetroMap();
+      });
+
+      document.getElementById("activeChangeEndStop").addEventListener("change", (e) => {
+        state.endStopId = e.target.value;
+        saveActiveStateToStorage();
+        updateClockAndETA();
       });
 
       populateStopsDropdowns();
@@ -529,7 +557,6 @@
       document.getElementById("btnFinishTrip").addEventListener("click", finishTrip);
 
       document.getElementById("btnSaveFavorite").addEventListener("click", saveFavoriteRoute);
-      document.getElementById("btnApplyCorrection").addEventListener("click", applyStopCorrection);
 
       document.getElementById("btnCloseSummary").addEventListener("click", () => {
         document.getElementById("summaryModal").classList.remove("active");
@@ -540,10 +567,32 @@
       initPassiveGPS();
     }
 
+    function initLeafletMap() {
+      realMap = L.map('realMap', {
+        dragging: false,
+        touchZoom: false,
+        scrollWheelZoom: false,
+        doubleClickZoom: false,
+        boxZoom: false,
+        tap: false,
+        zoomControl: false
+      }).setView([-33.3605, -71.6649], 16);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+      }).addTo(realMap);
+
+      const busIcon = L.divIcon({ html: '🚌', className: 'map-bus-icon', iconSize: [24, 24] });
+      const stopIcon = L.divIcon({ html: '📍', className: 'map-stop-icon', iconSize: [24, 24] });
+
+      busMarker = L.marker([-33.3605, -71.6649], { icon: busIcon }).addTo(realMap);
+      nextStopMarker = L.marker([-33.3605, -71.6649], { icon: stopIcon }).addTo(realMap);
+    }
+
     function updateHeaderGreeting(nearestStop) {
       const title = document.getElementById("headerGreeting");
       const sub = document.getElementById("headerSub");
-
       title.innerText = `¡Bienvenido, ${state.userName}!`;
 
       if (nearestStop) {
@@ -568,7 +617,6 @@
       updateEndStopsDropdown();
     }
 
-    // MEJORA CLAVE: NO FORZAR LA ÚLTIMA PARADA SI LA SELECCIÓN PREVIA SIGUE SIENDO VÁLIDA
     function updateEndStopsDropdown() {
       const selectEnd = document.getElementById("selectEndStop");
       const previousEndId = state.endStopId;
@@ -583,13 +631,21 @@
 
       if (remainingStops.length > 0) {
         const stillValid = remainingStops.some(s => s.id === previousEndId);
-        if (stillValid) {
-          state.endStopId = previousEndId;
-        } else {
-          state.endStopId = remainingStops[remainingStops.length - 1].id;
-        }
+        state.endStopId = stillValid ? previousEndId : remainingStops[remainingStops.length - 1].id;
         selectEnd.value = state.endStopId;
       }
+    }
+
+    function populateActiveChangeEndDropdown() {
+      const select = document.getElementById("activeChangeEndStop");
+      select.innerHTML = "";
+      const remaining = ROUTE_STOPS.slice(state.currentBaseIndex + 1);
+      
+      remaining.forEach(s => {
+        select.appendChild(new Option(s.name, s.id));
+      });
+
+      select.value = state.endStopId;
     }
 
     function saveFavoriteRoute() {
@@ -638,7 +694,6 @@
           updateEndStopsDropdown();
           document.getElementById("selectEndStop").value = fav.endStopId;
           state.endStopId = fav.endStopId;
-          renderMetroMap();
           updateDepartureSchedule();
         });
         container.appendChild(item);
@@ -691,14 +746,9 @@
             document.getElementById("viewFavorites").classList.add("hidden");
             document.getElementById("viewActive").classList.remove("hidden");
             
-            const endObj = ROUTE_STOPS.find(s => s.id === state.endStopId);
-            if (endObj) {
-              document.getElementById("activeDestinationHeader").innerText = `Con destino a: ${endObj.name}`;
-            }
-
-            populateCorrectionDropdown();
+            populateActiveChangeEndDropdown();
             initGPS();
-            renderMetroMap();
+            renderFixedMetroMap();
           }
         } catch(e) { console.error("Error restaurando sesión", e); }
       }
@@ -735,7 +785,27 @@
       }
     }
 
-    // CORRECCIÓN BUCLE: EL GPS PASIVO SOLO SUGIERE SI EL USUARIO NO HA CAMBIADO EL ORIGEN MANUALMENTE
+    function calculateBearing(lat1, lon1, lat2, lon2) {
+      const y = Math.sin((lon2 - lon1) * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180);
+      const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
+                Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos((lon2 - lon1) * Math.PI / 180);
+      const brng = Math.atan2(y, x) * 180 / Math.PI;
+      return (brng + 360) % 360;
+    }
+
+    function updateCompass(userLat, userLng) {
+      const startObj = ROUTE_STOPS.find(s => s.id === state.startStopId);
+      if (!startObj) return;
+
+      const distKm = calculateDistanceKm(userLat, userLng, startObj.lat, startObj.lng);
+      const distMeters = Math.round(distKm * 1000);
+      const bearing = calculateBearing(userLat, userLng, startObj.lat, startObj.lng);
+
+      document.getElementById("compassArrow").style.transform = `rotate(${bearing}deg)`;
+      document.getElementById("compassTitle").innerText = `Paradero: ${startObj.name}`;
+      document.getElementById("compassDesc").innerText = `A ${distMeters} metros de distancia`;
+    }
+
     function initPassiveGPS() {
       if ("geolocation" in navigator) {
         navigator.geolocation.watchPosition(
@@ -745,6 +815,8 @@
             const speedKmH = pos.coords.speed ? (pos.coords.speed * 3.6) : 0;
 
             if (!state.isTripActive) {
+              updateCompass(lat, lng);
+
               let nearestStop = null;
               let minDist = 999;
               ROUTE_STOPS.forEach((s) => {
@@ -754,8 +826,6 @@
 
               if (minDist <= 0.20) {
                 updateHeaderGreeting(nearestStop);
-                
-                // SOLO SUGERIR SI NO SE HA INTERACTUADO MANUALMENTE CON EL ORIGEN
                 if (!state.userTouchedStartStop) {
                   state.currentBaseIndex = ROUTE_STOPS.findIndex(s => s.id === nearestStop.id);
                   document.getElementById("selectStartStop").value = nearestStop.id;
@@ -765,8 +835,6 @@
               } else {
                 updateHeaderGreeting(null);
               }
-
-              renderMetroMap();
 
               if (speedKmH > 10 && nearestStop && minDist <= 0.15) {
                 startTrip();
@@ -793,17 +861,16 @@
         txt.innerText = "Ubicación Aproximada (GPS Offline)";
         txt.style.color = "var(--danger)";
       }
-      renderMetroMap();
     }
 
     function startTrip() {
       state.isTripActive = true;
       state.tripStartTime = new Date();
-      state.lastStopCheckTime = new Date();
-      state.inTransitBetween = false;
       state.hasMovedInTrip = false;
       state.totalSpeedReadings = 0;
       state.sumSpeedReadings = 0;
+      state.speedingEventsCount = 0;
+      state.isCurrentlySpeeding = false;
 
       state.startStopId = document.getElementById("selectStartStop").value;
       state.endStopId = document.getElementById("selectEndStop").value;
@@ -815,33 +882,10 @@
       document.getElementById("viewFavorites").classList.add("hidden");
       document.getElementById("viewActive").classList.remove("hidden");
 
-      const endObj = ROUTE_STOPS.find(s => s.id === state.endStopId);
-      document.getElementById("activeDestinationHeader").innerText = `Con destino a: ${endObj ? endObj.name : '---'}`;
-
-      populateCorrectionDropdown();
+      populateActiveChangeEndDropdown();
       saveActiveStateToStorage();
       initGPS();
-      renderMetroMap();
-    }
-
-    function populateCorrectionDropdown() {
-      const select = document.getElementById("correctStopSelect");
-      select.innerHTML = "";
-      ROUTE_STOPS.forEach(s => {
-        select.appendChild(new Option(s.name, s.id));
-      });
-      select.value = ROUTE_STOPS[state.currentBaseIndex].id;
-    }
-
-    function applyStopCorrection() {
-      const selectedId = document.getElementById("correctStopSelect").value;
-      const idx = ROUTE_STOPS.findIndex(s => s.id === selectedId);
-      if (idx !== -1) {
-        state.currentBaseIndex = idx;
-        state.inTransitBetween = false;
-        saveActiveStateToStorage();
-        renderMetroMap();
-      }
+      renderFixedMetroMap();
     }
 
     function calculateDistanceKm(lat1, lon1, lat2, lon2) {
@@ -864,18 +908,36 @@
             const speedKmH = pos.coords.speed ? (pos.coords.speed * 3.6) : 0;
             
             state.currentSpeed = Math.round(speedKmH);
-            document.getElementById("gpsCurrentSpeed").innerText = `${state.currentSpeed} km/h`;
+            const speedElem = document.getElementById("gpsCurrentSpeed");
+            speedElem.innerText = `${state.currentSpeed} km/h`;
+
+            // EXCESO DE VELOCIDAD (>55 km/h)
+            const speedBanner = document.getElementById("speedingWarningBanner");
+            if (state.currentSpeed > 55) {
+              speedElem.classList.add("speed-alert");
+              speedBanner.classList.remove("hidden");
+              if (!state.isCurrentlySpeeding) {
+                state.speedingEventsCount++;
+                state.isCurrentlySpeeding = true;
+              }
+            } else {
+              speedElem.classList.remove("speed-alert");
+              speedBanner.classList.add("hidden");
+              state.isCurrentlySpeeding = false;
+            }
 
             if (state.currentSpeed > 0) {
               state.sumSpeedReadings += state.currentSpeed;
               state.totalSpeedReadings++;
               state.avgSpeed = Math.round(state.sumSpeedReadings / state.totalSpeedReadings);
-              document.getElementById("gpsAvgSpeed").innerText = `${state.avgSpeed} km/h`;
             }
 
-            if (state.currentSpeed > 5) {
-              state.hasMovedInTrip = true;
-              state.inTransitBetween = true;
+            if (state.currentSpeed > 5) state.hasMovedInTrip = true;
+
+            // ACTUALIZAR MAPA REAL BLOQUEADO
+            if (realMap) {
+              realMap.setView([state.lastLat, state.lastLng], 16);
+              if (busMarker) busMarker.setLatLng([state.lastLat, state.lastLng]);
             }
 
             let minDistanceToAnyStop = 999;
@@ -891,49 +953,29 @@
               coverageBanner.classList.add("hidden");
             }
 
-            const currStop = ROUTE_STOPS[state.currentBaseIndex];
             const endIndex = ROUTE_STOPS.findIndex(s => s.id === state.endStopId);
 
             if (state.currentBaseIndex < endIndex) {
               const nextStop = ROUTE_STOPS[state.currentBaseIndex + 1];
-              const distToNext = calculateDistanceKm(state.lastLat, state.lastLng, nextStop.lat, nextStop.lng);
+              const distToNextKm = calculateDistanceKm(state.lastLat, state.lastLng, nextStop.lat, nextStop.lng);
+              const distToNextMeters = Math.round(distToNextKm * 1000);
 
-              if (distToNext <= 0.10) {
-                document.getElementById("nextStopLabelTitle").innerText = "🔔 LLEGANDO A LA PARADA:";
-                document.getElementById("activeNextStopName").innerText = nextStop.name;
-                document.getElementById("activeNextStopName").style.color = "var(--warning)";
-              } else {
-                document.getElementById("nextStopLabelTitle").innerText = "➡️ PRÓXIMA PARADA:";
-                document.getElementById("activeNextStopName").innerText = nextStop.name;
-                document.getElementById("activeNextStopName").style.color = "var(--accent)";
+              document.getElementById("activeNextStopName").innerText = nextStop.name;
+              document.getElementById("activeNextStopDistance").innerText = distToNextMeters < 100 ? `(~${distToNextMeters} m)` : `(+${distToNextMeters} m)`;
+
+              if (realMap && nextStopMarker) {
+                nextStopMarker.setLatLng([nextStop.lat, nextStop.lng]);
               }
 
-              if (distToNext <= 0.05) {
+              if (distToNextKm <= 0.05) {
                 state.currentBaseIndex++;
-                state.inTransitBetween = false;
                 saveActiveStateToStorage();
+                populateActiveChangeEndDropdown();
+                renderFixedMetroMap();
               }
             }
 
-            const trafficBanner = document.getElementById("trafficStatusBanner");
-            const trafficTitle = document.getElementById("trafficStatusTitle");
-            const trafficDesc = document.getElementById("trafficStatusDesc");
-
-            if (state.currentSpeed === 0 && state.hasMovedInTrip) {
-              trafficBanner.classList.remove("hidden");
-              const distToCurrent = calculateDistanceKm(state.lastLat, state.lastLng, currStop.lat, currStop.lng);
-              if (distToCurrent <= 0.08) {
-                trafficTitle.innerText = "🛑 Esperando Pasajeros";
-                trafficDesc.innerText = `Detenido en paradero ${currStop.name}`;
-              } else {
-                trafficTitle.innerText = "🚦 Tráfico Pesado / Congestión";
-                trafficDesc.innerText = "Detenido en ruta.";
-              }
-            } else {
-              trafficBanner.classList.add("hidden");
-            }
-
-            renderMetroMap();
+            renderFixedMetroMap();
           },
           () => { setGpsLiveStatus(false); },
           { enableHighAccuracy: true, maximumAge: 3000, timeout: 5000 }
@@ -955,16 +997,44 @@
       const currObj = ROUTE_STOPS[state.currentBaseIndex];
 
       const endIndex = ROUTE_STOPS.findIndex(s => s.id === state.endStopId);
-      let stopsRemaining = endIndex - state.currentBaseIndex;
+      let stopsRemaining = Math.max(0, endIndex - state.currentBaseIndex);
 
-      document.getElementById("activeCurrentStopName").innerText = currObj ? currObj.name : "---";
+      let kmLeft = 0;
+      if (currObj && endObj) {
+        kmLeft = Math.max(0.2, calculateDistanceKm(currObj.lat, currObj.lng, endObj.lat, endObj.lng) * 1.3);
+      }
+
+      const minsLeft = Math.max(0, Math.abs((endObj ? endObj.stdMin : 0) - (currObj ? currObj.stdMin : 0)));
+      const etaTime = new Date(now.getTime() + minsLeft * 60000);
+      const etaFormatted = etaTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+
+      document.getElementById("etaBoxTime").innerText = `Llegada aprox. a las ${etaFormatted} hrs`;
+      document.getElementById("etaStopsLeft").innerText = stopsRemaining;
+      document.getElementById("etaKmLeft").innerText = `${kmLeft.toFixed(1)} km`;
+
+      const hrs = Math.floor(minsLeft / 60);
+      const mins = minsLeft % 60;
+      document.getElementById("etaTimeLeft").innerText = `~${String(hrs).padStart(2,'0')} hr ${String(mins).padStart(2,'0')} min`;
+
+      // AHORRO EN VIVO PERMITIENDO VALORES NEGATIVOS
+      let liveKmTraveled = 0;
+      if (startObj && currObj) {
+        liveKmTraveled = calculateDistanceKm(startObj.lat, startObj.lng, currObj.lat, currObj.lng) * 1.3;
+      }
+      const autoCost = (liveKmTraveled / 12) * 1400;
+      const busCost = 1400;
+      const liveSavings = autoCost - busCost; // PUEDE SER NEGATIVO EN TRAMOS CORTOS
+
+      const savingsElem = document.getElementById("liveTripSavings");
+      savingsElem.innerText = `$${Math.round(liveSavings).toLocaleString('es-CL')}`;
+      savingsElem.style.color = liveSavings >= 0 ? "var(--success)" : "var(--danger)";
 
       const dropBanner = document.getElementById("dropAlertBanner");
       const dropIcon = document.getElementById("dropAlertIcon");
       const dropTitle = document.getElementById("dropAlertTitle");
       const dropDesc = document.getElementById("dropAlertDesc");
 
-      if (stopsRemaining <= 0) {
+      if (stopsRemaining === 0) {
         dropBanner.style.borderColor = "var(--success)";
         dropBanner.style.background = "rgba(52, 211, 153, 0.2)";
         dropIcon.innerText = "📍";
@@ -978,20 +1048,6 @@
         dropTitle.innerText = "¡PREPÁRATE! Te bajas en la Próxima Parada";
         dropTitle.style.color = "var(--danger)";
         dropDesc.innerText = `Destino: ${endObj ? endObj.name : ''}`;
-      } else if (stopsRemaining === 2) {
-        dropBanner.style.borderColor = "var(--warning)";
-        dropBanner.style.background = "rgba(251, 191, 36, 0.15)";
-        dropIcon.innerText = "🔔";
-        dropTitle.innerText = "Atención: Faltan 2 paradas para bajarte";
-        dropTitle.style.color = "var(--warning)";
-        dropDesc.innerText = `Destino: ${endObj ? endObj.name : ''}`;
-      } else if (stopsRemaining === 3) {
-        dropBanner.style.borderColor = "var(--accent)";
-        dropBanner.style.background = "rgba(56, 189, 248, 0.15)";
-        dropIcon.innerText = "ℹ️";
-        dropTitle.innerText = "Faltan 3 paradas para tu bajada";
-        dropTitle.style.color = "var(--accent)";
-        dropDesc.innerText = `Destino: ${endObj ? endObj.name : ''}`;
       } else {
         dropBanner.style.borderColor = "var(--border)";
         dropBanner.style.background = "#060911";
@@ -1003,29 +1059,44 @@
 
       const elapsedMins = Math.max(1, Math.round((now - state.tripStartTime) / 60000));
       document.getElementById("segmentTime").innerText = `${elapsedMins} min`;
+    }
 
-      const minsLeft = Math.max(0, Math.abs((endObj ? endObj.stdMin : 0) - (currObj ? currObj.stdMin : 0)));
-      const etaTime = new Date(now.getTime() + minsLeft * 60000);
-      const etaFormatted = etaTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+    // MINIMAPA FIJO DE 7 ESTACIONES SIMÉTRICO
+    function renderFixedMetroMap() {
+      const container = document.getElementById("metroFixedNodes");
+      const fill = document.getElementById("metroFixedFill");
+      container.innerHTML = "";
 
-      const etaBox = document.getElementById("etaBoxContainer");
-      const etaStatus = document.getElementById("etaBoxStatus");
-      document.getElementById("etaBoxTime").innerText = `ETA: ${etaFormatted} hrs`;
-      document.getElementById("etaBoxStopsLeft").innerText = `Faltan ${stopsRemaining} paradas`;
+      const total = ROUTE_STOPS.length;
+      let startIndex = Math.max(0, state.currentBaseIndex - 3);
+      let endIndex = Math.min(total - 1, state.currentBaseIndex + 3);
 
-      if (state.currentSpeed > 45) {
-        etaBox.className = "eta-box eta-early";
-        etaStatus.innerText = "⚪ ADELANTADO";
-      } else if (state.currentSpeed >= 20 || !state.hasMovedInTrip) {
-        etaBox.className = "eta-box eta-ontime";
-        etaStatus.innerText = "🟢 A TIEMPO";
-      } else if (state.currentSpeed >= 5) {
-        etaBox.className = "eta-box eta-late";
-        etaStatus.innerText = "🟡 ATRASADO";
-      } else {
-        etaBox.className = "eta-box eta-verylate";
-        etaStatus.innerText = "🔴 MUY ATRASADO / CONGESTIÓN";
+      if (state.currentBaseIndex < 3) {
+        endIndex = Math.min(total - 1, 6);
+      } else if (state.currentBaseIndex > total - 4) {
+        startIndex = Math.max(0, total - 7);
       }
+
+      const visibleStops = ROUTE_STOPS.slice(startIndex, endIndex + 1);
+
+      visibleStops.forEach((s) => {
+        const globalIdx = ROUTE_STOPS.findIndex(item => item.id === s.id);
+        const node = document.createElement("div");
+        node.className = "metro-fixed-node";
+
+        if (globalIdx < state.currentBaseIndex) node.classList.add("visited");
+        if (globalIdx === state.currentBaseIndex) node.classList.add("current");
+
+        node.innerHTML = `
+          <div class="metro-fixed-circle"></div>
+          <div class="metro-fixed-label">${s.name}</div>
+        `;
+        container.appendChild(node);
+      });
+
+      const currLocalIdx = visibleStops.findIndex(s => s.id === ROUTE_STOPS[state.currentBaseIndex].id);
+      const fillPct = (currLocalIdx / (visibleStops.length - 1)) * 100;
+      fill.style.width = `${Math.min(100, Math.max(0, fillPct))}%`;
     }
 
     function cancelTrip() {
@@ -1049,7 +1120,7 @@
 
       const autoCost = (kmTraveled / 12) * 1400;
       const busCost = 1400;
-      const tripSavings = Math.max(0, autoCost - busCost);
+      const tripSavings = autoCost - busCost; // PUEDE SER NEGATIVO
 
       const tripRecord = {
         date: new Date().toISOString(),
@@ -1065,7 +1136,11 @@
       document.getElementById("modalTripKm").innerText = `• Distancia: ${kmTraveled.toFixed(1)} km`;
       document.getElementById("modalTripTime").innerText = `• Tiempo total: ${totalMins} min`;
       document.getElementById("modalTripAvgSpeed").innerText = `• Vel. Promedio: ${isNaN(avgSpeed) ? 0 : avgSpeed} km/h`;
-      document.getElementById("modalTripSavings").innerText = `• Ahorro Neto (vs. Auto): $${Math.round(tripSavings).toLocaleString('es-CL')}`;
+      document.getElementById("modalSpeedingEvents").innerText = `• Excesos de velocidad (>55 km/h): ${state.speedingEventsCount} veces`;
+
+      const savingsElem = document.getElementById("modalTripSavings");
+      savingsElem.innerText = `• Ahorro Neto (vs. Auto): $${Math.round(tripSavings).toLocaleString('es-CL')}`;
+      savingsElem.style.color = tripSavings >= 0 ? "var(--success)" : "var(--danger)";
 
       updateSavingsDashboard();
       document.getElementById("summaryModal").classList.add("active");
@@ -1077,65 +1152,10 @@
 
     function resetToSetupView() {
       state.userTouchedStartStop = false;
+      state.speedingEventsCount = 0;
       document.getElementById("viewActive").classList.add("hidden");
       document.getElementById("viewSetup").classList.remove("hidden");
       document.getElementById("viewFavorites").classList.remove("hidden");
-      renderMetroMap();
-    }
-
-    function renderMetroMap() {
-      const container = document.getElementById("metroNodesContainer");
-      const lane = document.getElementById("metroBusesTopLane");
-      const fill = document.getElementById("metroLineFill");
-      const userSegment = document.getElementById("metroUserSegment");
-      
-      container.innerHTML = ""; lane.innerHTML = "";
-
-      const startIndex = ROUTE_STOPS.findIndex(s => s.id === state.startStopId);
-      const endIndex = ROUTE_STOPS.findIndex(s => s.id === state.endStopId);
-
-      const totalStops = ROUTE_STOPS.length;
-      const startPct = (startIndex / totalStops) * 100;
-      const endPct = (endIndex / totalStops) * 100;
-
-      userSegment.classList.remove("hidden");
-      userSegment.style.left = `${Math.min(startPct, endPct)}%`;
-      userSegment.style.width = `${Math.abs(endPct - startPct)}%`;
-
-      ROUTE_STOPS.forEach((s, idx) => {
-        const node = document.createElement("div");
-        node.className = "metro-node";
-
-        if (s.id === state.startStopId || s.id === state.endStopId) node.classList.add("target");
-        if (state.isTripActive) {
-          if (idx < state.currentBaseIndex) node.classList.add("visited");
-          if (idx === state.currentBaseIndex) node.classList.add("active");
-        }
-
-        node.innerHTML = `
-          <div class="metro-circle"></div>
-          <div class="metro-label">${s.name}</div>
-        `;
-        container.appendChild(node);
-      });
-
-      let currPct = (state.currentBaseIndex / totalStops) * 100;
-
-      if (state.isTripActive && state.inTransitBetween && state.currentBaseIndex < ROUTE_STOPS.length - 1) {
-        const nextPct = ((state.currentBaseIndex + 1) / totalStops) * 100;
-        currPct = currPct + ((nextPct - currPct) * 0.4);
-      }
-
-      fill.style.left = "20px";
-      fill.style.right = "auto";
-      fill.style.width = `${currPct}%`;
-
-      const busMarker = document.createElement("div");
-      const glowClass = state.isGpsLive ? "bus-glow-live" : "bus-glow-offline";
-      busMarker.className = `bus-icon-marker ${glowClass}`;
-      busMarker.style.left = `${currPct}%`;
-      busMarker.innerHTML = `<div class="bus-tag">Tu Micro</div>🚌`;
-      lane.appendChild(busMarker);
     }
   </script>
 </body>
