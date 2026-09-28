@@ -75,8 +75,6 @@
 
     .eta-box { padding: 14px; border-radius: 12px; font-weight: 800; border: 1px solid var(--border); transition: all 0.3s; display: flex; flex-direction: column; gap: 8px; }
     .eta-ontime { background: rgba(52, 211, 153, 0.1); border-color: var(--success); }
-    .eta-late { background: rgba(251, 191, 36, 0.1); border-color: var(--warning); }
-    .eta-verylate { background: rgba(248, 113, 113, 0.1); border-color: var(--danger); }
 
     .status-banner { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 12px; background: #060911; border: 1px solid var(--border); transition: all 0.3s ease; }
 
@@ -98,8 +96,8 @@
       <p id="headerSub">Buscando señal GPS...</p>
     </header>
 
-    <!-- AHORRO ACUMULADO -->
-    <div class="card" style="background: rgba(52, 211, 153, 0.08); border-color: rgba(52, 211, 153, 0.3);">
+    <!-- AHORRO ACUMULADO (SÓLO EN VISTA DE INICIO / PLANIFICACIÓN) -->
+    <div id="viewSavingsDashboard" class="card" style="background: rgba(52, 211, 153, 0.08); border-color: rgba(52, 211, 153, 0.3);">
       <div class="card-title" style="color: var(--success);">💰 Ahorro Acumulado (Vs. Auto)</div>
       <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center; margin-top: 2px;">
         <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
@@ -212,9 +210,9 @@
         </div>
       </div>
 
-      <!-- PRÓXIMA PARADA Y DISTANCIA EN METROS -->
+      <!-- TARJETA DINÁMICA DE PARADA (PRÓXIMA / LLEGANDO A / PARADA ACTUAL) -->
       <div style="background: #060911; border: 1px solid var(--border); padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 4px;">
-        <div style="font-size: 0.7rem; color: var(--muted); font-weight: 700;">➡️ PRÓXIMA PARADA:</div>
+        <div id="stopStateLabel" style="font-size: 0.7rem; color: var(--muted); font-weight: 700;">➡️ PRÓXIMA PARADA:</div>
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div id="activeNextStopName" style="font-size: 1.1rem; font-weight: 800; color: var(--accent);">---</div>
           <div id="activeNextStopDistance" style="font-size: 0.85rem; font-weight: 800; color: var(--success);">+-- m</div>
@@ -252,7 +250,7 @@
         <div id="realMap"></div>
       </div>
 
-      <!-- ALERTAS DE BAJADA Y TRÁFICO -->
+      <!-- ALERTAS DE BAJADA -->
       <div id="dropAlertBanner" class="status-banner" style="border-color: var(--success); background: rgba(52, 211, 153, 0.1);">
         <span id="dropAlertIcon" style="font-size: 1.2rem;">🔔</span>
         <div>
@@ -261,7 +259,7 @@
         </div>
       </div>
 
-      <!-- CONTADORES DE VELOCIDAD, TIEMPO Y AHORRO EN VIVO -->
+      <!-- CONTADORES DE VELOCIDAD, AHORRO EN VIVO Y TIEMPO -->
       <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center;">
         <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
           <div id="gpsCurrentSpeed" style="font-size: 1rem; font-weight: 800; color: var(--accent);">0 km/h</div>
@@ -293,7 +291,7 @@
     </div>
 
     <footer>
-      <strong>Micro Litoral PWA v12.0</strong><br>
+      <strong>Micro Litoral PWA v12.1</strong><br>
       Desarrollado por <strong>Jaime Bustamante Leal</strong> con tecnología asistida por <strong>Gemini AI</strong>.<br>
       <span style="font-size: 0.62rem; color: var(--muted);">Aplicación independiente sin afiliación a Taxibuses San Antonio. Basado en datos públicos.</span>
     </footer>
@@ -744,6 +742,7 @@
           if (state.isTripActive) {
             document.getElementById("viewSetup").classList.add("hidden");
             document.getElementById("viewFavorites").classList.add("hidden");
+            document.getElementById("viewSavingsDashboard").classList.add("hidden");
             document.getElementById("viewActive").classList.remove("hidden");
             
             populateActiveChangeEndDropdown();
@@ -880,6 +879,7 @@
 
       document.getElementById("viewSetup").classList.add("hidden");
       document.getElementById("viewFavorites").classList.add("hidden");
+      document.getElementById("viewSavingsDashboard").classList.add("hidden");
       document.getElementById("viewActive").classList.remove("hidden");
 
       populateActiveChangeEndDropdown();
@@ -960,14 +960,36 @@
               const distToNextKm = calculateDistanceKm(state.lastLat, state.lastLng, nextStop.lat, nextStop.lng);
               const distToNextMeters = Math.round(distToNextKm * 1000);
 
-              document.getElementById("activeNextStopName").innerText = nextStop.name;
+              const stopLabel = document.getElementById("stopStateLabel");
+              const stopNameElem = document.getElementById("activeNextStopName");
+
+              // LÓGICA DINÁMICA DE ESTADO EN PARADERO
+              if (distToNextKm <= 0.08) {
+                if (state.currentSpeed === 0) {
+                  stopLabel.innerText = "🛑 PARADA ACTUAL:";
+                  stopLabel.style.color = "var(--danger)";
+                  stopNameElem.innerText = nextStop.name;
+                  stopNameElem.style.color = "var(--danger)";
+                } else {
+                  stopLabel.innerText = "🔔 LLEGANDO A LA PARADA:";
+                  stopLabel.style.color = "var(--warning)";
+                  stopNameElem.innerText = nextStop.name;
+                  stopNameElem.style.color = "var(--warning)";
+                }
+              } else {
+                stopLabel.innerText = "➡️ PRÓXIMA PARADA:";
+                stopLabel.style.color = "var(--muted)";
+                stopNameElem.innerText = nextStop.name;
+                stopNameElem.style.color = "var(--accent)";
+              }
+
               document.getElementById("activeNextStopDistance").innerText = distToNextMeters < 100 ? `(~${distToNextMeters} m)` : `(+${distToNextMeters} m)`;
 
               if (realMap && nextStopMarker) {
                 nextStopMarker.setLatLng([nextStop.lat, nextStop.lng]);
               }
 
-              if (distToNextKm <= 0.05) {
+              if (distToNextKm <= 0.04) {
                 state.currentBaseIndex++;
                 saveActiveStateToStorage();
                 populateActiveChangeEndDropdown();
@@ -1023,7 +1045,7 @@
       }
       const autoCost = (liveKmTraveled / 12) * 1400;
       const busCost = 1400;
-      const liveSavings = autoCost - busCost; // PUEDE SER NEGATIVO EN TRAMOS CORTOS
+      const liveSavings = autoCost - busCost;
 
       const savingsElem = document.getElementById("liveTripSavings");
       savingsElem.innerText = `$${Math.round(liveSavings).toLocaleString('es-CL')}`;
@@ -1052,9 +1074,9 @@
         dropBanner.style.borderColor = "var(--border)";
         dropBanner.style.background = "#060911";
         dropIcon.innerText = "🚌";
-        dropTitle.innerText = `En trayecto a ${endObj ? endObj.name : ''}`;
+        dropTitle.innerText = `Faltan ${stopsRemaining} paradas para tu destino`;
         dropTitle.style.color = "var(--text)";
-        dropDesc.innerText = `Faltan ${stopsRemaining} paradas para tu destino.`;
+        dropDesc.innerText = `Destino: ${endObj ? endObj.name : ''}`;
       }
 
       const elapsedMins = Math.max(1, Math.round((now - state.tripStartTime) / 60000));
@@ -1120,7 +1142,7 @@
 
       const autoCost = (kmTraveled / 12) * 1400;
       const busCost = 1400;
-      const tripSavings = autoCost - busCost; // PUEDE SER NEGATIVO
+      const tripSavings = autoCost - busCost;
 
       const tripRecord = {
         date: new Date().toISOString(),
@@ -1156,6 +1178,7 @@
       document.getElementById("viewActive").classList.add("hidden");
       document.getElementById("viewSetup").classList.remove("hidden");
       document.getElementById("viewFavorites").classList.remove("hidden");
+      document.getElementById("viewSavingsDashboard").classList.remove("hidden");
     }
   </script>
 </body>
