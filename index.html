@@ -96,8 +96,8 @@
       <p id="headerSub">Buscando señal GPS...</p>
     </header>
 
-    <!-- AHORRO ACUMULADO (SÓLO EN VISTA DE INICIO / PLANIFICACIÓN) -->
-    <div id="viewSavingsDashboard" class="card" style="background: rgba(52, 211, 153, 0.08); border-color: rgba(52, 211, 153, 0.3);">
+    <!-- AHORRO ACUMULADO (SÓLO EN PANTALLA DE INICIO) -->
+    <div id="viewSavingsAccumulated" class="card" style="background: rgba(52, 211, 153, 0.08); border-color: rgba(52, 211, 153, 0.3);">
       <div class="card-title" style="color: var(--success);">💰 Ahorro Acumulado (Vs. Auto)</div>
       <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center; margin-top: 2px;">
         <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
@@ -121,6 +121,7 @@
       <div id="favoritesList" style="display:flex; flex-direction:column; gap:6px;"></div>
     </div>
 
+    <!-- PLANIFICAR TRAYECTO -->
     <div id="viewSetup" class="card">
       <div class="card-title">⚙️ Planificar Trayecto</div>
       
@@ -210,9 +211,9 @@
         </div>
       </div>
 
-      <!-- TARJETA DINÁMICA DE PARADA (PRÓXIMA / LLEGANDO A / PARADA ACTUAL) -->
+      <!-- DINÁMICA DE PARADA (PRÓXIMA / LLEGANDO / ACTUAL) -->
       <div style="background: #060911; border: 1px solid var(--border); padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 4px;">
-        <div id="stopStateLabel" style="font-size: 0.7rem; color: var(--muted); font-weight: 700;">➡️ PRÓXIMA PARADA:</div>
+        <div id="stopDynamicLabel" style="font-size: 0.7rem; color: var(--muted); font-weight: 700;">➡️ PRÓXIMA PARADA:</div>
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div id="activeNextStopName" style="font-size: 1.1rem; font-weight: 800; color: var(--accent);">---</div>
           <div id="activeNextStopDistance" style="font-size: 0.85rem; font-weight: 800; color: var(--success);">+-- m</div>
@@ -259,7 +260,7 @@
         </div>
       </div>
 
-      <!-- CONTADORES DE VELOCIDAD, AHORRO EN VIVO Y TIEMPO -->
+      <!-- CONTADORES DE VELOCIDAD, TIEMPO Y AHORRO EN VIVO -->
       <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center;">
         <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
           <div id="gpsCurrentSpeed" style="font-size: 1rem; font-weight: 800; color: var(--accent);">0 km/h</div>
@@ -291,7 +292,7 @@
     </div>
 
     <footer>
-      <strong>Micro Litoral PWA v12.1</strong><br>
+      <strong>Micro Litoral PWA v13.0</strong><br>
       Desarrollado por <strong>Jaime Bustamante Leal</strong> con tecnología asistida por <strong>Gemini AI</strong>.<br>
       <span style="font-size: 0.62rem; color: var(--muted);">Aplicación independiente sin afiliación a Taxibuses San Antonio. Basado en datos públicos.</span>
     </footer>
@@ -327,6 +328,7 @@
       });
     }
 
+    // BASE DE DATOS ACTUALIZADA DE PARADAS (CONVERSIÓN EXACTA A DECIMALES)
     const STOPS_IDA = [
       { id: "s_1", name: "El Yeco", lat: -33.308778, lng: -71.642028, stdMin: 0 },
       { id: "s_3", name: "Escuela El Yeco", lat: -33.317139, lng: -71.642333, stdMin: 2 },
@@ -338,16 +340,16 @@
       { id: "s_15", name: "San Alfonso del Mar", lat: -33.352194, lng: -71.652278, stdMin: 16 },
       { id: "s_17", name: "Playa Internacional", lat: -33.356111, lng: -71.657194, stdMin: 18 },
       { id: "s_19", name: "Camino a Casablanca", lat: -33.357583, lng: -71.660944, stdMin: 20 },
-      { id: "s_20", name: "Skate Park", lat: -33.358944, lng: -71.663111, stdMin: 21 },
+      { id: "s_20", name: "Av. Santa Teresa de los Andes", lat: -33.358944, lng: -71.663111, stdMin: 21 },
       { id: "s_22", name: "Playa Las Cadenas", lat: -33.360500, lng: -71.664944, stdMin: 23 },
       { id: "s_24", name: "Av. Algarrobo", lat: -33.361472, lng: -71.668667, stdMin: 25 },
       { id: "s_26", name: "Club de Yates", lat: -33.362500, lng: -71.671222, stdMin: 27 },
       { id: "s_28", name: "Municipalidad de Algarrobo", lat: -33.366750, lng: -71.673500, stdMin: 29 },
       { id: "s_29", name: "Iglesia Santa Teresita", lat: -33.365972, lng: -71.670722, stdMin: 30 },
       { id: "s_30", name: "Líder Algarrobo", lat: -33.369028, lng: -71.668083, stdMin: 32 },
-      { id: "s_32", name: "Esval Algarrobo", lat: -33.372222, lng: -71.672944, stdMin: 34 },
-      { id: "s_34", name: "Vivero", lat: -33.373833, lng: -71.676056, stdMin: 36 },
-      { id: "s_36", name: "Canelo / Canelillo", lat: -33.376833, lng: -71.681528, stdMin: 38 },
+      { id: "s_32", name: "Av. Peñablanca", lat: -33.372222, lng: -71.672944, stdMin: 34 },
+      { id: "s_34", name: "Parque Residencial", lat: -33.373833, lng: -71.676056, stdMin: 36 },
+      { id: "s_36", name: "Av. Bahía Mansa", lat: -33.376833, lng: -71.681528, stdMin: 38 },
       { id: "s_38", name: "La Portada 1", lat: -33.379861, lng: -71.685611, stdMin: 40 },
       { id: "s_40", name: "La Portada 2", lat: -33.381583, lng: -71.686778, stdMin: 42 },
       { id: "s_42", name: "Las Balandras", lat: -33.385083, lng: -71.689000, stdMin: 44 },
@@ -365,116 +367,126 @@
       { id: "s_66", name: "Plaza Los Mosaicos", lat: -33.437583, lng: -71.684778, stdMin: 75 },
       { id: "s_68", name: "Isla Negra", lat: -33.441194, lng: -71.682889, stdMin: 78 },
       { id: "s_70", name: "Playa Las Ágatas", lat: -33.447000, lng: -71.677667, stdMin: 81 },
-      { id: "s_72", name: "Av. Centenario", lat: -33.451750, lng: -71.673861, stdMin: 84 },
-      { id: "s_74", name: "Plaza El Tabo", lat: -33.454972, lng: -71.668972, stdMin: 87 },
-      { id: "s_76", name: "El Tabo Centro", lat: -33.456333, lng: -71.663444, stdMin: 89 },
-      { id: "s_78", name: "Monolito", lat: -33.458083, lng: -71.659222, stdMin: 91 },
-      { id: "s_80", name: "El Tabito", lat: -33.463139, lng: -71.648500, stdMin: 94 },
-      { id: "s_82", name: "Consistorial", lat: -33.468139, lng: -71.639222, stdMin: 97 },
-      { id: "s_84", name: "Municipalidad de El Tabo", lat: -33.491667, lng: -71.619944, stdMin: 105 },
-      { id: "s_86", name: "Las Cruces", lat: -33.498194, lng: -71.615167, stdMin: 109 },
-      { id: "s_88", name: "Laguna El Peral", lat: -33.503250, lng: -71.603583, stdMin: 112 },
-      { id: "s_90", name: "Playas Blancas", lat: -33.506389, lng: -71.603500, stdMin: 114 },
-      { id: "s_92", name: "Costa Azul", lat: -33.521111, lng: -71.596778, stdMin: 120 },
-      { id: "s_94", name: "Av. Norte", lat: -33.524778, lng: -71.597083, stdMin: 122 },
-      { id: "s_96", name: "Av. Central", lat: -33.526500, lng: -71.597556, stdMin: 123 },
-      { id: "s_98", name: "Punta de Diamante", lat: -33.530778, lng: -71.596333, stdMin: 125 },
-      { id: "s_100", name: "Copec San Sebastián", lat: -33.532250, lng: -71.594583, stdMin: 126 },
-      { id: "s_102", name: "Terminal de Cartagena", lat: -33.540111, lng: -71.596778, stdMin: 130 },
-      { id: "s_104", name: "Estadio Cartagena", lat: -33.542000, lng: -71.600722, stdMin: 132 },
-      { id: "s_106", name: "Playa Grande Cartagena", lat: -33.542889, lng: -71.602472, stdMin: 133 },
-      { id: "s_108", name: "Plaza de Cartagena", lat: -33.546611, lng: -71.603306, stdMin: 135 },
-      { id: "s_110", name: "Playa Chica Cartagena", lat: -33.549278, lng: -71.605556, stdMin: 137 },
-      { id: "s_114", name: "Vicente Huidobro", lat: -33.550278, lng: -71.606028, stdMin: 138 },
-      { id: "s_116", name: "Estación Cartagena", lat: -33.551944, lng: -71.611056, stdMin: 140 },
-      { id: "s_118", name: "Corazones", lat: -33.553417, lng: -71.619972, stdMin: 143 },
-      { id: "s_120", name: "Rocas de San Antonio", lat: -33.555139, lng: -71.623389, stdMin: 145 },
-      { id: "s_122", name: "Pelancura", lat: -33.566389, lng: -71.621528, stdMin: 150 },
-      { id: "s_124", name: "Manuel Bulnes", lat: -33.571556, lng: -71.624167, stdMin: 153 },
-      { id: "s_126", name: "Faro Punta Panul", lat: -33.574750, lng: -71.627250, stdMin: 155 },
-      { id: "s_128", name: "San Antonio Centro", lat: -33.580750, lng: -71.614167, stdMin: 158 },
-      { id: "s_131", name: "Tottus", lat: -33.591472, lng: -71.613000, stdMin: 163 },
-      { id: "s_133", name: "Municipalidad de San Antonio", lat: -33.595639, lng: -71.613250, stdMin: 165 },
-      { id: "s_135", name: "Plaza de Barrancas", lat: -33.597472, lng: -71.613389, stdMin: 166 },
-      { id: "s_137", name: "Curicó", lat: -33.600944, lng: -71.613639, stdMin: 168 },
-      { id: "s_139", name: "Estadio San Antonio", lat: -33.602861, lng: -71.613750, stdMin: 169 },
-      { id: "s_141", name: "Acceso al Puerto", lat: -33.605556, lng: -71.613972, stdMin: 171 },
-      { id: "s_143", name: "Líder San Antonio", lat: -33.608194, lng: -71.614278, stdMin: 173 }
+      { id: "s_72", name: "Camping El Bosque", lat: -33.449361, lng: -71.675917, stdMin: 83 },
+      { id: "s_74", name: "Av. Centenario", lat: -33.451750, lng: -71.673861, stdMin: 85 },
+      { id: "s_76", name: "Plaza El Tabo", lat: -33.454972, lng: -71.668972, stdMin: 87 },
+      { id: "s_78", name: "Av. Arellano", lat: -33.453806, lng: -71.672139, stdMin: 88 },
+      { id: "s_80", name: "Poeta Jonás", lat: -33.455750, lng: -71.665667, stdMin: 89 },
+      { id: "s_82", name: "El Tabo Centro", lat: -33.456333, lng: -71.663444, stdMin: 91 },
+      { id: "s_84", name: "Monolito", lat: -33.458083, lng: -71.659222, stdMin: 93 },
+      { id: "s_86", name: "Lindero Azul", lat: -33.460639, lng: -71.652750, stdMin: 95 },
+      { id: "s_88", name: "El Tabito", lat: -33.463139, lng: -71.648500, stdMin: 97 },
+      { id: "s_90", name: "La Granja Presbiteriana", lat: -33.466000, lng: -71.644028, stdMin: 99 },
+      { id: "s_92", name: "Consistorial", lat: -33.468139, lng: -71.639222, stdMin: 101 },
+      { id: "s_94", name: "Municipalidad de El Tabo", lat: -33.491667, lng: -71.619944, stdMin: 108 },
+      { id: "s_96", name: "Las Cruces", lat: -33.498194, lng: -71.615167, stdMin: 111 },
+      { id: "s_98", name: "Laguna El Peral", lat: -33.503250, lng: -71.603583, stdMin: 114 },
+      { id: "s_100", name: "Playas Blancas", lat: -33.506389, lng: -71.603500, stdMin: 116 },
+      { id: "s_102", name: "Costa Azul", lat: -33.521111, lng: -71.596778, stdMin: 122 },
+      { id: "s_104", name: "Av. Norte", lat: -33.524778, lng: -71.597083, stdMin: 124 },
+      { id: "s_106", name: "Av. Central", lat: -33.526500, lng: -71.597556, stdMin: 125 },
+      { id: "s_108", name: "Punta de Diamante", lat: -33.530778, lng: -71.596333, stdMin: 127 },
+      { id: "s_110", name: "Huevos de Hoy", lat: -33.532500, lng: -71.594167, stdMin: 128 },
+      { id: "s_112", name: "Terminal de Cartagena", lat: -33.540111, lng: -71.596778, stdMin: 132 },
+      { id: "s_114", name: "Estadio Cartagena", lat: -33.542000, lng: -71.600722, stdMin: 134 },
+      { id: "s_116", name: "Playa Grande Cartagena", lat: -33.542889, lng: -71.602472, stdMin: 135 },
+      { id: "s_118", name: "Plaza de Cartagena", lat: -33.546611, lng: -71.603306, stdMin: 137 },
+      { id: "s_120", name: "Playa Chica Cartagena", lat: -33.549278, lng: -71.605556, stdMin: 139 },
+      { id: "s_124", name: "Vicente Huidobro", lat: -33.550278, lng: -71.606028, stdMin: 140 },
+      { id: "s_126", name: "Estación Cartagena", lat: -33.551944, lng: -71.611056, stdMin: 142 },
+      { id: "s_128", name: "Corazones", lat: -33.553417, lng: -71.619972, stdMin: 145 },
+      { id: "s_130", name: "Rocas de San Antonio", lat: -33.555139, lng: -71.623389, stdMin: 147 },
+      { id: "s_132", name: "Pelancura", lat: -33.566389, lng: -71.621528, stdMin: 152 },
+      { id: "s_134", name: "Manuel Bulnes", lat: -33.571556, lng: -71.624167, stdMin: 155 },
+      { id: "s_136", name: "Faro Punta Panul", lat: -33.574750, lng: -71.627250, stdMin: 157 },
+      { id: "s_138", name: "San Antonio Centro", lat: -33.580750, lng: -71.614167, stdMin: 160 },
+      { id: "s_141", name: "Tottus", lat: -33.591472, lng: -71.613000, stdMin: 165 },
+      { id: "s_143", name: "Municipalidad de San Antonio", lat: -33.595639, lng: -71.613250, stdMin: 167 },
+      { id: "s_145", name: "Plaza de Barrancas", lat: -33.597472, lng: -71.613389, stdMin: 168 },
+      { id: "s_147", name: "Curicó", lat: -33.600944, lng: -71.613639, stdMin: 170 },
+      { id: "s_149", name: "Estadio San Antonio", lat: -33.602861, lng: -71.613750, stdMin: 171 },
+      { id: "s_151", name: "Acceso al Puerto", lat: -33.605556, lng: -71.613972, stdMin: 173 },
+      { id: "s_153", name: "Líder San Antonio", lat: -33.608194, lng: -71.614278, stdMin: 175 }
     ];
 
     const STOPS_VUELTA = [
-      { id: "v_144", name: "Líder San Antonio", lat: -33.608194, lng: -71.614278, stdMin: 0 },
-      { id: "v_142", name: "Acceso al Puerto", lat: -33.605556, lng: -71.613972, stdMin: 2 },
-      { id: "v_140", name: "Estadio San Antonio", lat: -33.602861, lng: -71.613750, stdMin: 4 },
-      { id: "v_138", name: "Curicó", lat: -33.600944, lng: -71.613639, stdMin: 5 },
-      { id: "v_136", name: "Plaza de Barrancas", lat: -33.597472, lng: -71.613389, stdMin: 7 },
-      { id: "v_134", name: "Municipalidad de San Antonio", lat: -33.595639, lng: -71.613250, stdMin: 8 },
-      { id: "v_132", name: "Tottus", lat: -33.591472, lng: -71.613000, stdMin: 10 },
-      { id: "v_130", name: "Javer", lat: -33.580861, lng: -71.611639, stdMin: 14 },
-      { id: "v_129", name: "San Antonio Centro", lat: -33.580444, lng: -71.613111, stdMin: 15 },
-      { id: "v_127", name: "Faro Punta Panul", lat: -33.574750, lng: -71.627250, stdMin: 18 },
-      { id: "v_125", name: "Manuel Bulnes", lat: -33.571556, lng: -71.624167, stdMin: 20 },
-      { id: "v_123", name: "Pelancura", lat: -33.566389, lng: -71.621528, stdMin: 23 },
-      { id: "v_121", name: "Rocas de San Antonio", lat: -33.555139, lng: -71.623389, stdMin: 28 },
-      { id: "v_119", name: "Corazones", lat: -33.553417, lng: -71.619972, stdMin: 30 },
-      { id: "v_117", name: "Estación Cartagena", lat: -33.551944, lng: -71.611056, stdMin: 33 },
-      { id: "v_115", name: "Vicente Huidobro", lat: -33.551583, lng: -71.604889, stdMin: 35 },
-      { id: "v_113", name: "Hermanos Tobar", lat: -33.549861, lng: -71.603639, stdMin: 36 },
-      { id: "v_112", name: "Mariano Casanova", lat: -33.547556, lng: -71.601722, stdMin: 38 },
-      { id: "v_111", name: "Carlos Corsi", lat: -33.548250, lng: -71.597500, stdMin: 39 },
-      { id: "v_109", name: "Plaza de Cartagena", lat: -33.546611, lng: -71.603306, stdMin: 40 },
-      { id: "v_107", name: "Playa Grande Cartagena", lat: -33.542889, lng: -71.602472, stdMin: 42 },
-      { id: "v_105", name: "Estadio Cartagena", lat: -33.542000, lng: -71.600722, stdMin: 43 },
-      { id: "v_103", name: "Terminal de Cartagena", lat: -33.540111, lng: -71.596778, stdMin: 45 },
-      { id: "v_101", name: "Copec San Sebastián", lat: -33.532250, lng: -71.594583, stdMin: 49 },
-      { id: "v_99", name: "Punta de Diamante", lat: -33.530778, lng: -71.596333, stdMin: 50 },
-      { id: "v_97", name: "Av. Central", lat: -33.526500, lng: -71.597556, stdMin: 52 },
-      { id: "v_95", name: "Av. Norte", lat: -33.524778, lng: -71.597083, stdMin: 53 },
-      { id: "v_93", name: "Costa Azul", lat: -33.521111, lng: -71.596778, stdMin: 55 },
-      { id: "v_91", name: "Playas Blancas", lat: -33.506389, lng: -71.603500, stdMin: 61 },
-      { id: "v_89", name: "Laguna El Peral", lat: -33.503250, lng: -71.603583, stdMin: 63 },
-      { id: "v_87", name: "Las Cruces", lat: -33.498194, lng: -71.615167, stdMin: 66 },
-      { id: "v_85", name: "Municipalidad de El Tabo", lat: -33.491667, lng: -71.619944, stdMin: 70 },
-      { id: "v_83", name: "Consistorial", lat: -33.468139, lng: -71.639222, stdMin: 78 },
-      { id: "v_81", name: "El Tabito", lat: -33.463139, lng: -71.648500, stdMin: 81 },
-      { id: "v_79", name: "Monolito", lat: -33.458083, lng: -71.659222, stdMin: 84 },
-      { id: "v_77", name: "El Tabo Centro", lat: -33.456333, lng: -71.663444, stdMin: 86 },
-      { id: "v_75", name: "Plaza El Tabo", lat: -33.454972, lng: -71.668972, stdMin: 88 },
-      { id: "v_73", name: "Av. Centenario", lat: -33.451750, lng: -71.673861, stdMin: 91 },
-      { id: "v_71", name: "Playa Las Ágatas", lat: -33.447000, lng: -71.677667, stdMin: 94 },
-      { id: "v_69", name: "Isla Negra", lat: -33.441194, lng: -71.682889, stdMin: 97 },
-      { id: "v_67", name: "Plaza Los Mosaicos", lat: -33.437583, lng: -71.684778, stdMin: 100 },
-      { id: "v_65", name: "Aramco", lat: -33.434583, lng: -71.686444, stdMin: 102 },
-      { id: "v_63", name: "Punta de Tralca", lat: -33.425639, lng: -71.691694, stdMin: 106 },
-      { id: "v_61", name: "Balneario Banco Central", lat: -33.416417, lng: -71.696417, stdMin: 110 },
-      { id: "v_59", name: "Tralcamahuida", lat: -33.413694, lng: -71.695694, stdMin: 112 },
-      { id: "v_57", name: "Plus Ultra", lat: -33.410889, lng: -71.694944, stdMin: 114 },
-      { id: "v_55", name: "Huallilemu", lat: -33.407694, lng: -71.694000, stdMin: 116 },
-      { id: "v_53", name: "Capilla SUD", lat: -33.405028, lng: -71.693583, stdMin: 118 },
-      { id: "v_51", name: "Parroquia El Quisco", lat: -33.402167, lng: -71.694000, stdMin: 120 },
-      { id: "v_49", name: "Municipalidad de El Quisco", lat: -33.399833, lng: -71.694389, stdMin: 121 },
-      { id: "v_47", name: "Playa El Quisco", lat: -33.393361, lng: -71.694111, stdMin: 124 },
-      { id: "v_45", name: "aCuenta El Quisco", lat: -33.386250, lng: -71.689778, stdMin: 127 },
-      { id: "v_43", name: "Las Balandras", lat: -33.385083, lng: -71.689000, stdMin: 129 },
-      { id: "v_41", name: "La Portada 1", lat: -33.381583, lng: -71.686778, stdMin: 131 },
-      { id: "v_39", name: "La Portada 2", lat: -33.379861, lng: -71.685611, stdMin: 133 },
-      { id: "v_37", name: "Canelo / Canelillo", lat: -33.376833, lng: -71.681528, stdMin: 135 },
-      { id: "v_35", name: "Vivero", lat: -33.373833, lng: -71.676056, stdMin: 137 },
-      { id: "v_33", name: "Esval Algarrobo", lat: -33.372222, lng: -71.672944, stdMin: 139 },
-      { id: "v_31", name: "Líder Algarrobo", lat: -33.369028, lng: -71.668083, stdMin: 141 },
-      { id: "v_27", name: "Iglesia Santa Teresita", lat: -33.365750, lng: -71.670222, stdMin: 143 },
-      { id: "v_25", name: "Ferias Artesanales Algarrobo", lat: -33.361667, lng: -71.667361, stdMin: 145 },
-      { id: "v_23", name: "Playa Las Cadenas", lat: -33.360500, lng: -71.664944, stdMin: 147 },
-      { id: "v_21", name: "Skate Park", lat: -33.358944, lng: -71.663111, stdMin: 149 },
-      { id: "v_18", name: "Playa Internacional", lat: -33.356111, lng: -71.657194, stdMin: 152 },
-      { id: "v_16", name: "San Alfonso del Mar", lat: -33.352194, lng: -71.652278, stdMin: 154 },
-      { id: "v_14", name: "Pao Pao", lat: -33.350417, lng: -71.651389, stdMin: 156 },
-      { id: "v_12", name: "Camino Las Dichas", lat: -33.340194, lng: -71.648306, stdMin: 159 },
-      { id: "v_10", name: "Playa Algarrobo Norte", lat: -33.335028, lng: -71.647306, stdMin: 161 },
-      { id: "v_8", name: "Plaza de Algarrobo Norte", lat: -33.331778, lng: -71.645028, stdMin: 163 },
-      { id: "v_6", name: "Rotonda Mirasol", lat: -33.327111, lng: -71.644944, stdMin: 165 },
-      { id: "v_4", name: "Escuela El Yeco", lat: -33.317139, lng: -71.642333, stdMin: 168 },
-      { id: "v_2", name: "El Yeco", lat: -33.309583, lng: -71.642528, stdMin: 170 }
+      { id: "v_154", name: "Líder San Antonio", lat: -33.608194, lng: -71.614278, stdMin: 0 },
+      { id: "v_152", name: "Acceso al Puerto", lat: -33.605556, lng: -71.613972, stdMin: 2 },
+      { id: "v_150", name: "Estadio San Antonio", lat: -33.602861, lng: -71.613750, stdMin: 4 },
+      { id: "v_148", name: "Curicó", lat: -33.600944, lng: -71.613639, stdMin: 5 },
+      { id: "v_146", name: "Plaza de Barrancas", lat: -33.597472, lng: -71.613389, stdMin: 7 },
+      { id: "v_144", name: "Municipalidad de San Antonio", lat: -33.595639, lng: -71.613250, stdMin: 8 },
+      { id: "v_142", name: "Tottus", lat: -33.591472, lng: -71.613000, stdMin: 10 },
+      { id: "v_140", name: "Javer", lat: -33.580861, lng: -71.611639, stdMin: 14 },
+      { id: "v_139", name: "San Antonio Centro", lat: -33.580444, lng: -71.613111, stdMin: 15 },
+      { id: "v_137", name: "Faro Punta Panul", lat: -33.574750, lng: -71.627250, stdMin: 18 },
+      { id: "v_135", name: "Manuel Bulnes", lat: -33.571556, lng: -71.624167, stdMin: 20 },
+      { id: "v_133", name: "Pelancura", lat: -33.566389, lng: -71.621528, stdMin: 23 },
+      { id: "v_131", name: "Rocas de San Antonio", lat: -33.555139, lng: -71.623389, stdMin: 28 },
+      { id: "v_129", name: "Corazones", lat: -33.553417, lng: -71.619972, stdMin: 30 },
+      { id: "v_127", name: "Estación Cartagena", lat: -33.551944, lng: -71.611056, stdMin: 33 },
+      { id: "v_125", name: "Vicente Huidobro", lat: -33.551583, lng: -71.604889, stdMin: 35 },
+      { id: "v_123", name: "Hermanos Tobar", lat: -33.549861, lng: -71.603639, stdMin: 36 },
+      { id: "v_122", name: "Mariano Casanova", lat: -33.547556, lng: -71.601722, stdMin: 38 },
+      { id: "v_121", name: "Carlos Corsi", lat: -33.548250, lng: -71.597500, stdMin: 39 },
+      { id: "v_119", name: "Plaza de Cartagena", lat: -33.546611, lng: -71.603306, stdMin: 40 },
+      { id: "v_117", name: "Playa Grande Cartagena", lat: -33.542889, lng: -71.602472, stdMin: 42 },
+      { id: "v_115", name: "Estadio Cartagena", lat: -33.542000, lng: -71.600722, stdMin: 43 },
+      { id: "v_113", name: "Terminal de Cartagena", lat: -33.540111, lng: -71.596778, stdMin: 45 },
+      { id: "v_111", name: "Huevos de Hoy", lat: -33.532500, lng: -71.594167, stdMin: 49 },
+      { id: "v_109", name: "Punta de Diamante", lat: -33.530778, lng: -71.596333, stdMin: 50 },
+      { id: "v_107", name: "Av. Central", lat: -33.526500, lng: -71.597556, stdMin: 52 },
+      { id: "v_105", name: "Av. Norte", lat: -33.524778, lng: -71.597083, stdMin: 53 },
+      { id: "v_103", name: "Costa Azul", lat: -33.521111, lng: -71.596778, stdMin: 55 },
+      { id: "v_101", name: "Playas Blancas", lat: -33.506389, lng: -71.603500, stdMin: 61 },
+      { id: "v_99", name: "Laguna El Peral", lat: -33.503250, lng: -71.603583, stdMin: 63 },
+      { id: "v_97", name: "Las Cruces", lat: -33.498194, lng: -71.615167, stdMin: 66 },
+      { id: "v_95", name: "Municipalidad de El Tabo", lat: -33.491667, lng: -71.619944, stdMin: 70 },
+      { id: "v_93", name: "Consistorial", lat: -33.468139, lng: -71.639222, stdMin: 78 },
+      { id: "v_91", name: "La Granja Presbiteriana", lat: -33.466000, lng: -71.644028, stdMin: 80 },
+      { id: "v_89", name: "El Tabito", lat: -33.463139, lng: -71.648500, stdMin: 82 },
+      { id: "v_87", name: "Lindero Azul", lat: -33.460639, lng: -71.652750, stdMin: 84 },
+      { id: "v_85", name: "Monolito", lat: -33.458083, lng: -71.659222, stdMin: 86 },
+      { id: "v_83", name: "El Tabo Centro", lat: -33.456333, lng: -71.663444, stdMin: 88 },
+      { id: "v_81", name: "Poeta Jonás", lat: -33.455750, lng: -71.665667, stdMin: 89 },
+      { id: "v_79", name: "Av. Arellano", lat: -33.453806, lng: -71.672139, stdMin: 90 },
+      { id: "v_77", name: "Plaza El Tabo", lat: -33.454972, lng: -71.668972, stdMin: 92 },
+      { id: "v_75", name: "Av. Centenario", lat: -33.451750, lng: -71.673861, stdMin: 94 },
+      { id: "v_73", name: "Camping El Bosque", lat: -33.449361, lng: -71.675917, stdMin: 96 },
+      { id: "v_71", name: "Playa Las Ágatas", lat: -33.447000, lng: -71.677667, stdMin: 98 },
+      { id: "v_69", name: "Isla Negra", lat: -33.441194, lng: -71.682889, stdMin: 101 },
+      { id: "v_67", name: "Plaza Los Mosaicos", lat: -33.437583, lng: -71.684778, stdMin: 104 },
+      { id: "v_65", name: "Aramco", lat: -33.434583, lng: -71.686444, stdMin: 106 },
+      { id: "v_63", name: "Punta de Tralca", lat: -33.425639, lng: -71.691694, stdMin: 110 },
+      { id: "v_61", name: "Balneario Banco Central", lat: -33.416417, lng: -71.696417, stdMin: 114 },
+      { id: "v_59", name: "Tralcamahuida", lat: -33.413694, lng: -71.695694, stdMin: 116 },
+      { id: "v_57", name: "Plus Ultra", lat: -33.410889, lng: -71.694944, stdMin: 118 },
+      { id: "v_55", name: "Huallilemu", lat: -33.407694, lng: -71.694000, stdMin: 120 },
+      { id: "v_53", name: "Capilla SUD", lat: -33.405028, lng: -71.693583, stdMin: 122 },
+      { id: "v_51", name: "Parroquia El Quisco", lat: -33.402167, lng: -71.694000, stdMin: 124 },
+      { id: "v_49", name: "Municipalidad de El Quisco", lat: -33.399833, lng: -71.694389, stdMin: 125 },
+      { id: "v_47", name: "Playa El Quisco", lat: -33.393361, lng: -71.694111, stdMin: 128 },
+      { id: "v_45", name: "aCuenta El Quisco", lat: -33.386250, lng: -71.689778, stdMin: 131 },
+      { id: "v_43", name: "Las Balandras", lat: -33.385083, lng: -71.689000, stdMin: 133 },
+      { id: "v_41", name: "La Portada 1", lat: -33.381583, lng: -71.686778, stdMin: 135 },
+      { id: "v_39", name: "La Portada 2", lat: -33.379861, lng: -71.685611, stdMin: 137 },
+      { id: "v_37", name: "Av. Bahía Mansa", lat: -33.376833, lng: -71.681528, stdMin: 139 },
+      { id: "v_35", name: "Parque Residencial", lat: -33.373833, lng: -71.676056, stdMin: 141 },
+      { id: "v_33", name: "Av. Peñablanca", lat: -33.372222, lng: -71.672944, stdMin: 143 },
+      { id: "v_31", name: "Líder Algarrobo", lat: -33.369028, lng: -71.668083, stdMin: 145 },
+      { id: "v_27", name: "Iglesia Santa Teresita", lat: -33.365750, lng: -71.670222, stdMin: 147 },
+      { id: "v_25", name: "Ferias Artesanales Algarrobo", lat: -33.361667, lng: -71.667361, stdMin: 149 },
+      { id: "v_23", name: "Playa Las Cadenas", lat: -33.360500, lng: -71.664944, stdMin: 151 },
+      { id: "v_21", name: "Av. Santa Teresa de los Andes", lat: -33.358944, lng: -71.663111, stdMin: 153 },
+      { id: "v_18", name: "Playa Internacional", lat: -33.356111, lng: -71.657194, stdMin: 156 },
+      { id: "v_16", name: "San Alfonso del Mar", lat: -33.352194, lng: -71.652278, stdMin: 158 },
+      { id: "v_14", name: "Pao Pao", lat: -33.350417, lng: -71.651389, stdMin: 160 },
+      { id: "v_12", name: "Camino Las Dichas", lat: -33.340194, lng: -71.648306, stdMin: 163 },
+      { id: "v_10", name: "Playa Algarrobo Norte", lat: -33.335028, lng: -71.647306, stdMin: 165 },
+      { id: "v_8", name: "Plaza de Algarrobo Norte", lat: -33.331778, lng: -71.645028, stdMin: 167 },
+      { id: "v_6", name: "Rotonda Mirasol", lat: -33.327111, lng: -71.644944, stdMin: 169 },
+      { id: "v_4", name: "Escuela El Yeco", lat: -33.317139, lng: -71.642333, stdMin: 172 },
+      { id: "v_2", name: "El Yeco", lat: -33.309583, lng: -71.642528, stdMin: 174 }
     ];
 
     let ROUTE_STOPS = STOPS_IDA;
@@ -742,7 +754,7 @@
           if (state.isTripActive) {
             document.getElementById("viewSetup").classList.add("hidden");
             document.getElementById("viewFavorites").classList.add("hidden");
-            document.getElementById("viewSavingsDashboard").classList.add("hidden");
+            document.getElementById("viewSavingsAccumulated").classList.add("hidden");
             document.getElementById("viewActive").classList.remove("hidden");
             
             populateActiveChangeEndDropdown();
@@ -879,7 +891,7 @@
 
       document.getElementById("viewSetup").classList.add("hidden");
       document.getElementById("viewFavorites").classList.add("hidden");
-      document.getElementById("viewSavingsDashboard").classList.add("hidden");
+      document.getElementById("viewSavingsAccumulated").classList.add("hidden");
       document.getElementById("viewActive").classList.remove("hidden");
 
       populateActiveChangeEndDropdown();
@@ -960,36 +972,27 @@
               const distToNextKm = calculateDistanceKm(state.lastLat, state.lastLng, nextStop.lat, nextStop.lng);
               const distToNextMeters = Math.round(distToNextKm * 1000);
 
-              const stopLabel = document.getElementById("stopStateLabel");
-              const stopNameElem = document.getElementById("activeNextStopName");
-
-              // LÓGICA DINÁMICA DE ESTADO EN PARADERO
-              if (distToNextKm <= 0.08) {
-                if (state.currentSpeed === 0) {
-                  stopLabel.innerText = "🛑 PARADA ACTUAL:";
-                  stopLabel.style.color = "var(--danger)";
-                  stopNameElem.innerText = nextStop.name;
-                  stopNameElem.style.color = "var(--danger)";
-                } else {
-                  stopLabel.innerText = "🔔 LLEGANDO A LA PARADA:";
-                  stopLabel.style.color = "var(--warning)";
-                  stopNameElem.innerText = nextStop.name;
-                  stopNameElem.style.color = "var(--warning)";
-                }
-              } else {
-                stopLabel.innerText = "➡️ PRÓXIMA PARADA:";
-                stopLabel.style.color = "var(--muted)";
-                stopNameElem.innerText = nextStop.name;
-                stopNameElem.style.color = "var(--accent)";
-              }
-
+              const dynamicLabel = document.getElementById("stopDynamicLabel");
+              document.getElementById("activeNextStopName").innerText = nextStop.name;
               document.getElementById("activeNextStopDistance").innerText = distToNextMeters < 100 ? `(~${distToNextMeters} m)` : `(+${distToNextMeters} m)`;
+
+              // ESTADOS DINÁMICOS DE PARADA
+              if (distToNextMeters <= 80 && state.currentSpeed === 0) {
+                dynamicLabel.innerText = "🛑 PARADA ACTUAL:";
+                dynamicLabel.style.color = "var(--success)";
+              } else if (distToNextMeters <= 80) {
+                dynamicLabel.innerText = "🔔 LLEGANDO A LA PARADA:";
+                dynamicLabel.style.color = "var(--warning)";
+              } else {
+                dynamicLabel.innerText = "➡️ PRÓXIMA PARADA:";
+                dynamicLabel.style.color = "var(--muted)";
+              }
 
               if (realMap && nextStopMarker) {
                 nextStopMarker.setLatLng([nextStop.lat, nextStop.lng]);
               }
 
-              if (distToNextKm <= 0.04) {
+              if (distToNextKm <= 0.05) {
                 state.currentBaseIndex++;
                 saveActiveStateToStorage();
                 populateActiveChangeEndDropdown();
@@ -1074,9 +1077,9 @@
         dropBanner.style.borderColor = "var(--border)";
         dropBanner.style.background = "#060911";
         dropIcon.innerText = "🚌";
-        dropTitle.innerText = `Faltan ${stopsRemaining} paradas para tu destino`;
+        dropTitle.innerText = `Te notificaremos al aproximarte`;
         dropTitle.style.color = "var(--text)";
-        dropDesc.innerText = `Destino: ${endObj ? endObj.name : ''}`;
+        dropDesc.innerText = `Faltan ${stopsRemaining} paradas para tu destino.`;
       }
 
       const elapsedMins = Math.max(1, Math.round((now - state.tripStartTime) / 60000));
@@ -1178,7 +1181,7 @@
       document.getElementById("viewActive").classList.add("hidden");
       document.getElementById("viewSetup").classList.remove("hidden");
       document.getElementById("viewFavorites").classList.remove("hidden");
-      document.getElementById("viewSavingsDashboard").classList.remove("hidden");
+      document.getElementById("viewSavingsAccumulated").classList.remove("hidden");
     }
   </script>
 </body>
