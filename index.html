@@ -38,6 +38,8 @@
     .btn-secondary { background: #1f2937; color: var(--text); border: 1px solid var(--border); }
     .btn-danger { background: rgba(248, 113, 113, 0.15); color: var(--danger); border: 1px solid rgba(248, 113, 113, 0.3); }
 
+    .disclaimer-box { background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.25); border-radius: 10px; padding: 10px; font-size: 0.68rem; color: var(--muted); text-align: center; line-height: 1.3; }
+
     .metro-container { background: #060911; border: 1px solid var(--border); border-radius: 12px; padding: 50px 10px 65px 10px; overflow-x: auto; position: relative; scrollbar-width: none; }
     .metro-container::-webkit-scrollbar { display: none; }
     .metro-track-wrapper { position: relative; min-width: 3200px; padding-top: 20px; }
@@ -164,6 +166,10 @@
       </div>
 
       <button class="btn" id="btnStartTrip">🚀 Iniciar Viaje con GPS</button>
+
+      <div class="disclaimer-box">
+        ℹ️ <strong>Aviso Legal:</strong> Esta aplicación es una herramienta independiente desarrollada con fines informativos en base a datos públicos de trazados y paraderos. No posee ningún tipo de relación, vínculo ni afiliación con la empresa Taxibuses San Antonio.
+      </div>
     </div>
 
     <div id="viewActive" class="card hidden">
@@ -270,8 +276,9 @@
     </div>
 
     <footer>
-      <strong>Micro Litoral PWA v11.0</strong><br>
-      Desarrollado por <strong>Jaime Bustamante Leal</strong> con tecnología asistida por <strong>Gemini AI</strong>.
+      <strong>Micro Litoral PWA v11.1</strong><br>
+      Desarrollado por <strong>Jaime Bustamante Leal</strong> con tecnología asistida por <strong>Gemini AI</strong>.<br>
+      <span style="font-size: 0.62rem; color: var(--muted);">Aplicación independiente sin afiliación a Taxibuses San Antonio. Basado en datos públicos.</span>
     </footer>
 
   </div>
@@ -462,6 +469,7 @@
       currentBaseIndex: 0,
       inTransitBetween: false,
       isGpsLive: false,
+      userTouchedStartStop: false, // FLAG PARA PREVENIR BUCLE DE RESETEO
       tripStartTime: null,
       watchPositionId: null,
       currentSpeed: 0,
@@ -495,12 +503,14 @@
       document.getElementById("selectDirection").addEventListener("change", (e) => {
         state.direction = e.target.value;
         ROUTE_STOPS = state.direction === "IDA" ? STOPS_IDA : STOPS_VUELTA;
+        state.userTouchedStartStop = false;
         populateStopsDropdowns();
         renderMetroMap();
         updateDepartureSchedule();
       });
 
       document.getElementById("selectStartStop").addEventListener("change", (e) => {
+        state.userTouchedStartStop = true; // USUARIO ELIGIÓ MANUALMENTE
         state.startStopId = e.target.value;
         updateEndStopsDropdown();
         updateDepartureSchedule();
@@ -558,8 +568,10 @@
       updateEndStopsDropdown();
     }
 
+    // MEJORA CLAVE: NO FORZAR LA ÚLTIMA PARADA SI LA SELECCIÓN PREVIA SIGUE SIENDO VÁLIDA
     function updateEndStopsDropdown() {
       const selectEnd = document.getElementById("selectEndStop");
+      const previousEndId = state.endStopId;
       selectEnd.innerHTML = "";
 
       const startIdx = ROUTE_STOPS.findIndex(s => s.id === state.startStopId);
@@ -570,7 +582,12 @@
       });
 
       if (remainingStops.length > 0) {
-        state.endStopId = remainingStops[remainingStops.length - 1].id;
+        const stillValid = remainingStops.some(s => s.id === previousEndId);
+        if (stillValid) {
+          state.endStopId = previousEndId;
+        } else {
+          state.endStopId = remainingStops[remainingStops.length - 1].id;
+        }
         selectEnd.value = state.endStopId;
       }
     }
@@ -606,7 +623,7 @@
         item.innerHTML = `
           <div>
             <div style="font-size:0.85rem; font-weight:800; color:var(--accent);">${fav.name}</div>
-            <div style="font-size:0.7rem; color:var(--muted);">${fav.direction === 'IDA' ? 'Hacia Líder San Antonio' : 'Hacia El Yeco'}</div>
+            <div style="font-size:0.7rem; color:var(--muted);">${fav.direction === 'IDA' ? 'Hacia Líder SA' : 'Hacia El Yeco'}</div>
           </div>
           <button class="btn btn-secondary" style="width:auto; padding:4px 10px; font-size:0.75rem;">Cargar</button>
         `;
@@ -617,6 +634,7 @@
           populateStopsDropdowns();
           document.getElementById("selectStartStop").value = fav.startStopId;
           state.startStopId = fav.startStopId;
+          state.userTouchedStartStop = true;
           updateEndStopsDropdown();
           document.getElementById("selectEndStop").value = fav.endStopId;
           state.endStopId = fav.endStopId;
@@ -717,6 +735,7 @@
       }
     }
 
+    // CORRECCIÓN BUCLE: EL GPS PASIVO SOLO SUGIERE SI EL USUARIO NO HA CAMBIADO EL ORIGEN MANUALMENTE
     function initPassiveGPS() {
       if ("geolocation" in navigator) {
         navigator.geolocation.watchPosition(
@@ -728,17 +747,21 @@
             if (!state.isTripActive) {
               let nearestStop = null;
               let minDist = 999;
-              ROUTE_STOPS.forEach((s, idx) => {
+              ROUTE_STOPS.forEach((s) => {
                 const d = calculateDistanceKm(lat, lng, s.lat, s.lng);
                 if (d < minDist) { minDist = d; nearestStop = s; }
               });
 
               if (minDist <= 0.20) {
                 updateHeaderGreeting(nearestStop);
-                state.currentBaseIndex = ROUTE_STOPS.findIndex(s => s.id === nearestStop.id);
-                document.getElementById("selectStartStop").value = nearestStop.id;
-                state.startStopId = nearestStop.id;
-                updateEndStopsDropdown();
+                
+                // SOLO SUGERIR SI NO SE HA INTERACTUADO MANUALMENTE CON EL ORIGEN
+                if (!state.userTouchedStartStop) {
+                  state.currentBaseIndex = ROUTE_STOPS.findIndex(s => s.id === nearestStop.id);
+                  document.getElementById("selectStartStop").value = nearestStop.id;
+                  state.startStopId = nearestStop.id;
+                  updateEndStopsDropdown();
+                }
               } else {
                 updateHeaderGreeting(null);
               }
@@ -1053,6 +1076,7 @@
     }
 
     function resetToSetupView() {
+      state.userTouchedStartStop = false;
       document.getElementById("viewActive").classList.add("hidden");
       document.getElementById("viewSetup").classList.remove("hidden");
       document.getElementById("viewFavorites").classList.remove("hidden");
