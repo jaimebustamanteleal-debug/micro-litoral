@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Micro Litoral GPS</title>
+  <title>Micro Litoral GPS v3.14</title>
   <meta name="theme-color" content="#090d16">
   
-  <!-- Leaflet CSS (Mapa Real) -->
+  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <style>
@@ -58,8 +58,19 @@
     .metro-fixed-circle { width: 14px; height: 14px; border-radius: 50%; background: #060911; border: 3px solid #4b5563; transition: all 0.3s; }
     .metro-fixed-node.visited .metro-fixed-circle { border-color: var(--accent); background: var(--accent); }
     .metro-fixed-node.current .metro-fixed-circle { border-color: #fff; background: #ef4444; box-shadow: 0 0 10px #ef4444; transform: scale(1.3); }
+    
+    /* ESTACIÓN DE DESTINO EN AMARILLO BRILLANTE */
+    .metro-fixed-node.destination .metro-fixed-circle { border-color: #fff; background: var(--warning); box-shadow: 0 0 12px var(--warning); transform: scale(1.35); }
+    .metro-fixed-node.destination .metro-fixed-label { color: var(--warning) !important; font-weight: 800; }
+
     .metro-fixed-label { position: absolute; top: 20px; left: 50%; transform: translateX(-15%) rotate(40deg); transform-origin: left top; font-size: 0.58rem; color: var(--muted); white-space: nowrap; font-weight: 600; width: 75px; text-align: left; overflow: hidden; text-overflow: ellipsis; }
     .metro-fixed-node.current .metro-fixed-label { color: var(--text); font-weight: 800; }
+
+    /* PANEL ÚNICO DE ALERTAS UNIFICADO */
+    .alert-panel { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 12px; background: #060911; border: 1px solid var(--border); transition: all 0.3s ease; }
+    .alert-panel.alert-speed { border-color: var(--danger); background: rgba(248, 113, 113, 0.2); }
+    .alert-panel.alert-stop { border-color: var(--warning); background: rgba(251, 191, 36, 0.15); }
+    .alert-panel.alert-drop { border-color: var(--success); background: rgba(52, 211, 153, 0.2); }
 
     /* MAPA REAL LEAFLET BLOQUEADO */
     #realMap { width: 100%; height: 180px; border-radius: 12px; border: 1px solid var(--border); pointer-events: none; z-index: 1; background: #0b1329; }
@@ -73,10 +84,7 @@
 
     @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.85); } 100% { opacity: 1; transform: scale(1); } }
 
-    .eta-box { padding: 14px; border-radius: 12px; font-weight: 800; border: 1px solid var(--border); transition: all 0.3s; display: flex; flex-direction: column; gap: 8px; }
-    .eta-ontime { background: rgba(52, 211, 153, 0.1); border-color: var(--success); }
-
-    .status-banner { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 12px; background: #060911; border: 1px solid var(--border); transition: all 0.3s ease; }
+    .eta-box { padding: 14px; border-radius: 12px; font-weight: 800; border: 1px solid var(--border); transition: all 0.3s; display: flex; flex-direction: column; gap: 8px; background: rgba(52, 211, 153, 0.1); border-color: var(--success); }
 
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
     .modal-overlay.active { opacity: 1; pointer-events: auto; }
@@ -96,25 +104,6 @@
       <p id="headerSub">Buscando señal GPS...</p>
     </header>
 
-    <!-- AHORRO ACUMULADO (SÓLO EN PANTALLA DE INICIO) -->
-    <div id="viewSavingsAccumulated" class="card" style="background: rgba(52, 211, 153, 0.08); border-color: rgba(52, 211, 153, 0.3);">
-      <div class="card-title" style="color: var(--success);">💰 Ahorro Acumulado (Vs. Auto)</div>
-      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center; margin-top: 2px;">
-        <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
-          <div id="savingsToday" style="font-size: 0.95rem; font-weight: 800; color: var(--success);">$0</div>
-          <div style="font-size: 0.65rem; color: var(--muted);">Hoy</div>
-        </div>
-        <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
-          <div id="savingsWeek" style="font-size: 0.95rem; font-weight: 800; color: var(--accent);">$0</div>
-          <div style="font-size: 0.65rem; color: var(--muted);">Esta Semana</div>
-        </div>
-        <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
-          <div id="savingsMonth" style="font-size: 0.95rem; font-weight: 800; color: var(--purple);">$0</div>
-          <div style="font-size: 0.65rem; color: var(--muted);">Este Mes</div>
-        </div>
-      </div>
-    </div>
-
     <!-- RUTAS FRECUENTES -->
     <div id="viewFavorites" class="card">
       <div class="card-title">⭐ Rutas Frecuentes</div>
@@ -133,8 +122,8 @@
       <div>
         <label>¿Hacia dónde vas?</label>
         <select id="selectDirection">
-          <option value="IDA">Hacia Líder San Antonio</option>
-          <option value="VUELTA">Hacia El Yeco</option>
+          <option value="IDA">Hacia Líder San Antonio (Ida)</option>
+          <option value="VUELTA">Hacia El Yeco (Vuelta)</option>
         </select>
       </div>
 
@@ -173,17 +162,13 @@
       <button class="btn" id="btnStartTrip">🚀 Iniciar Viaje con GPS</button>
 
       <div class="disclaimer-box">
-        ℹ️ <strong>Aviso Legal:</strong> Esta aplicación es una herramienta independiente desarrollada con fines informativos en base a datos públicos de trazados y paraderos. No posee ningún tipo de relación, vínculo ni afiliación con la empresa Taxibuses San Antonio.
+        ℹ️️ <strong>Aviso Legal:</strong> Aplicación independiente desarrollada con fines informativos en base a datos públicos de trazados y paraderos del Litoral Central. No posee afiliación con Taxibuses San Antonio.
       </div>
     </div>
 
     <!-- VISTA EN VIAJE ACTIVO -->
     <div id="viewActive" class="card hidden">
-      <div class="card-title">
-        <span>🚌 En Viaje Activo</span>
-        <span id="activeClock" style="color: var(--muted); font-size: 0.8rem;">00:00:00</span>
-      </div>
-
+      
       <!-- MINIMAPA ESTILO METRO FIJO DE 7 ESTACIONES -->
       <div class="metro-fixed-container">
         <div class="metro-fixed-track">
@@ -193,21 +178,21 @@
         </div>
       </div>
 
+      <!-- PANEL ÚNICO DE ALERTAS INTELIGENTE -->
+      <div id="unifiedAlertPanel" class="alert-panel">
+        <span id="alertIcon" style="font-size: 1.3rem;">🔔</span>
+        <div>
+          <div id="alertTitle" style="font-size: 0.85rem; font-weight: 800; color: var(--accent);">Te notificaremos al aproximarte</div>
+          <div id="alertDesc" style="font-size: 0.72rem; color: var(--text);">Faltan paradas para tu destino.</div>
+        </div>
+      </div>
+
       <!-- ESTADO DEL GPS EN VIVO / OFFLINE -->
       <div style="display: flex; justify-content: space-between; align-items: center; background: #060911; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border);">
         <span style="font-size: 0.75rem; color: var(--muted);">Señal GPS:</span>
         <div id="gpsStatusPill" class="gps-status-pill">
           <span id="gpsPulseDot" class="pulse-dot pulse-red"></span>
           <span id="gpsStatusText" style="color: var(--danger);">GPS Offline</span>
-        </div>
-      </div>
-
-      <!-- FUERA DE COBERTURA -->
-      <div id="offRouteCoverageBanner" class="status-banner hidden" style="border-color: var(--danger); background: rgba(248, 113, 113, 0.15);">
-        <span style="font-size: 1.2rem;">📍⚠️</span>
-        <div>
-          <div style="font-size: 0.85rem; font-weight: 700; color: var(--danger);">Fuera del Área de Cobertura</div>
-          <div style="font-size: 0.72rem; color: var(--text);">Estás alejado de las paradas oficiales de la ruta Litoral.</div>
         </div>
       </div>
 
@@ -221,7 +206,7 @@
       </div>
 
       <!-- CUADRO ETA INTEGRADO CON CAMBIO DE DESTINO EN VIAJE -->
-      <div id="etaBoxContainer" class="eta-box eta-ontime">
+      <div id="etaBoxContainer" class="eta-box">
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <label style="color: var(--text); font-weight: 800;">🎯 Destino:</label>
           <select id="activeChangeEndStop" style="padding: 6px; font-size: 0.8rem; width: auto; max-width: 200px;"></select>
@@ -251,37 +236,19 @@
         <div id="realMap"></div>
       </div>
 
-      <!-- ALERTAS DE BAJADA -->
-      <div id="dropAlertBanner" class="status-banner" style="border-color: var(--success); background: rgba(52, 211, 153, 0.1);">
-        <span id="dropAlertIcon" style="font-size: 1.2rem;">🔔</span>
-        <div>
-          <div id="dropAlertTitle" style="font-size: 0.85rem; font-weight: 700; color: var(--success);">Calculando parada de bajada...</div>
-          <div id="dropAlertDesc" style="font-size: 0.72rem; color: var(--text);">Te notificaremos a medida que te acerques.</div>
-        </div>
-      </div>
-
-      <!-- CONTADORES DE VELOCIDAD, TIEMPO Y AHORRO EN VIVO -->
+      <!-- MÉTRICAS DE VIAJE: VELOCIDAD ACTUAL, VELOCIDAD PROMEDIO Y TIEMPO -->
       <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center;">
         <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
           <div id="gpsCurrentSpeed" style="font-size: 1rem; font-weight: 800; color: var(--accent);">0 km/h</div>
           <div style="font-size: 0.65rem; color: var(--muted);">Vel. Actual</div>
         </div>
         <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
-          <div id="liveTripSavings" style="font-size: 1rem; font-weight: 800; color: var(--success);">$0</div>
-          <div style="font-size: 0.65rem; color: var(--muted);">Ahorro en Vivo</div>
+          <div id="gpsAvgSpeed" style="font-size: 1rem; font-weight: 800; color: var(--purple);">0 km/h</div>
+          <div style="font-size: 0.65rem; color: var(--muted);">Vel. Promedio</div>
         </div>
         <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
           <div id="segmentTime" style="font-size: 1rem; font-weight: 800; color: var(--warning);">0 min</div>
           <div style="font-size: 0.65rem; color: var(--muted);">Tiempo Viaje</div>
-        </div>
-      </div>
-
-      <!-- ALERTA DE EXCESO DE VELOCIDAD -->
-      <div id="speedingWarningBanner" class="status-banner hidden" style="border-color: var(--danger); background: rgba(248, 113, 113, 0.2);">
-        <span style="font-size: 1.2rem;">⚠️🚨</span>
-        <div>
-          <div style="font-size: 0.85rem; font-weight: 800; color: var(--danger);">¡EXCESO DE VELOCIDAD! (>55 km/h)</div>
-          <div style="font-size: 0.72rem; color: var(--text);">El vehículo ha superado el límite de seguridad de la ruta.</div>
         </div>
       </div>
 
@@ -292,7 +259,7 @@
     </div>
 
     <footer>
-      <strong>Micro Litoral PWA v14.0</strong><br>
+      <strong>Micro Litoral PWA v3.14</strong><br>
       Desarrollado por <strong>Jaime Bustamante Leal</strong> con tecnología asistida por <strong>Gemini AI</strong>.<br>
       <span style="font-size: 0.62rem; color: var(--muted);">Aplicación independiente sin afiliación a Taxibuses San Antonio. Basado en datos públicos.</span>
     </footer>
@@ -311,7 +278,6 @@
         <div style="font-size: 0.82rem;" id="modalTripTime">• Tiempo total: 00 min</div>
         <div style="font-size: 0.82rem;" id="modalTripAvgSpeed">• Vel. Promedio: 0 km/h</div>
         <div style="font-size: 0.82rem;" id="modalSpeedingEvents">• Excesos de velocidad (>55 km/h): 0 veces</div>
-        <div style="font-size: 0.85rem; margin-top: 4px; font-weight: 800;" id="modalTripSavings">• Ahorro Neto (vs. Auto): $0</div>
       </div>
 
       <button class="btn" id="btnCloseSummary">🔄 Volver al Inicio</button>
@@ -328,164 +294,168 @@
       });
     }
 
+    // BASE DE DATOS DE PARADAS (IDA: 1 A 80 / VUELTA: 154 A 2)
     const STOPS_IDA = [
-      { id: "s_1", name: "El Yeco", lat: -33.308778, lng: -71.642028, stdMin: 0 },
-      { id: "s_3", name: "Escuela El Yeco", lat: -33.317139, lng: -71.642333, stdMin: 2 },
-      { id: "s_5", name: "Rotonda Mirasol", lat: -33.327111, lng: -71.644944, stdMin: 5 },
-      { id: "s_7", name: "Plaza de Algarrobo Norte", lat: -33.331778, lng: -71.645028, stdMin: 7 },
-      { id: "s_9", name: "Playa Algarrobo Norte", lat: -33.335028, lng: -71.647306, stdMin: 9 },
-      { id: "s_11", name: "Camino Las Dichas", lat: -33.340194, lng: -71.648306, stdMin: 11 },
-      { id: "s_13", name: "Pao Pao", lat: -33.350417, lng: -71.651389, stdMin: 14 },
-      { id: "s_15", name: "San Alfonso del Mar", lat: -33.352194, lng: -71.652278, stdMin: 16 },
-      { id: "s_17", name: "Playa Internacional", lat: -33.356111, lng: -71.657194, stdMin: 18 },
-      { id: "s_19", name: "Camino a Casablanca", lat: -33.357583, lng: -71.660944, stdMin: 20 },
-      { id: "s_20", name: "Av. Santa Teresa de los Andes", lat: -33.358944, lng: -71.663111, stdMin: 21 },
-      { id: "s_22", name: "Playa Las Cadenas", lat: -33.360500, lng: -71.664944, stdMin: 23 },
-      { id: "s_24", name: "Av. Algarrobo", lat: -33.361472, lng: -71.668667, stdMin: 25 },
-      { id: "s_26", name: "Club de Yates", lat: -33.362500, lng: -71.671222, stdMin: 27 },
-      { id: "s_28", name: "Municipalidad de Algarrobo", lat: -33.366750, lng: -71.673500, stdMin: 29 },
-      { id: "s_29", name: "Iglesia Santa Teresita", lat: -33.365972, lng: -71.670722, stdMin: 30 },
-      { id: "s_30", name: "Líder Algarrobo", lat: -33.369028, lng: -71.668083, stdMin: 32 },
-      { id: "s_32", name: "Av. Peñablanca", lat: -33.372222, lng: -71.672944, stdMin: 34 },
-      { id: "s_34", name: "Parque Residencial", lat: -33.373833, lng: -71.676056, stdMin: 36 },
-      { id: "s_36", name: "Av. Bahía Mansa", lat: -33.376833, lng: -71.681528, stdMin: 38 },
-      { id: "s_38", name: "La Portada 1", lat: -33.379861, lng: -71.685611, stdMin: 40 },
-      { id: "s_40", name: "La Portada 2", lat: -33.381583, lng: -71.686778, stdMin: 42 },
-      { id: "s_42", name: "Las Balandras", lat: -33.385083, lng: -71.689000, stdMin: 44 },
-      { id: "s_44", name: "aCuenta El Quisco", lat: -33.386250, lng: -71.689778, stdMin: 46 },
-      { id: "s_46", name: "Playa El Quisco", lat: -33.393361, lng: -71.694111, stdMin: 49 },
-      { id: "s_48", name: "El Quisco Centro", lat: -33.398194, lng: -71.694694, stdMin: 52 },
-      { id: "s_50", name: "Parroquia El Quisco", lat: -33.402167, lng: -71.694000, stdMin: 55 },
-      { id: "s_52", name: "Capilla SUD", lat: -33.405028, lng: -71.693583, stdMin: 57 },
-      { id: "s_54", name: "Huallilemu", lat: -33.407694, lng: -71.694000, stdMin: 59 },
-      { id: "s_56", name: "Plus Ultra", lat: -33.410889, lng: -71.694944, stdMin: 61 },
-      { id: "s_58", name: "Tralcamahuida", lat: -33.413694, lng: -71.695694, stdMin: 63 },
-      { id: "s_60", name: "Balneario Banco Central", lat: -33.416417, lng: -71.696417, stdMin: 65 },
-      { id: "s_62", name: "Punta de Tralca", lat: -33.425639, lng: -71.691694, stdMin: 69 },
-      { id: "s_64", name: "Aramco", lat: -33.434583, lng: -71.686444, stdMin: 73 },
-      { id: "s_66", name: "Plaza Los Mosaicos", lat: -33.437583, lng: -71.684778, stdMin: 75 },
-      { id: "s_68", name: "Isla Negra", lat: -33.441194, lng: -71.682889, stdMin: 78 },
-      { id: "s_70", name: "Playa Las Ágatas", lat: -33.447000, lng: -71.677667, stdMin: 81 },
-      { id: "s_72", name: "Camping El Bosque", lat: -33.449361, lng: -71.675917, stdMin: 83 },
-      { id: "s_74", name: "Av. Centenario", lat: -33.451750, lng: -71.673861, stdMin: 85 },
-      { id: "s_76", name: "Plaza El Tabo", lat: -33.454972, lng: -71.668972, stdMin: 87 },
-      { id: "s_78", name: "Av. Arellano", lat: -33.453806, lng: -71.672139, stdMin: 88 },
-      { id: "s_80", name: "Poeta Jonás", lat: -33.455750, lng: -71.665667, stdMin: 89 },
-      { id: "s_82", name: "El Tabo Centro", lat: -33.456333, lng: -71.663444, stdMin: 91 },
-      { id: "s_84", name: "Monolito", lat: -33.458083, lng: -71.659222, stdMin: 93 },
-      { id: "s_86", name: "Lindero Azul", lat: -33.460639, lng: -71.652750, stdMin: 95 },
-      { id: "s_88", name: "El Tabito", lat: -33.463139, lng: -71.648500, stdMin: 97 },
-      { id: "s_90", name: "La Granja Presbiteriana", lat: -33.466000, lng: -71.644028, stdMin: 99 },
-      { id: "s_92", name: "Consistorial", lat: -33.468139, lng: -71.639222, stdMin: 101 },
-      { id: "s_94", name: "Municipalidad de El Tabo", lat: -33.491667, lng: -71.619944, stdMin: 108 },
-      { id: "s_96", name: "Las Cruces", lat: -33.498194, lng: -71.615167, stdMin: 111 },
-      { id: "s_98", name: "Laguna El Peral", lat: -33.503250, lng: -71.603583, stdMin: 114 },
-      { id: "s_100", name: "Playas Blancas", lat: -33.506389, lng: -71.603500, stdMin: 116 },
-      { id: "s_102", name: "Costa Azul", lat: -33.521111, lng: -71.596778, stdMin: 122 },
-      { id: "s_104", name: "Av. Norte", lat: -33.524778, lng: -71.597083, stdMin: 124 },
-      { id: "s_106", name: "Av. Central", lat: -33.526500, lng: -71.597556, stdMin: 125 },
-      { id: "s_108", name: "Punta de Diamante", lat: -33.530778, lng: -71.596333, stdMin: 127 },
-      { id: "s_110", name: "Huevos de Hoy", lat: -33.532500, lng: -71.594167, stdMin: 128 },
-      { id: "s_112", name: "Terminal de Cartagena", lat: -33.540111, lng: -71.596778, stdMin: 132 },
-      { id: "s_114", name: "Estadio Cartagena", lat: -33.542000, lng: -71.600722, stdMin: 134 },
-      { id: "s_116", name: "Playa Grande Cartagena", lat: -33.542889, lng: -71.602472, stdMin: 135 },
-      { id: "s_118", name: "Plaza de Cartagena", lat: -33.546611, lng: -71.603306, stdMin: 137 },
-      { id: "s_120", name: "Playa Chica Cartagena", lat: -33.549278, lng: -71.605556, stdMin: 139 },
-      { id: "s_124", name: "Vicente Huidobro", lat: -33.550278, lng: -71.606028, stdMin: 140 },
-      { id: "s_126", name: "Estación Cartagena", lat: -33.551944, lng: -71.611056, stdMin: 142 },
-      { id: "s_128", name: "Corazones", lat: -33.553417, lng: -71.619972, stdMin: 145 },
-      { id: "s_130", name: "Rocas de San Antonio", lat: -33.555139, lng: -71.623389, stdMin: 147 },
-      { id: "s_132", name: "Pelancura", lat: -33.566389, lng: -71.621528, stdMin: 152 },
-      { id: "s_134", name: "Manuel Bulnes", lat: -33.571556, lng: -71.624167, stdMin: 155 },
-      { id: "s_136", name: "Faro Punta Panul", lat: -33.574750, lng: -71.627250, stdMin: 157 },
-      { id: "s_138", name: "San Antonio Centro", lat: -33.580750, lng: -71.614167, stdMin: 160 },
-      { id: "s_141", name: "Tottus", lat: -33.591472, lng: -71.613000, stdMin: 165 },
-      { id: "s_143", name: "Municipalidad de San Antonio", lat: -33.595639, lng: -71.613250, stdMin: 167 },
-      { id: "s_145", name: "Plaza de Barrancas", lat: -33.597472, lng: -71.613389, stdMin: 168 },
-      { id: "s_147", name: "Curicó", lat: -33.600944, lng: -71.613639, stdMin: 170 },
-      { id: "s_149", name: "Estadio San Antonio", lat: -33.602861, lng: -71.613750, stdMin: 171 },
-      { id: "s_151", name: "Acceso al Puerto", lat: -33.605556, lng: -71.613972, stdMin: 173 },
-      { id: "s_153", name: "Líder San Antonio", lat: -33.608194, lng: -71.614278, stdMin: 175 }
+      { id: "s_1", folio: 1, name: "El Yeco", lat: -33.308778, lng: -71.642028, stdMin: 0 },
+      { id: "s_2", folio: 2, name: "Escuela El Yeco", lat: -33.317139, lng: -71.642333, stdMin: 2 },
+      { id: "s_3", folio: 3, name: "Rotonda Mirasol", lat: -33.327111, lng: -71.644944, stdMin: 5 },
+      { id: "s_4", folio: 4, name: "Plaza de Algarrobo Norte", lat: -33.331778, lng: -71.645028, stdMin: 7 },
+      { id: "s_5", folio: 5, name: "Playa Algarrobo Norte", lat: -33.335028, lng: -71.647306, stdMin: 9 },
+      { id: "s_6", folio: 6, name: "Camino Las Dichas", lat: -33.340194, lng: -71.648306, stdMin: 11 },
+      { id: "s_7", folio: 7, name: "Pao Pao", lat: -33.350417, lng: -71.651389, stdMin: 14 },
+      { id: "s_8", folio: 8, name: "San Alfonso del Mar", lat: -33.352194, lng: -71.652278, stdMin: 16 },
+      { id: "s_9", folio: 9, name: "Playa Internacional", lat: -33.356111, lng: -71.657194, stdMin: 18 },
+      { id: "s_10", folio: 10, name: "Camino a Casablanca", lat: -33.357611, lng: -71.660972, stdMin: 20 },
+      { id: "s_11", folio: 11, name: "Av. Santa Teresa de los Andes", lat: -33.359056, lng: -71.663500, stdMin: 21 },
+      { id: "s_12", folio: 12, name: "Playa Las Cadenas", lat: -33.361000, lng: -71.665556, stdMin: 23 },
+      { id: "s_13", folio: 13, name: "Av. Algarrobo", lat: -33.361472, lng: -71.668778, stdMin: 25 },
+      { id: "s_14", folio: 14, name: "Club de Yates", lat: -33.362333, lng: -71.670806, stdMin: 27 },
+      { id: "s_15", folio: 15, name: "Municipalidad de Algarrobo", lat: -33.366722, lng: -71.673750, stdMin: 29 },
+      { id: "s_16", folio: 16, name: "Iglesia Santa Teresita", lat: -33.366028, lng: -71.670611, stdMin: 30 },
+      { id: "s_17", folio: 17, name: "Los Claveles", lat: -33.367389, lng: -71.669444, stdMin: 31 },
+      { id: "s_18", folio: 18, name: "Líder Algarrobo", lat: -33.369250, lng: -71.668417, stdMin: 32 },
+      { id: "s_19", folio: 19, name: "Av. Peñablanca", lat: -33.372250, lng: -71.673139, stdMin: 34 },
+      { id: "s_20", folio: 20, name: "Parque Residencial", lat: -33.373722, lng: -71.675917, stdMin: 36 },
+      { id: "s_21", folio: 21, name: "Av. Bahía Mansa", lat: -33.376861, lng: -71.681667, stdMin: 38 },
+      { id: "s_22", folio: 22, name: "La Portada 1", lat: -33.379889, lng: -71.685722, stdMin: 40 },
+      { id: "s_23", folio: 23, name: "La Portada 2", lat: -33.381611, lng: -71.686833, stdMin: 42 },
+      { id: "s_24", folio: 24, name: "Las Balandras", lat: -33.384528, lng: -71.688722, stdMin: 44 },
+      { id: "s_25", folio: 25, name: "aCuenta El Quisco", lat: -33.386806, lng: -71.690194, stdMin: 46 },
+      { id: "s_26", folio: 26, name: "Playa Los Corsarios", lat: -33.393500, lng: -71.694222, stdMin: 49 },
+      { id: "s_27", folio: 27, name: "El Quisco Centro", lat: -33.398194, lng: -71.694639, stdMin: 52 },
+      { id: "s_28", folio: 28, name: "Parroquia El Quisco", lat: -33.402139, lng: -71.694056, stdMin: 55 },
+      { id: "s_29", folio: 29, name: "Capilla SUD", lat: -33.405083, lng: -71.693639, stdMin: 57 },
+      { id: "s_30", folio: 30, name: "Huallilemu", lat: -33.407750, lng: -71.694111, stdMin: 59 },
+      { id: "s_31", folio: 31, name: "Riu Tai", lat: -33.411583, lng: -71.695194, stdMin: 61 },
+      { id: "s_32", folio: 32, name: "Tralcamahuida", lat: -33.413889, lng: -71.695806, stdMin: 63 },
+      { id: "s_33", folio: 33, name: "Balneario Banco Central", lat: -33.417139, lng: -71.696694, stdMin: 65 },
+      { id: "s_34", folio: 34, name: "Punta de Tralca", lat: -33.425639, lng: -71.691778, stdMin: 69 },
+      { id: "s_35", folio: 35, name: "Av. del Escritor / Isidora Dubornais", lat: -33.428917, lng: -71.689639, stdMin: 71 },
+      { id: "s_36", folio: 36, name: "Cardenal / Isidora Dubornais", lat: -33.432306, lng: -71.687667, stdMin: 73 },
+      { id: "s_37", folio: 37, name: "El Sauce / Isidora Dubornais", lat: -33.436694, lng: -71.685306, stdMin: 74 },
+      { id: "s_38", folio: 38, name: "Plaza Los Mosaicos", lat: -33.437583, lng: -71.684778, stdMin: 75 },
+      { id: "s_39", folio: 39, name: "Isla Negra", lat: -33.441194, lng: -71.682889, stdMin: 78 },
+      { id: "s_40", folio: 40, name: "Playa Las Ágatas", lat: -33.447000, lng: -71.677667, stdMin: 81 },
+      { id: "s_41", folio: 41, name: "Camping El Bosque", lat: -33.449361, lng: -71.675917, stdMin: 83 },
+      { id: "s_42", folio: 42, name: "Av. Centenario", lat: -33.451750, lng: -71.673861, stdMin: 85 },
+      { id: "s_43", folio: 43, name: "Plaza El Tabo", lat: -33.454972, lng: -71.668972, stdMin: 87 },
+      { id: "s_44", folio: 44, name: "Av. Arellano", lat: -33.453806, lng: -71.672139, stdMin: 88 },
+      { id: "s_45", folio: 45, name: "Poeta Jonás", lat: -33.455750, lng: -71.665667, stdMin: 89 },
+      { id: "s_46", folio: 46, name: "El Tabo Centro", lat: -33.456333, lng: -71.663444, stdMin: 91 },
+      { id: "s_47", folio: 47, name: "Monolito", lat: -33.458083, lng: -71.659222, stdMin: 93 },
+      { id: "s_48", folio: 48, name: "Lindero Azul", lat: -33.460639, lng: -71.652750, stdMin: 95 },
+      { id: "s_49", folio: 49, name: "El Tabito", lat: -33.463139, lng: -71.648500, stdMin: 97 },
+      { id: "s_50", folio: 50, name: "La Granja Presbiteriana", lat: -33.466000, lng: -71.644028, stdMin: 99 },
+      { id: "s_51", folio: 51, name: "Consistorial", lat: -33.468139, lng: -71.639222, stdMin: 101 },
+      { id: "s_52", folio: 52, name: "Municipalidad de El Tabo", lat: -33.491667, lng: -71.619944, stdMin: 108 },
+      { id: "s_53", folio: 53, name: "Las Cruces", lat: -33.498194, lng: -71.615167, stdMin: 111 },
+      { id: "s_54", folio: 54, name: "Laguna El Peral", lat: -33.503250, lng: -71.603583, stdMin: 114 },
+      { id: "s_55", folio: 55, name: "Playas Blancas", lat: -33.506389, lng: -71.603500, stdMin: 116 },
+      { id: "s_56", folio: 56, name: "Costa Azul", lat: -33.521111, lng: -71.596778, stdMin: 122 },
+      { id: "s_57", folio: 57, name: "Av. Norte", lat: -33.524778, lng: -71.597083, stdMin: 124 },
+      { id: "s_58", folio: 58, name: "Av. Central", lat: -33.526500, lng: -71.597556, stdMin: 125 },
+      { id: "s_59", folio: 59, name: "Punta de Diamante", lat: -33.530778, lng: -71.596333, stdMin: 127 },
+      { id: "s_60", folio: 60, name: "Huevos de Hoy", lat: -33.532500, lng: -71.594167, stdMin: 128 },
+      { id: "s_61", folio: 61, name: "Terminal de Cartagena", lat: -33.540111, lng: -71.596778, stdMin: 132 },
+      { id: "s_62", folio: 62, name: "Estadio Cartagena", lat: -33.542000, lng: -71.600722, stdMin: 134 },
+      { id: "s_63", folio: 63, name: "Playa Grande Cartagena", lat: -33.542889, lng: -71.602472, stdMin: 135 },
+      { id: "s_64", folio: 64, name: "Plaza de Cartagena", lat: -33.546611, lng: -71.603306, stdMin: 137 },
+      { id: "s_65", folio: 65, name: "Playa Chica Cartagena", lat: -33.549278, lng: -71.605556, stdMin: 139 },
+      { id: "s_66", folio: 66, name: "Vicente Huidobro", lat: -33.550278, lng: -71.606028, stdMin: 140 },
+      { id: "s_67", folio: 67, name: "Estación Cartagena", lat: -33.551944, lng: -71.611056, stdMin: 142 },
+      { id: "s_68", folio: 68, name: "Corazones", lat: -33.553417, lng: -71.619972, stdMin: 145 },
+      { id: "s_69", folio: 69, name: "Rocas de San Antonio", lat: -33.555139, lng: -71.623389, stdMin: 147 },
+      { id: "s_70", folio: 70, name: "Pelancura", lat: -33.566389, lng: -71.621528, stdMin: 152 },
+      { id: "s_71", folio: 71, name: "Manuel Bulnes", lat: -33.571556, lng: -71.624167, stdMin: 155 },
+      { id: "s_72", folio: 72, name: "Faro Punta Panul", lat: -33.574750, lng: -71.627250, stdMin: 157 },
+      { id: "s_73", folio: 73, name: "San Antonio Centro", lat: -33.580750, lng: -71.614167, stdMin: 160 },
+      { id: "s_74", folio: 74, name: "Tottus", lat: -33.591472, lng: -71.613000, stdMin: 165 },
+      { id: "s_75", folio: 75, name: "Municipalidad de San Antonio", lat: -33.595639, lng: -71.613250, stdMin: 167 },
+      { id: "s_76", folio: 76, name: "Plaza de Barrancas", lat: -33.597472, lng: -71.613389, stdMin: 168 },
+      { id: "s_77", folio: 77, name: "Curicó", lat: -33.600944, lng: -71.613639, stdMin: 170 },
+      { id: "s_78", folio: 78, name: "Estadio San Antonio", lat: -33.602861, lng: -71.613750, stdMin: 171 },
+      { id: "s_79", folio: 79, name: "Acceso al Puerto", lat: -33.605556, lng: -71.613972, stdMin: 173 },
+      { id: "s_80", folio: 80, name: "Líder San Antonio", lat: -33.608194, lng: -71.614278, stdMin: 175 }
     ];
 
     const STOPS_VUELTA = [
-      { id: "v_154", name: "Líder San Antonio", lat: -33.608194, lng: -71.614278, stdMin: 0 },
-      { id: "v_152", name: "Acceso al Puerto", lat: -33.605556, lng: -71.613972, stdMin: 2 },
-      { id: "v_150", name: "Estadio San Antonio", lat: -33.602861, lng: -71.613750, stdMin: 4 },
-      { id: "v_148", name: "Curicó", lat: -33.600944, lng: -71.613639, stdMin: 5 },
-      { id: "v_146", name: "Plaza de Barrancas", lat: -33.597472, lng: -71.613389, stdMin: 7 },
-      { id: "v_144", name: "Municipalidad de San Antonio", lat: -33.595639, lng: -71.613250, stdMin: 8 },
-      { id: "v_142", name: "Tottus", lat: -33.591472, lng: -71.613000, stdMin: 10 },
-      { id: "v_140", name: "Javer", lat: -33.580861, lng: -71.611639, stdMin: 14 },
-      { id: "v_139", name: "San Antonio Centro", lat: -33.580444, lng: -71.613111, stdMin: 15 },
-      { id: "v_137", name: "Faro Punta Panul", lat: -33.574750, lng: -71.627250, stdMin: 18 },
-      { id: "v_135", name: "Manuel Bulnes", lat: -33.571556, lng: -71.624167, stdMin: 20 },
-      { id: "v_133", name: "Pelancura", lat: -33.566389, lng: -71.621528, stdMin: 23 },
-      { id: "v_131", name: "Rocas de San Antonio", lat: -33.555139, lng: -71.623389, stdMin: 28 },
-      { id: "v_129", name: "Corazones", lat: -33.553417, lng: -71.619972, stdMin: 30 },
-      { id: "v_127", name: "Estación Cartagena", lat: -33.551944, lng: -71.611056, stdMin: 33 },
-      { id: "v_125", name: "Vicente Huidobro", lat: -33.551583, lng: -71.604889, stdMin: 35 },
-      { id: "v_123", name: "Hermanos Tobar", lat: -33.549861, lng: -71.603639, stdMin: 36 },
-      { id: "v_122", name: "Mariano Casanova", lat: -33.547556, lng: -71.601722, stdMin: 38 },
-      { id: "v_121", name: "Carlos Corsi", lat: -33.548250, lng: -71.597500, stdMin: 39 },
-      { id: "v_119", name: "Plaza de Cartagena", lat: -33.546611, lng: -71.603306, stdMin: 40 },
-      { id: "v_117", name: "Playa Grande Cartagena", lat: -33.542889, lng: -71.602472, stdMin: 42 },
-      { id: "v_115", name: "Estadio Cartagena", lat: -33.542000, lng: -71.600722, stdMin: 43 },
-      { id: "v_113", name: "Terminal de Cartagena", lat: -33.540111, lng: -71.596778, stdMin: 45 },
-      { id: "v_111", name: "Huevos de Hoy", lat: -33.532500, lng: -71.594167, stdMin: 49 },
-      { id: "v_109", name: "Punta de Diamante", lat: -33.530778, lng: -71.596333, stdMin: 50 },
-      { id: "v_107", name: "Av. Central", lat: -33.526500, lng: -71.597556, stdMin: 52 },
-      { id: "v_105", name: "Av. Norte", lat: -33.524778, lng: -71.597083, stdMin: 53 },
-      { id: "v_103", name: "Costa Azul", lat: -33.521111, lng: -71.596778, stdMin: 55 },
-      { id: "v_101", name: "Playas Blancas", lat: -33.506389, lng: -71.603500, stdMin: 61 },
-      { id: "v_99", name: "Laguna El Peral", lat: -33.503250, lng: -71.603583, stdMin: 63 },
-      { id: "v_97", name: "Las Cruces", lat: -33.498194, lng: -71.615167, stdMin: 66 },
-      { id: "v_95", name: "Municipalidad de El Tabo", lat: -33.491667, lng: -71.619944, stdMin: 70 },
-      { id: "v_93", name: "Consistorial", lat: -33.468139, lng: -71.639222, stdMin: 78 },
-      { id: "v_91", name: "La Granja Presbiteriana", lat: -33.466000, lng: -71.644028, stdMin: 80 },
-      { id: "v_89", name: "El Tabito", lat: -33.463139, lng: -71.648500, stdMin: 82 },
-      { id: "v_87", name: "Lindero Azul", lat: -33.460639, lng: -71.652750, stdMin: 84 },
-      { id: "v_85", name: "Monolito", lat: -33.458083, lng: -71.659222, stdMin: 86 },
-      { id: "v_83", name: "El Tabo Centro", lat: -33.456333, lng: -71.663444, stdMin: 88 },
-      { id: "v_81", name: "Poeta Jonás", lat: -33.455750, lng: -71.665667, stdMin: 89 },
-      { id: "v_79", name: "Av. Arellano", lat: -33.453806, lng: -71.672139, stdMin: 90 },
-      { id: "v_77", name: "Plaza El Tabo", lat: -33.454972, lng: -71.668972, stdMin: 92 },
-      { id: "v_75", name: "Av. Centenario", lat: -33.451750, lng: -71.673861, stdMin: 94 },
-      { id: "v_73", name: "Camping El Bosque", lat: -33.449361, lng: -71.675917, stdMin: 96 },
-      { id: "v_71", name: "Playa Las Ágatas", lat: -33.447000, lng: -71.677667, stdMin: 98 },
-      { id: "v_69", name: "Isla Negra", lat: -33.441194, lng: -71.682889, stdMin: 101 },
-      { id: "v_67", name: "Plaza Los Mosaicos", lat: -33.437583, lng: -71.684778, stdMin: 104 },
-      { id: "v_65", name: "Aramco", lat: -33.434583, lng: -71.686444, stdMin: 106 },
-      { id: "v_63", name: "Punta de Tralca", lat: -33.425639, lng: -71.691694, stdMin: 110 },
-      { id: "v_61", name: "Balneario Banco Central", lat: -33.416417, lng: -71.696417, stdMin: 114 },
-      { id: "v_59", name: "Tralcamahuida", lat: -33.413694, lng: -71.695694, stdMin: 116 },
-      { id: "v_57", name: "Plus Ultra", lat: -33.410889, lng: -71.694944, stdMin: 118 },
-      { id: "v_55", name: "Huallilemu", lat: -33.407694, lng: -71.694000, stdMin: 120 },
-      { id: "v_53", name: "Capilla SUD", lat: -33.405028, lng: -71.693583, stdMin: 122 },
-      { id: "v_51", name: "Parroquia El Quisco", lat: -33.402167, lng: -71.694000, stdMin: 124 },
-      { id: "v_49", name: "Municipalidad de El Quisco", lat: -33.399833, lng: -71.694389, stdMin: 125 },
-      { id: "v_47", name: "Playa El Quisco", lat: -33.393361, lng: -71.694111, stdMin: 128 },
-      { id: "v_45", name: "aCuenta El Quisco", lat: -33.386250, lng: -71.689778, stdMin: 131 },
-      { id: "v_43", name: "Las Balandras", lat: -33.385083, lng: -71.689000, stdMin: 133 },
-      { id: "v_41", name: "La Portada 1", lat: -33.381583, lng: -71.686778, stdMin: 135 },
-      { id: "v_39", name: "La Portada 2", lat: -33.379861, lng: -71.685611, stdMin: 137 },
-      { id: "v_37", name: "Av. Bahía Mansa", lat: -33.376833, lng: -71.681528, stdMin: 139 },
-      { id: "v_35", name: "Parque Residencial", lat: -33.373833, lng: -71.676056, stdMin: 141 },
-      { id: "v_33", name: "Av. Peñablanca", lat: -33.372222, lng: -71.672944, stdMin: 143 },
-      { id: "v_31", name: "Líder Algarrobo", lat: -33.369028, lng: -71.668083, stdMin: 145 },
-      { id: "v_27", name: "Iglesia Santa Teresita", lat: -33.365750, lng: -71.670222, stdMin: 147 },
-      { id: "v_25", name: "Ferias Artesanales Algarrobo", lat: -33.361667, lng: -71.667361, stdMin: 149 },
-      { id: "v_23", name: "Playa Las Cadenas", lat: -33.360500, lng: -71.664944, stdMin: 151 },
-      { id: "v_21", name: "Av. Santa Teresa de los Andes", lat: -33.358944, lng: -71.663111, stdMin: 153 },
-      { id: "v_18", name: "Playa Internacional", lat: -33.356111, lng: -71.657194, stdMin: 156 },
-      { id: "v_16", name: "San Alfonso del Mar", lat: -33.352194, lng: -71.652278, stdMin: 158 },
-      { id: "v_14", name: "Pao Pao", lat: -33.350417, lng: -71.651389, stdMin: 160 },
-      { id: "v_12", name: "Camino Las Dichas", lat: -33.340194, lng: -71.648306, stdMin: 163 },
-      { id: "v_10", name: "Playa Algarrobo Norte", lat: -33.335028, lng: -71.647306, stdMin: 165 },
-      { id: "v_8", name: "Plaza de Algarrobo Norte", lat: -33.331778, lng: -71.645028, stdMin: 167 },
-      { id: "v_6", name: "Rotonda Mirasol", lat: -33.327111, lng: -71.644944, stdMin: 169 },
-      { id: "v_4", name: "Escuela El Yeco", lat: -33.317139, lng: -71.642333, stdMin: 172 },
-      { id: "v_2", name: "El Yeco", lat: -33.309583, lng: -71.642528, stdMin: 174 }
+      { id: "v_154", folio: 154, name: "Líder San Antonio", lat: -33.608194, lng: -71.614278, stdMin: 0 },
+      { id: "v_152", folio: 152, name: "Acceso al Puerto", lat: -33.605556, lng: -71.613972, stdMin: 2 },
+      { id: "v_150", folio: 150, name: "Estadio San Antonio", lat: -33.602861, lng: -71.613750, stdMin: 4 },
+      { id: "v_148", folio: 148, name: "Curicó", lat: -33.600944, lng: -71.613639, stdMin: 5 },
+      { id: "v_146", folio: 146, name: "Plaza de Barrancas", lat: -33.597472, lng: -71.613389, stdMin: 7 },
+      { id: "v_144", folio: 144, name: "Municipalidad de San Antonio", lat: -33.595639, lng: -71.613250, stdMin: 8 },
+      { id: "v_142", folio: 142, name: "Tottus", lat: -33.591472, lng: -71.613000, stdMin: 10 },
+      { id: "v_140", folio: 140, name: "Javer", lat: -33.580861, lng: -71.611639, stdMin: 14 },
+      { id: "v_139", folio: 139, name: "San Antonio Centro", lat: -33.580444, lng: -71.613083, stdMin: 15 },
+      { id: "v_137", folio: 137, name: "Faro Punta Panul", lat: -33.574750, lng: -71.627250, stdMin: 18 },
+      { id: "v_135", folio: 135, name: "Manuel Bulnes", lat: -33.571556, lng: -71.624167, stdMin: 20 },
+      { id: "v_133", folio: 133, name: "Pelancura", lat: -33.566389, lng: -71.621528, stdMin: 23 },
+      { id: "v_131", folio: 131, name: "Rocas de San Antonio", lat: -33.555139, lng: -71.623389, stdMin: 28 },
+      { id: "v_129", folio: 129, name: "Corazones", lat: -33.553417, lng: -71.619972, stdMin: 30 },
+      { id: "v_127", folio: 127, name: "Estación Cartagena", lat: -33.551944, lng: -71.611056, stdMin: 33 },
+      { id: "v_125", folio: 125, name: "Vicente Huidobro", lat: -33.551583, lng: -71.604889, stdMin: 35 },
+      { id: "v_123", folio: 123, name: "Hermanos Tobar", lat: -33.549861, lng: -71.603639, stdMin: 36 },
+      { id: "v_122", folio: 122, name: "Mariano Casanova", lat: -33.547556, lng: -71.601722, stdMin: 38 },
+      { id: "v_121", folio: 121, name: "Carlos Corsi", lat: -33.548250, lng: -71.597500, stdMin: 39 },
+      { id: "v_119", folio: 119, name: "Plaza de Cartagena", lat: -33.546611, lng: -71.603306, stdMin: 40 },
+      { id: "v_117", folio: 117, name: "Playa Grande Cartagena", lat: -33.542889, lng: -71.602472, stdMin: 42 },
+      { id: "v_115", folio: 115, name: "Estadio Cartagena", lat: -33.542000, lng: -71.600722, stdMin: 43 },
+      { id: "v_113", folio: 113, name: "Terminal de Cartagena", lat: -33.540111, lng: -71.596778, stdMin: 45 },
+      { id: "v_111", folio: 111, name: "Huevos de Hoy", lat: -33.532500, lng: -71.594167, stdMin: 49 },
+      { id: "v_109", folio: 109, name: "Punta de Diamante", lat: -33.530778, lng: -71.596333, stdMin: 50 },
+      { id: "v_107", folio: 107, name: "Av. Central", lat: -33.526500, lng: -71.597556, stdMin: 52 },
+      { id: "v_105", folio: 105, name: "Av. Norte", lat: -33.524778, lng: -71.597083, stdMin: 53 },
+      { id: "v_103", folio: 103, name: "Costa Azul", lat: -33.521111, lng: -71.596778, stdMin: 55 },
+      { id: "v_101", folio: 101, name: "Playas Blancas", lat: -33.506389, lng: -71.603500, stdMin: 61 },
+      { id: "v_99", folio: 99, name: "Laguna El Peral", lat: -33.503250, lng: -71.603583, stdMin: 63 },
+      { id: "v_97", folio: 97, name: "Las Cruces", lat: -33.498194, lng: -71.615167, stdMin: 66 },
+      { id: "v_95", folio: 95, name: "Municipalidad de El Tabo", lat: -33.491667, lng: -71.619944, stdMin: 70 },
+      { id: "v_93", folio: 93, name: "Consistorial", lat: -33.468139, lng: -71.639222, stdMin: 78 },
+      { id: "v_91", folio: 91, name: "La Granja Presbiteriana", lat: -33.466000, lng: -71.644028, stdMin: 80 },
+      { id: "v_89", folio: 89, name: "El Tabito", lat: -33.463139, lng: -71.648500, stdMin: 82 },
+      { id: "v_87", folio: 87, name: "Lindero Azul", lat: -33.460639, lng: -71.652750, stdMin: 84 },
+      { id: "v_85", folio: 85, name: "Monolito", lat: -33.458083, lng: -71.659222, stdMin: 86 },
+      { id: "v_83", folio: 83, name: "El Tabo Centro", lat: -33.456333, lng: -71.663444, stdMin: 88 },
+      { id: "v_81", folio: 81, name: "Poeta Jonás", lat: -33.455750, lng: -71.665667, stdMin: 89 },
+      { id: "v_79", folio: 79, name: "Av. Arellano", lat: -33.453806, lng: -71.672139, stdMin: 90 },
+      { id: "v_77", folio: 77, name: "Plaza El Tabo", lat: -33.454972, lng: -71.668972, stdMin: 92 },
+      { id: "v_75", folio: 75, name: "Av. Centenario", lat: -33.451750, lng: -71.673861, stdMin: 94 },
+      { id: "v_73", folio: 73, name: "Camping El Bosque", lat: -33.449361, lng: -71.675917, stdMin: 96 },
+      { id: "v_71", folio: 71, name: "Playa Las Ágatas", lat: -33.447000, lng: -71.677667, stdMin: 98 },
+      { id: "v_69", folio: 69, name: "Isla Negra", lat: -33.441194, lng: -71.682889, stdMin: 101 },
+      { id: "v_67", folio: 67, name: "Plaza Los Mosaicos", lat: -33.437583, lng: -71.684778, stdMin: 104 },
+      { id: "v_65", folio: 65, name: "Aramco", lat: -33.434583, lng: -71.686444, stdMin: 106 },
+      { id: "v_63", folio: 63, name: "Punta de Tralca", lat: -33.425639, lng: -71.691694, stdMin: 110 },
+      { id: "v_61", folio: 61, name: "Balneario Banco Central", lat: -33.416417, lng: -71.696417, stdMin: 114 },
+      { id: "v_59", folio: 59, name: "Tralcamahuida", lat: -33.413694, lng: -71.695694, stdMin: 116 },
+      { id: "v_57", folio: 57, name: "Plus Ultra", lat: -33.400889, lng: -71.694944, stdMin: 118 },
+      { id: "v_55", folio: 55, name: "Huallilemu", lat: -33.407694, lng: -71.694000, stdMin: 120 },
+      { id: "v_53", folio: 53, name: "Capilla SUD", lat: -33.405028, lng: -71.693583, stdMin: 122 },
+      { id: "v_51", folio: 51, name: "Parroquia El Quisco", lat: -33.402167, lng: -71.694000, stdMin: 124 },
+      { id: "v_49", folio: 49, name: "Municipalidad de El Quisco", lat: -33.399833, lng: -71.694389, stdMin: 125 },
+      { id: "v_47", folio: 47, name: "Playa El Quisco", lat: -33.393361, lng: -71.694111, stdMin: 128 },
+      { id: "v_45", folio: 45, name: "aCuenta El Quisco", lat: -33.386250, lng: -71.689778, stdMin: 131 },
+      { id: "v_43", folio: 43, name: "Las Balandras", lat: -33.385083, lng: -71.689000, stdMin: 133 },
+      { id: "v_41", folio: 41, name: "La Portada 1", lat: -33.381583, lng: -71.686778, stdMin: 135 },
+      { id: "v_39", folio: 39, name: "La Portada 2", lat: -33.379861, lng: -71.685611, stdMin: 137 },
+      { id: "v_37", folio: 37, name: "Av. Bahía Mansa", lat: -33.376833, lng: -71.681528, stdMin: 139 },
+      { id: "v_35", folio: 35, name: "Parque Residencial", lat: -33.373833, lng: -71.676056, stdMin: 141 },
+      { id: "v_33", folio: 33, name: "Av. Peñablanca", lat: -33.372222, lng: -71.672944, stdMin: 143 },
+      { id: "v_31", folio: 31, name: "Líder Algarrobo", lat: -33.369028, lng: -71.668083, stdMin: 145 },
+      { id: "v_27", folio: 27, name: "Iglesia Santa Teresita", lat: -33.365750, lng: -71.670222, stdMin: 147 },
+      { id: "v_25", folio: 25, name: "Ferias Artesanales Algarrobo", lat: -33.361667, lng: -71.667361, stdMin: 149 },
+      { id: "v_23", folio: 23, name: "Playa Las Cadenas", lat: -33.360500, lng: -71.664944, stdMin: 151 },
+      { id: "v_21", folio: 21, name: "Av. Santa Teresa de los Andes", lat: -33.358944, lng: -71.663111, stdMin: 153 },
+      { id: "v_18", folio: 18, name: "Playa Internacional", lat: -33.356111, lng: -71.657194, stdMin: 156 },
+      { id: "v_16", folio: 16, name: "San Alfonso del Mar", lat: -33.352194, lng: -71.652278, stdMin: 158 },
+      { id: "v_14", folio: 14, name: "Pao Pao", lat: -33.350417, lng: -71.651389, stdMin: 160 },
+      { id: "v_12", folio: 12, name: "Camino Las Dichas", lat: -33.340194, lng: -71.648306, stdMin: 163 },
+      { id: "v_10", folio: 10, name: "Playa Algarrobo Norte", lat: -33.335028, lng: -71.647306, stdMin: 165 },
+      { id: "v_8", folio: 8, name: "Plaza de Algarrobo Norte", lat: -33.331778, lng: -71.645028, stdMin: 167 },
+      { id: "v_6", folio: 6, name: "Rotonda Mirasol", lat: -33.327111, lng: -71.644944, stdMin: 169 },
+      { id: "v_4", folio: 4, name: "Escuela El Yeco", lat: -33.317139, lng: -71.642333, stdMin: 172 },
+      { id: "v_2", folio: 2, name: "El Yeco", lat: -33.309583, lng: -71.642528, stdMin: 174 }
     ];
 
     let ROUTE_STOPS = STOPS_IDA;
@@ -509,9 +479,10 @@
       isCurrentlySpeeding: false,
       lastLat: null,
       lastLng: null,
-      hasMovedInTrip: false,
-      tripHistory: JSON.parse(localStorage.getItem("tripHistory") || "[]"),
-      favorites: JSON.parse(localStorage.getItem("favorites") || "[]")
+      lastPassedStopIndex: 0,
+      lastPassedTimestamp: null,
+      favorites: JSON.parse(localStorage.getItem("favorites") || "[]"),
+      segmentHistory: JSON.parse(localStorage.getItem("segmentHistory") || "{}")
     };
 
     let realMap = null;
@@ -521,7 +492,6 @@
     document.addEventListener("DOMContentLoaded", () => {
       initUI();
       restoreSessionIfExists();
-      updateSavingsDashboard();
       renderFavorites();
       initLeafletMap();
     });
@@ -618,7 +588,7 @@
       selectStart.innerHTML = "";
 
       ROUTE_STOPS.forEach((s) => {
-        selectStart.appendChild(new Option(s.name, s.id));
+        selectStart.appendChild(new Option(`${s.folio}. ${s.name}`, s.id));
       });
 
       state.startStopId = ROUTE_STOPS[0].id;
@@ -635,7 +605,7 @@
       const remainingStops = ROUTE_STOPS.slice(startIdx + 1);
 
       remainingStops.forEach((s) => {
-        selectEnd.appendChild(new Option(s.name, s.id));
+        selectEnd.appendChild(new Option(`${s.folio}. ${s.name}`, s.id));
       });
 
       if (remainingStops.length > 0) {
@@ -651,7 +621,7 @@
       const remaining = ROUTE_STOPS.slice(state.currentBaseIndex + 1);
       
       remaining.forEach(s => {
-        select.appendChild(new Option(s.name, s.id));
+        select.appendChild(new Option(`${s.folio}. ${s.name}`, s.id));
       });
 
       select.value = state.endStopId;
@@ -709,28 +679,6 @@
       });
     }
 
-    function updateSavingsDashboard() {
-      const now = new Date();
-      let todaySavings = 0, weekSavings = 0, monthSavings = 0;
-
-      state.tripHistory.forEach(trip => {
-        const d = new Date(trip.date);
-        if (d.toDateString() === now.toDateString()) todaySavings += trip.savings;
-
-        const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1;
-        const monday = new Date(now);
-        monday.setDate(now.getDate() - dayOfWeek);
-        monday.setHours(0,0,0,0);
-        if (d >= monday) weekSavings += trip.savings;
-
-        if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) monthSavings += trip.savings;
-      });
-
-      document.getElementById("savingsToday").innerText = `$${Math.round(todaySavings).toLocaleString('es-CL')}`;
-      document.getElementById("savingsWeek").innerText = `$${Math.round(weekSavings).toLocaleString('es-CL')}`;
-      document.getElementById("savingsMonth").innerText = `$${Math.round(monthSavings).toLocaleString('es-CL')}`;
-    }
-
     function saveActiveStateToStorage() {
       if (state.isTripActive) {
         localStorage.setItem("activeTripState", JSON.stringify({
@@ -753,7 +701,6 @@
           if (state.isTripActive) {
             document.getElementById("viewSetup").classList.add("hidden");
             document.getElementById("viewFavorites").classList.add("hidden");
-            document.getElementById("viewSavingsAccumulated").classList.add("hidden");
             document.getElementById("viewActive").classList.remove("hidden");
             
             populateActiveChangeEndDropdown();
@@ -822,7 +769,6 @@
           (pos) => {
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
-            const speedKmH = pos.coords.speed ? (pos.coords.speed * 3.6) : 0;
 
             if (!state.isTripActive) {
               updateCompass(lat, lng);
@@ -844,10 +790,6 @@
                 }
               } else {
                 updateHeaderGreeting(null);
-              }
-
-              if (speedKmH > 10 && nearestStop && minDist <= 0.15) {
-                startTrip();
               }
             }
           },
@@ -876,7 +818,6 @@
     function startTrip() {
       state.isTripActive = true;
       state.tripStartTime = new Date();
-      state.hasMovedInTrip = false;
       state.totalSpeedReadings = 0;
       state.sumSpeedReadings = 0;
       state.speedingEventsCount = 0;
@@ -887,10 +828,11 @@
       
       const baseIndex = ROUTE_STOPS.findIndex(s => s.id === state.startStopId);
       state.currentBaseIndex = baseIndex !== -1 ? baseIndex : 0;
+      state.lastPassedStopIndex = state.currentBaseIndex;
+      state.lastPassedTimestamp = new Date().getTime();
 
       document.getElementById("viewSetup").classList.add("hidden");
       document.getElementById("viewFavorites").classList.add("hidden");
-      document.getElementById("viewSavingsAccumulated").classList.add("hidden");
       document.getElementById("viewActive").classList.remove("hidden");
 
       populateActiveChangeEndDropdown();
@@ -909,6 +851,22 @@
       return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     }
 
+    function updateUnifiedAlertPanel(type, title, desc, icon) {
+      const panel = document.getElementById("unifiedAlertPanel");
+      const alertTitle = document.getElementById("alertTitle");
+      const alertDesc = document.getElementById("alertDesc");
+      const alertIcon = document.getElementById("alertIcon");
+
+      panel.className = "alert-panel";
+      if (type === "speed") panel.classList.add("alert-speed");
+      if (type === "stop") panel.classList.add("alert-stop");
+      if (type === "drop") panel.classList.add("alert-drop");
+
+      alertTitle.innerText = title;
+      alertDesc.innerText = desc;
+      alertIcon.innerText = icon || "🔔";
+    }
+
     function initGPS() {
       if ("geolocation" in navigator) {
         state.watchPositionId = navigator.geolocation.watchPosition(
@@ -919,55 +877,26 @@
             const speedKmH = pos.coords.speed ? (pos.coords.speed * 3.6) : 0;
             
             state.currentSpeed = Math.round(speedKmH);
-            const speedElem = document.getElementById("gpsCurrentSpeed");
-            speedElem.innerText = `${state.currentSpeed} km/h`;
-
-            // EXCESO DE VELOCIDAD (>55 km/h)
-            const speedBanner = document.getElementById("speedingWarningBanner");
-            if (state.currentSpeed > 55) {
-              speedElem.classList.add("speed-alert");
-              speedBanner.classList.remove("hidden");
-              if (!state.isCurrentlySpeeding) {
-                state.speedingEventsCount++;
-                state.isCurrentlySpeeding = true;
-              }
-            } else {
-              speedElem.classList.remove("speed-alert");
-              speedBanner.classList.add("hidden");
-              state.isCurrentlySpeeding = false;
-            }
+            document.getElementById("gpsCurrentSpeed").innerText = `${state.currentSpeed} km/h`;
 
             if (state.currentSpeed > 0) {
               state.sumSpeedReadings += state.currentSpeed;
               state.totalSpeedReadings++;
               state.avgSpeed = Math.round(state.sumSpeedReadings / state.totalSpeedReadings);
+              document.getElementById("gpsAvgSpeed").innerText = `${state.avgSpeed} km/h`;
             }
 
-            if (state.currentSpeed > 5) state.hasMovedInTrip = true;
-
-            // ACTUALIZAR MAPA REAL BLOQUEADO
             if (realMap) {
               realMap.setView([state.lastLat, state.lastLng], 16);
               if (busMarker) busMarker.setLatLng([state.lastLat, state.lastLng]);
             }
 
-            let minDistanceToAnyStop = 999;
-            ROUTE_STOPS.forEach(s => {
-              const d = calculateDistanceKm(state.lastLat, state.lastLng, s.lat, s.lng);
-              if (d < minDistanceToAnyStop) minDistanceToAnyStop = d;
-            });
-
-            const coverageBanner = document.getElementById("offRouteCoverageBanner");
-            if (minDistanceToAnyStop > 0.40) {
-              coverageBanner.classList.remove("hidden");
-            } else {
-              coverageBanner.classList.add("hidden");
-            }
-
             const endIndex = ROUTE_STOPS.findIndex(s => s.id === state.endStopId);
+            const currStop = ROUTE_STOPS[state.currentBaseIndex];
+            const nextStop = ROUTE_STOPS[state.currentBaseIndex + 1];
 
-            if (state.currentBaseIndex < endIndex) {
-              const nextStop = ROUTE_STOPS[state.currentBaseIndex + 1];
+            // Detección de paradas cercanas por GPS
+            if (nextStop) {
               const distToNextKm = calculateDistanceKm(state.lastLat, state.lastLng, nextStop.lat, nextStop.lng);
               const distToNextMeters = Math.round(distToNextKm * 1000);
 
@@ -975,11 +904,16 @@
               document.getElementById("activeNextStopName").innerText = nextStop.name;
               document.getElementById("activeNextStopDistance").innerText = distToNextMeters < 100 ? `(~${distToNextMeters} m)` : `(+${distToNextMeters} m)`;
 
-              // ESTADOS DINÁMICOS DE PARADA
-              if (distToNextMeters <= 80 && state.currentSpeed === 0) {
+              if (realMap && nextStopMarker) {
+                nextStopMarker.setLatLng([nextStop.lat, nextStop.lng]);
+              }
+
+              // REGLAS DE GEOCERCA
+              if (distToNextMeters <= 50 && state.currentSpeed === 0) {
                 dynamicLabel.innerText = "🛑 PARADA ACTUAL:";
                 dynamicLabel.style.color = "var(--success)";
-              } else if (distToNextMeters <= 80) {
+                updateUnifiedAlertPanel("stop", "🛑 Micro Detenida / Tomando Pasajeros", `En ${nextStop.name}`, "🛑");
+              } else if (distToNextMeters <= 120) {
                 dynamicLabel.innerText = "🔔 LLEGANDO A LA PARADA:";
                 dynamicLabel.style.color = "var(--warning)";
               } else {
@@ -987,16 +921,48 @@
                 dynamicLabel.style.color = "var(--muted)";
               }
 
-              if (realMap && nextStopMarker) {
-                nextStopMarker.setLatLng([nextStop.lat, nextStop.lng]);
-              }
+              // Avance de parada
+              if (distToNextMeters <= 50) {
+                // Registrar tiempo de tramo histórico
+                const nowMs = new Date().getTime();
+                if (state.lastPassedTimestamp) {
+                  const segKey = `${ROUTE_STOPS[state.lastPassedStopIndex].id}_${nextStop.id}`;
+                  const elapsedMins = (nowMs - state.lastPassedTimestamp) / 60000;
+                  if (elapsedMins > 0.3 && elapsedMins < 20) {
+                    if (!state.segmentHistory[segKey]) state.segmentHistory[segKey] = [];
+                    state.segmentHistory[segKey].push(elapsedMins);
+                    if (state.segmentHistory[segKey].length > 5) state.segmentHistory[segKey].shift();
+                    localStorage.setItem("segmentHistory", JSON.stringify(state.segmentHistory));
+                  }
+                }
+                state.lastPassedStopIndex = state.currentBaseIndex + 1;
+                state.lastPassedTimestamp = nowMs;
 
-              if (distToNextKm <= 0.05) {
                 state.currentBaseIndex++;
                 saveActiveStateToStorage();
                 populateActiveChangeEndDropdown();
                 renderFixedMetroMap();
               }
+            }
+
+            // PANEL ÚNICO DE ALERTAS (PRIORIDAD DE NOTIFICACIONES)
+            const stopsRemaining = Math.max(0, endIndex - state.currentBaseIndex);
+            
+            if (state.currentSpeed > 55) {
+              updateUnifiedAlertPanel("speed", "⚠️ ¡EXCESO DE VELOCIDAD! (>55 km/h)", "El vehículo ha superado el límite de seguridad.", "⚠️");
+              if (!state.isCurrentlySpeeding) {
+                state.speedingEventsCount++;
+                state.isCurrentlySpeeding = true;
+              }
+            } else if (stopsRemaining === 0) {
+              updateUnifiedAlertPanel("drop", `📍 ¡BÁJATE AQUÍ! (${ROUTE_STOPS[endIndex].name})`, "Has llegado a tu destino. Presiona Terminar.", "📍");
+            } else if (stopsRemaining === 1) {
+              updateUnifiedAlertPanel("speed", `⚠️ PREPÁRATE: Te bajas en la Próxima Parada`, `Destino: ${ROUTE_STOPS[endIndex].name}`, "⚠️");
+            } else if (state.currentSpeed === 0 && (!nextStop || calculateDistanceKm(state.lastLat, state.lastLng, nextStop.lat, nextStop.lng)*1000 > 120)) {
+              updateUnifiedAlertPanel("stop", "🚦 Tránsito Pesado / Detención en Ruta", "La micro está detenida temporalmente.", "🚦");
+            } else if (state.currentSpeed <= 55) {
+              updateUnifiedAlertPanel("normal", "Te notificaremos al aproximarte", `Faltan ${stopsRemaining} paradas para tu destino.`, "🔔");
+              state.isCurrentlySpeeding = false;
             }
 
             renderFixedMetroMap();
@@ -1008,15 +974,11 @@
     }
 
     function updateClockAndETA() {
-      const now = new Date();
-      document.getElementById("activeClock").innerText = now.toTimeString().split(' ')[0];
-
       if (!state.isTripActive) {
         updateDepartureSchedule();
         return;
       }
 
-      const startObj = ROUTE_STOPS.find(s => s.id === state.startStopId);
       const endObj = ROUTE_STOPS.find(s => s.id === state.endStopId);
       const currObj = ROUTE_STOPS[state.currentBaseIndex];
 
@@ -1028,7 +990,21 @@
         kmLeft = Math.max(0.2, calculateDistanceKm(currObj.lat, currObj.lng, endObj.lat, endObj.lng) * 1.3);
       }
 
-      const minsLeft = Math.max(0, Math.abs((endObj ? endObj.stdMin : 0) - (currObj ? currObj.stdMin : 0)));
+      // CÁLCULO DE ETA AJUSTADO A ITINERARIO + HISTÓRICO APRENDIDO
+      let minsLeft = 0;
+      for (let i = state.currentBaseIndex; i < endIndex; i++) {
+        const segKey = `${ROUTE_STOPS[i].id}_${ROUTE_STOPS[i+1].id}`;
+        const historyArr = state.segmentHistory[segKey];
+        if (historyArr && historyArr.length >= 2) {
+          const avgHist = historyArr.reduce((a, b) => a + b, 0) / historyArr.length;
+          minsLeft += avgHist;
+        } else {
+          minsLeft += Math.abs(ROUTE_STOPS[i+1].stdMin - ROUTE_STOPS[i].stdMin);
+        }
+      }
+
+      minsLeft = Math.round(minsLeft);
+      const now = new Date();
       const etaTime = new Date(now.getTime() + minsLeft * 60000);
       const etaFormatted = etaTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
 
@@ -1038,54 +1014,13 @@
 
       const hrs = Math.floor(minsLeft / 60);
       const mins = minsLeft % 60;
-      document.getElementById("etaTimeLeft").innerText = `~${String(hrs).padStart(2,'0')} hr ${String(mins).padStart(2,'0')} min`;
-
-      // AHORRO EN VIVO PERMITIENDO VALORES NEGATIVOS
-      let liveKmTraveled = 0;
-      if (startObj && currObj) {
-        liveKmTraveled = calculateDistanceKm(startObj.lat, startObj.lng, currObj.lat, currObj.lng) * 1.3;
-      }
-      const autoCost = (liveKmTraveled / 12) * 1400;
-      const busCost = 1400;
-      const liveSavings = autoCost - busCost;
-
-      const savingsElem = document.getElementById("liveTripSavings");
-      savingsElem.innerText = `$${Math.round(liveSavings).toLocaleString('es-CL')}`;
-      savingsElem.style.color = liveSavings >= 0 ? "var(--success)" : "var(--danger)";
-
-      const dropBanner = document.getElementById("dropAlertBanner");
-      const dropIcon = document.getElementById("dropAlertIcon");
-      const dropTitle = document.getElementById("dropAlertTitle");
-      const dropDesc = document.getElementById("dropAlertDesc");
-
-      if (stopsRemaining === 0) {
-        dropBanner.style.borderColor = "var(--success)";
-        dropBanner.style.background = "rgba(52, 211, 153, 0.2)";
-        dropIcon.innerText = "📍";
-        dropTitle.innerText = `¡BÁJATE AQUÍ! (${endObj ? endObj.name : ''})`;
-        dropTitle.style.color = "var(--success)";
-        dropDesc.innerText = `Has llegado a tu destino. Presiona Terminar.`;
-      } else if (stopsRemaining === 1) {
-        dropBanner.style.borderColor = "var(--danger)";
-        dropBanner.style.background = "rgba(248, 113, 113, 0.2)";
-        dropIcon.innerText = "⚠️";
-        dropTitle.innerText = "¡PREPÁRATE! Te bajas en la Próxima Parada";
-        dropTitle.style.color = "var(--danger)";
-        dropDesc.innerText = `Destino: ${endObj ? endObj.name : ''}`;
-      } else {
-        dropBanner.style.borderColor = "var(--border)";
-        dropBanner.style.background = "#060911";
-        dropIcon.innerText = "🚌";
-        dropTitle.innerText = `Te notifiedaremos al aproximarte`;
-        dropTitle.style.color = "var(--text)";
-        dropDesc.innerText = `Faltan ${stopsRemaining} paradas para tu destino.`;
-      }
+      document.getElementById("etaTimeLeft").innerText = hrs > 0 ? `~${hrs} hr ${mins} min` : `~${mins} min`;
 
       const elapsedMins = Math.max(1, Math.round((now - state.tripStartTime) / 60000));
       document.getElementById("segmentTime").innerText = `${elapsedMins} min`;
     }
 
-    // MINIMAPA FIJO DE 7 ESTACIONES SIMÉTRICO
+    // MINIMAPA FIJO DE 7 ESTACIONES (DESTINO EN AMARILLO BRILLANTE)
     function renderFixedMetroMap() {
       const container = document.getElementById("metroFixedNodes");
       const fill = document.getElementById("metroFixedFill");
@@ -1110,10 +1045,11 @@
 
         if (globalIdx < state.currentBaseIndex) node.classList.add("visited");
         if (globalIdx === state.currentBaseIndex) node.classList.add("current");
+        if (s.id === state.endStopId) node.classList.add("destination");
 
         node.innerHTML = `
           <div class="metro-fixed-circle"></div>
-          <div class="metro-fixed-label">${s.name}</div>
+          <div class="metro-fixed-label">${s.folio}. ${s.name}</div>
         `;
         container.appendChild(node);
       });
@@ -1142,31 +1078,12 @@
       const totalMins = Math.max(1, Math.round((new Date() - state.tripStartTime) / 60000));
       const avgSpeed = state.avgSpeed > 0 ? state.avgSpeed : Math.round(kmTraveled / (totalMins / 60));
 
-      const autoCost = (kmTraveled / 12) * 1400;
-      const busCost = 1400;
-      const tripSavings = autoCost - busCost;
-
-      const tripRecord = {
-        date: new Date().toISOString(),
-        km: kmTraveled,
-        mins: totalMins,
-        savings: tripSavings
-      };
-
-      state.tripHistory.push(tripRecord);
-      localStorage.setItem("tripHistory", JSON.stringify(state.tripHistory));
-
       document.getElementById("modalGreeting").innerText = `¡Excelente viaje, ${state.userName}!`;
       document.getElementById("modalTripKm").innerText = `• Distancia: ${kmTraveled.toFixed(1)} km`;
       document.getElementById("modalTripTime").innerText = `• Tiempo total: ${totalMins} min`;
       document.getElementById("modalTripAvgSpeed").innerText = `• Vel. Promedio: ${isNaN(avgSpeed) ? 0 : avgSpeed} km/h`;
       document.getElementById("modalSpeedingEvents").innerText = `• Excesos de velocidad (>55 km/h): ${state.speedingEventsCount} veces`;
 
-      const savingsElem = document.getElementById("modalTripSavings");
-      savingsElem.innerText = `• Ahorro Neto (vs. Auto): $${Math.round(tripSavings).toLocaleString('es-CL')}`;
-      savingsElem.style.color = tripSavings >= 0 ? "var(--success)" : "var(--danger)";
-
-      updateSavingsDashboard();
       document.getElementById("summaryModal").classList.add("active");
 
       if (state.watchPositionId) navigator.geolocation.clearWatch(state.watchPositionId);
@@ -1180,7 +1097,6 @@
       document.getElementById("viewActive").classList.add("hidden");
       document.getElementById("viewSetup").classList.remove("hidden");
       document.getElementById("viewFavorites").classList.remove("hidden");
-      document.getElementById("viewSavingsAccumulated").classList.remove("hidden");
     }
   </script>
 </body>
