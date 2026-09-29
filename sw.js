@@ -1,4 +1,4 @@
-const CACHE_NAME = 'micro-litoral-v14';
+const CACHE_NAME = 'micro-litoral-v3.14';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -6,7 +6,6 @@ const STATIC_ASSETS = [
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
 ];
 
-// Instalación y precarga de librerías esenciales
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
@@ -27,11 +26,9 @@ self.addEventListener('activate', (e) => {
   self.clients.claim();
 });
 
-// Estrategia Cache First con fallback de red para imágenes del mapa de OpenStreetMap
 self.addEventListener('fetch', (e) => {
   const url = e.request.url;
 
-  // Interceptar azulejos de mapas de OpenStreetMap
   if (url.includes('tile.openstreetmap.org')) {
     e.respondWith(
       caches.open('map-tiles-cache').then((cache) => {
