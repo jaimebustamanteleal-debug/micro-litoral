@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Micro Litoral GPS v3.16.0</title>
+  <title>Micro Litoral GPS v3.17.0</title>
   <meta name="theme-color" content="#090d16">
   
   <!-- Leaflet CSS -->
@@ -178,7 +178,7 @@
       <div id="unifiedAlertPanel" class="alert-panel">
         <span id="alertIcon" style="font-size: 1.3rem;">🔔</span>
         <div>
-          <div id="alertTitle" style="font-size: 0.85rem; font-weight: 800; color: var(--accent);">Te notificaremos al aproximarte</div>
+          <div id="alertTitle" style="font-size: 0.85rem; font-weight: 800; color: var(--accent);">Te notifiedaremos al aproximarte</div>
           <div id="alertDesc" style="font-size: 0.72rem; color: var(--text);">Faltan paradas para tu destino.</div>
         </div>
       </div>
@@ -194,7 +194,7 @@
 
       <!-- DINÁMICA DE PARADA (PRÓXIMA / LLEGANDO / ACTUAL) -->
       <div style="background: #060911; border: 1px solid var(--border); padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 4px;">
-        <div id="stopDynamicLabel" style="font-size: 0.7rem; color: var(--muted); font-weight: 700;">➡️ PRÓXIMA PARADA:</div>
+        <div id="stopDynamicLabel" style="font-size: 0.7rem; color: var(--muted); font-weight: 700;">➡️️ PRÓXIMA PARADA:</div>
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div id="activeNextStopName" style="font-size: 1.1rem; font-weight: 800; color: var(--accent);">---</div>
           <div id="activeNextStopDistance" style="font-size: 0.85rem; font-weight: 800; color: var(--success);">+-- m</div>
@@ -255,7 +255,7 @@
     </div>
 
     <footer>
-      <strong>Micro Litoral PWA v3.16.0</strong><br>
+      <strong>Micro Litoral PWA v3.17.0</strong><br>
       Desarrollado por <strong>Jaime Bustamante Leal</strong> con tecnología asistida por <strong>Gemini AI</strong>.<br>
       <span style="font-size: 0.62rem; color: var(--muted);">Aplicación independiente sin afiliación a Taxibuses San Antonio. Basado en datos públicos.</span>
     </footer>
@@ -278,7 +278,7 @@
       });
     }
 
-    // BASE DE DATOS DE PARADAS DE IDA ACTUALIZADA (FOLIOS 1 A 84 CORRELATIVOS)
+    // BASE DE DATOS DE PARADAS DE IDA (ORDEN GEOGRÁFICO CORREGIDO: ARELLANO ANTES QUE PLAZA EL TABO)
     const STOPS_IDA = [
       { id: "s_1", folio: 1, name: "El Yeco", lat: -33.308778, lng: -71.642028, stdMin: 0 },
       { id: "s_2", folio: 2, name: "Escuela El Yeco", lat: -33.317139, lng: -71.642333, stdMin: 2 },
@@ -366,7 +366,7 @@
       { id: "s_84", folio: 84, name: "Líder San Antonio", lat: -33.608194, lng: -71.614278, stdMin: 175 }
     ];
 
-    // PARADAS DE VUELTA SE MANTIENEN INTACTAS
+    // BASE DE DATOS DE PARADAS DE VUELTA
     const STOPS_VUELTA = [
       { id: "v_154", folio: 154, name: "Líder San Antonio", lat: -33.608194, lng: -71.614278, stdMin: 0 },
       { id: "v_152", folio: 152, name: "Acceso al Puerto", lat: -33.605556, lng: -71.613972, stdMin: 2 },
@@ -574,12 +574,13 @@
       }
     }
 
+    // DESPLEGABLE DE PARADAS SIN NÚMERO DE FOLIO
     function populateStopsDropdowns() {
       const selectStart = document.getElementById("selectStartStop");
       selectStart.innerHTML = "";
 
       ROUTE_STOPS.forEach((s) => {
-        selectStart.appendChild(new Option(`${s.folio}. ${s.name}`, s.id));
+        selectStart.appendChild(new Option(s.name, s.id));
       });
 
       state.startStopId = ROUTE_STOPS[0].id;
@@ -596,7 +597,7 @@
       const remainingStops = ROUTE_STOPS.slice(startIdx + 1);
 
       remainingStops.forEach((s) => {
-        selectEnd.appendChild(new Option(`${s.folio}. ${s.name}`, s.id));
+        selectEnd.appendChild(new Option(s.name, s.id));
       });
 
       if (remainingStops.length > 0) {
@@ -612,7 +613,7 @@
       const remaining = ROUTE_STOPS.slice(state.currentBaseIndex + 1);
       
       remaining.forEach(s => {
-        select.appendChild(new Option(`${s.folio}. ${s.name}`, s.id));
+        select.appendChild(new Option(s.name, s.id));
       });
 
       select.value = state.endStopId;
@@ -972,7 +973,7 @@
             const stopsRemaining = Math.max(0, endIndex - state.currentBaseIndex);
             
             if (state.currentSpeed > 55) {
-              updateUnifiedAlertPanel("speed", "⚠️ ¡EXCESO DE VELOCIDAD! (>55 km/h)", "El vehículo ha superado el límite de seguridad.", "⚠️️");
+              updateUnifiedAlertPanel("speed", "⚠️ ¡EXCESO DE VELOCIDAD! (>55 km/h)", "El vehículo ha superado el límite de seguridad.", "⚠️");
               if (!state.isCurrentlySpeeding) {
                 state.speedingEventsCount++;
                 state.isCurrentlySpeeding = true;
@@ -1042,6 +1043,7 @@
       document.getElementById("segmentTime").innerText = `${elapsedMins} min`;
     }
 
+    // MINIMAPA METRO (SIN NÚMERO DE FOLIO)
     function renderFixedMetroMap() {
       const container = document.getElementById("metroFixedNodes");
       const fill = document.getElementById("metroFixedFill");
@@ -1070,7 +1072,7 @@
 
         node.innerHTML = `
           <div class="metro-fixed-circle"></div>
-          <div class="metro-fixed-label">${s.folio}. ${s.name}</div>
+          <div class="metro-fixed-label">${s.name}</div>
         `;
         container.appendChild(node);
       });
