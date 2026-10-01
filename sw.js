@@ -1,6 +1,6 @@
-const CACHE_NAME = 'micro-litoral-v3.18.0';
+const CACHE_NAME = 'micro-litoral-v3.19.0';
 const STATIC_ASSETS = [
-  './', 
+  './',
   './index.html',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
