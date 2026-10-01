@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Micro Litoral GPS v3.19.0</title>
+  <title>Micro Litoral GPS v3.20.0</title>
   <meta name="theme-color" content="#090d16">
   
   <!-- Leaflet CSS -->
@@ -137,12 +137,191 @@
         </div>
       </div>
 
-      <!-- RESUMEN PRE-VIAJE EN INICIO (ETA, PARADAS Y KM) -->
+      <!-- RESUMEN PRE-VIAJE CON HORA DE LLEGADA ESTIMADA -->
       <div style="background: #060911; border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 6px;">
         <div style="font-size: 0.75rem; font-weight: 800; color: var(--accent);">📊 Resumen de tu Trayecto Seleccionado:</div>
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; text-align: center;">
           <div style="background:#111827; padding:6px; border-radius:8px;">
-            <div style="font-size:0.65rem; color:var(--muted);">Tiempo Est.</div>
+            <div style="font-size:0.65rem; color:var(--muted);">Llegada Est.</div>
+            <div id="setupTripEta" style="font-size:0.85rem; font-weight:800; color:var(--success);">--:-- hrs</div>
+          </div>
+          <div style="background:#111827; padding:6px; border-radius:8px;">
+            <div style="font-size:0.65rem; color:var(--muted);">Paradas</div>
+            <div id="setupTripStops" style="font-size:0.85rem; font-weight:800; color:var(--accent);">--</div>
+          </div>
+          <div style="background:#111827; padding:6px; border-radius:8px;">
+            <div style="font-size:0.65rem; color:var(--muted);">Distancia</div>
+            <div id="setupTripKm" style="font-size:0.85rem; font-weight:800; color:var(--purple);">-- km</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BRÚJULA CON FLECHA E INTERACCIÓN MUESTRA MAPA PEATONAL -->
+      <div class="compass-box" id="compassContainer">
+        <div class="compass-arrow" id="compassArrow">➔</div>
+        <div style="flex: 1;">
+          <div style="font-size: 0.8rem; font-weight: 800; color: var(--accent);" id="compassTitle">Orientación al Paradero</div>
+          <div style="font-size: 0.72rem; color: var(--muted);" id="compassDesc">Buscando dirección... (Toca para ver mapa)</div>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--accent);">🗺️</div>
+      </div>
+
+      <!-- GUARDAR FAVORITO -->
+      <div style="display: flex; gap: 6px;">
+        <input type="text" id="favNameInput" placeholder="Nombre (Ej: Al Trabajo)">
+        <button class="btn btn-secondary" id="btnSaveFavorite" style="width: auto; padding: 0 12px; font-size: 0.8rem;">⭐ Guardar</button>
+      </div>
+
+      <div style="background: #060911; padding: 12px; border-radius: 10px; border: 1px solid var(--border); text-align: center;">
+        <div style="font-size: 0.75rem; color: var(--muted);">Próximo Bus por Tu Paradero:</div>
+        <div id="setupNextDepartureMinutes" style="font-size: 1.3rem; font-weight: 800; color: var(--accent); margin-top: 2px;">En -- min</div>
+        <div id="setupServiceStatus" style="font-size: 0.75rem; color: var(--warning); margin-top: 2px;"></div>
+      </div>
+
+      <button class="btn" id="btnStartTrip">🚀 Iniciar Viaje con GPS</button>
+
+      <!-- BOTONES DE INFORMACIÓN -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <button class="btn btn-secondary" id="btnHowItWorks" style="font-size: 0.78rem; padding: 10px;">💡 ¿Cómo funciona?</button>
+        <button class="btn btn-secondary" id="btnFAQ" style="font-size: 0.78rem; padding: 10px;">❓ Preguntas Frecuentes</button>
+      </div>
+
+      <div class="disclaimer-box">
+        ℹ️ <strong>Aviso Legal:</strong> Aplicación independiente sin financiamiento ni vínculo con Taxibuses San Antonio S.A.
+      </div>
+    </div>
+
+    <!-- VISTA EN VIAJE ACTIVO -->
+    <div id="viewActive" class="card hidden">
+      
+      <!-- MINIMAPA METRO FIJO DE 7 ESTACIONES -->
+      <div class="metro-fixed-container">
+        <div class="metro-fixed-track">
+          <div class="metro-fixed-line-bg"></div>
+          <div id="metroFixedFill" class="metro-fixed-line-fill"></div>
+          <div id="metroFixedNodes" class="metro-fixed-stations"></div>
+        </div>
+      </div>
+
+      <!-- PANEL ÚNICO DE ALERTAS INTELIGENTE -->
+      <div id="unifiedAlertPanel" class="alert-panel">
+        <span id="alertIcon" style="font-size: 1.4rem;">🔔</span>
+        <div>
+          <div id="alertTitle" style="font-size: 0.85rem; font-weight: 800; color: var(--accent);">Te notificaremos al aproximarte</div>
+          <div id="alertDesc" style="font-size: 0.72rem; color: var(--text);">Faltan paradas para tu destino.</div>
+        </div>
+      </div>
+
+      <!-- ESTADO DEL GPS EN VIVO / RECONEXIÓN -->
+      <div style="display: flex; justify-content: space-between; align-items: center; background: #060911; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border);">
+        <div id="gpsStatusPill" class="gps-status-pill">
+          <span id="gpsPulseDot" class="pulse-dot pulse-red"></span>
+          <span id="gpsStatusText" style="color: var(--danger);">GPS Offline</span>
+        </div>
+        <button id="btnRefreshGPS" class="btn btn-secondary" style="width: auto; padding: 4px 10px; font-size: 0.72rem;">📍 Actualizar Ubicación</button>
+      </div>
+
+      <!-- DINÁMICA DE PARADA -->
+      <div style="background: #060911; border: 1px solid var(--border); padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 4px;">
+        <div id="stopDynamicLabel" style="font-size: 0.7rem; color: var(--muted); font-weight: 700;">➡ PRÓXIMA PARADA:</div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div id="activeNextStopName" style="font-size: 1.1rem; font-weight: 800; color: var(--accent);">---</div>
+          <div id="activeNextStopDistance" style="font-size: 0.85rem; font-weight: 800; color: var(--success);">+-- m</div>
+        </div>
+      </div>
+
+      <!-- CUADRO ETA INTEGRADO CON CAMBIO DE DESTINO EN VIAJE -->
+      <div id="etaBoxContainer" class="eta-box">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <label style="color: var(--text); font-weight: 800;">🎯 Destino:</label>
+          <select id="activeChangeEndStop" style="padding: 6px; font-size: 0.8rem; width: auto; max-width: 200px;"></select>
+        </div>
+        
+        <div id="etaBoxTime" style="font-size: 1.2rem; text-align: center; color: var(--accent);">Llegada aprox. a las --:-- hrs</div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; text-align: center; font-size: 0.72rem; border-top: 1px dashed var(--border); padding-top: 6px;">
+          <div>
+            <div style="color: var(--muted);">Paradas</div>
+            <div id="etaStopsLeft" style="font-size: 0.9rem; font-weight: 800;">--</div>
+          </div>
+          <div>
+            <div style="color: var(--muted);">Distancia</div>
+            <div id="etaKmLeft" style="font-size: 0.9rem; font-weight: 800;">-- km</div>
+          </div>
+          <div>
+            <div style="color: var(--muted);">Tiempo Restante</div>
+            <div id="etaTimeLeft" style="font-size: 0.9rem; font-weight: 800;">-- hr -- min</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAPA REAL LEAFLET BLOQUEADO -->
+      <div style="display:flex; flex-direction:column; gap:4px;">
+        <label>🗺️ Entorno en Vivo (200m a la redonda):</label>
+        <div id="realMap"></div>
+      </div>
+
+      <!-- MÉTRICAS DE VIAJE -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center;">
+        <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
+          <div id="gpsCurrentSpeed" style="font-size: 1rem; font-weight: 800; color: var(--accent);">0 km/h</div>
+          <div style="font-size: 0.65rem; color: var(--muted);">Vel. Actual</div>
+        </div>
+        <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
+          <div id="gpsAvgSpeed" style="font-size: 1rem; font-weight: 800; color: var(--purple);">0 km/h</div>
+          <div style="font-size: 0.65rem; color: var(--muted);">Vel. Promedio</div>
+        </div>
+        <div style="background:#060911; padding:8px; border-radius:8px; border:1px solid var(--border);">
+          <div id="segmentTime" style="font-size: 1rem; font-weight: 800; color: var(--warning);">0 min</div>
+          <div style="font-size: 0.65rem; color: var(--muted);">Tiempo Viaje</div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 4px;">
+        <button class="btn btn-danger" id="btnCancelTrip" style="font-size: 0.8rem; padding: 10px;">❌ Cancelar</button>
+        <button class="btn btn-secondary" id="btnFinishTrip" style="font-size: 0.8rem; padding: 10px;">🏁 Terminar</button>
+      </div>
+    </div>
+
+    <footer>
+      <strong>Micro Litoral PWA v3.20.0</strong><br>
+      Desarrollado por <strong>Jaime Bustamante Leal</strong> con tecnología asistida por <strong>Gemini AI</strong>.<br>
+      <span style="font-size: 0.62rem; color: var(--muted);">Aplicación independiente sin afiliación a Taxibuses San Antonio S.A.</span>
+    </footer>
+
+  </div>
+
+  <!-- MODAL MAPA PEATONAL PRE-VIAJE -->
+  <div id="pedestrianModal" class="modal-overlay">
+    <div class="modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="font-weight: 800; color: var(--accent);">🚶‍♂️ Camino al Paradero</div>
+        <button id="btnClosePedestrianModal" class="btn btn-secondary" style="padding: 4px 8px; width: auto; font-size: 0.8rem;">✕ Cerrar</button>
+      </div>
+      <div id="pedestrianMap"></div>
+      <div id="pedestrianStatus" style="font-size: 0.8rem; text-align: center; color: var(--text);">Cargando tu ubicación al segundo...</div>
+    </div>
+  </div>
+
+  <!-- MODAL ¿CÓMO FUNCIONA? -->
+  <div id="howItWorksModal" class="modal-overlay">
+    <div class="modal-content">
+      <div style="font-weight: 800; color: var(--accent); font-size: 1.1rem;">💡 ¿Cómo funciona Micro Litoral?</div>
+      
+      <div style="font-size: 0.82rem; line-height: 1.4; color: var(--text); display: flex; flex-direction: column; gap: 10px;">
+        <div>
+          <strong>🚌 1. Horarios Reales de Cabina:</strong><br>
+          Basado en tiempos reales tomados directamente de la planilla de los conductores (116 min de terminal a terminal: Tejas Verdes ➔ El Yeco).
+        </div>
+        <div>
+          <strong>📍 2. Reconocimiento GPS de Paradas:</strong><br>
+          - A 120m avisa que va llegando.<br>
+          - A 20m confirma que estás en la parada (oculta los metros).<br>
+          - Al salir de los 20m avisa la siguiente parada continua.
+        </div>
+        <div>
+          <strong>🧠 3. Calibración de Tiempos (ETA):</strong><br>
+          Usa los</div>
             <div id="setupTripEta" style="font-size:0.85rem; font-weight:800; color:var(--success);">-- min</div>
           </div>
           <div style="background:#111827; padding:6px; border-radius:8px;">
