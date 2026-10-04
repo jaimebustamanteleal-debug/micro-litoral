@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Micro Litoral GPS v3.24.0</title>
+  <title>Micro Litoral GPS v3.25.0</title>
   <meta name="theme-color" content="#090d16">
-  <!-- Agregar dentro de <head> -->
-<link rel="manifest" href="./manifest.json">
+  <link rel="manifest" href="./manifest.json">
   
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -130,7 +129,7 @@
 
   <div class="app-container">
     
-    <!-- BARRA SUPERIOR INDEPENDIENTE PARA MODO CLARO / OSCURO -->
+    <!-- BARRA SUPERIOR MODO CLARO / OSCURO -->
     <div class="top-bar">
       <button class="theme-toggle-btn" id="btnThemeToggle">☀️ Modo Claro</button>
     </div>
@@ -163,10 +162,10 @@
       </div>
 
       <div>
-        <label>¿Hacia dónde vas?</label>
+        <label>Dirección del Viaje:</label>
         <select id="selectDirection">
-          <option value="IDA">Hacia Tejas Verdes (Ida)</option>
-          <option value="VUELTA">Hacia El Yeco (Vuelta)</option>
+          <option value="IDA">Hacia Tejas Verdes (San Antonio)</option>
+          <option value="VUELTA">Hacia El Yeco (Algarrobo)</option>
         </select>
       </div>
 
@@ -181,7 +180,7 @@
         </div>
       </div>
 
-      <!-- RESUMEN PRE-VIAJE CON HORA DE LLEGADA ESTIMADA -->
+      <!-- RESUMEN PRE-VIAJE -->
       <div style="background: var(--input-bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 6px;">
         <div style="font-size: 0.75rem; font-weight: 800; color: var(--accent);">📊 Resumen de tu Trayecto Seleccionado:</div>
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; text-align: center;">
@@ -200,7 +199,7 @@
         </div>
       </div>
 
-      <!-- BRÚJULA CON FLECHA E INTERACCIÓN MUESTRA MAPA PEATONAL -->
+      <!-- BRÚJULA PEATONAL -->
       <div class="compass-box" id="compassContainer">
         <div class="compass-arrow" id="compassArrow">➔</div>
         <div style="flex: 1;">
@@ -256,7 +255,7 @@
         </div>
       </div>
 
-      <!-- ESTADO DEL GPS EN VIVO / RECONEXIÓN -->
+      <!-- ESTADO DEL GPS EN VIVO -->
       <div style="display: flex; justify-content: space-between; align-items: center; background: var(--input-bg); padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border);">
         <div id="gpsStatusPill" class="gps-status-pill">
           <span id="gpsPulseDot" class="pulse-dot pulse-red"></span>
@@ -274,7 +273,7 @@
         </div>
       </div>
 
-      <!-- CUADRO ETA INTEGRADO CON CAMBIO DE DESTINO EN VIAJE -->
+      <!-- CUADRO ETA INTEGRADO -->
       <div id="etaBoxContainer" class="eta-box">
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <label style="color: var(--text); font-weight: 800;">🎯 Destino:</label>
@@ -299,7 +298,7 @@
         </div>
       </div>
 
-      <!-- MAPA REAL LEAFLET BLOQUEADO -->
+      <!-- MAPA LEAFLET -->
       <div style="display:flex; flex-direction:column; gap:4px;">
         <label>🗺 Entorno en Vivo (200m a la redonda):</label>
         <div id="realMap"></div>
@@ -328,7 +327,7 @@
     </div>
 
     <footer>
-      <strong>Micro Litoral PWA v3.24.0</strong><br>
+      <strong>Micro Litoral PWA v3.25.0</strong><br>
       Desarrollado por <strong>Jaime Bustamante Leal</strong> con tecnología asistida por <strong>Gemini AI</strong>.<br>
       <span style="font-size: 0.62rem; color: var(--muted);">Aplicación independiente sin afiliación a Taxibuses San Antonio S.A.</span>
     </footer>
@@ -359,9 +358,9 @@
         </div>
         <div>
           <strong>📍 2. Reconocimiento GPS de Paradas:</strong><br>
-          - A 120m avisa que va llegando.<br>
+          - A 50m avisa que va llegando antes de la parada.<br>
           - A 20m confirma que estás en la parada (oculta los metros).<br>
-          - Al salir de los 20m avisa la siguiente parada continua.
+          - Al salir de la zona avisa la siguiente parada continua.
         </div>
         <div>
           <strong>🧠 3. Calibración de Tiempos (ETA):</strong><br>
@@ -373,7 +372,7 @@
     </div>
   </div>
 
-  <!-- MODAL PREGUNTAS FRECUENTES (FAQ) -->
+  <!-- MODAL FAQ -->
   <div id="faqModal" class="modal-overlay">
     <div class="modal-content">
       <div style="font-weight: 800; color: var(--accent); font-size: 1.1rem;">❓ Preguntas Frecuentes</div>
@@ -421,7 +420,7 @@
       });
     }
 
-    // BASE DE DATOS DE IDA - RIU TAI CORREGIDO (95 PARADAS)
+    // BASE DE DATOS HACIA TEJAS VERDES (95 PARADAS)
     const STOPS_IDA = [
       { id: "s_1", name: "El Yeco", lat: -33.309274, lng: -71.642426, stdMin: 0 },
       { id: "s_2", name: "Mirador El Yeco", lat: -33.314191, lng: -71.642970, stdMin: 2.5 },
@@ -520,100 +519,99 @@
       { id: "s_95", name: "Terminal Tejas Verdes", lat: -33.613254, lng: -71.619707, stdMin: 117 }
     ];
 
-    // BASE DE DATOS DE VUELTA - RIU TAI CORREGIDO (92 PARADAS)
+    // BASE DE DATOS HACIA EL YECO (92 PARADAS - ORDEN INVERSO EXACTO)
     const STOPS_VUELTA = [
-      { id: "v_1", name: "El Yeco", lat: -33.309464, lng: -71.642382, stdMin: 116 },
-      { id: "v_2", name: "Mirador El Yeco", lat: -33.314416, lng: -71.642779, stdMin: 115 },
-      { id: "v_3", name: "Escuela El Yeco", lat: -33.317286, lng: -71.642168, stdMin: 114 },
-      { id: "v_4", name: "Rotonda Mirasol", lat: -33.327238, lng: -71.644659, stdMin: 113 },
-      { id: "v_5", name: "Plaza de Algarrobo Norte", lat: -33.331684, lng: -71.644877, stdMin: 112 },
-      { id: "v_6", name: "Playa Algarrobo Norte", lat: -33.335210, lng: -71.647304, stdMin: 111 },
-      { id: "v_7", name: "Camino Las Dichas", lat: -33.340408, lng: -71.648213, stdMin: 109 },
-      { id: "v_8", name: "San Alfonso del Mar", lat: -33.350052, lng: -71.651266, stdMin: 105 },
-      { id: "v_9", name: "Pueblo de Artesanos", lat: -33.355756, lng: -71.653545, stdMin: 103 },
-      { id: "v_10", name: "Plaza Bordemar", lat: -33.359007, lng: -71.663199, stdMin: 100 },
-      { id: "v_11", name: "Playa Las Cadenas", lat: -33.360392, lng: -71.664864, stdMin: 98 },
-      { id: "v_12", name: "Iglesia Santa Teresita", lat: -33.365514, lng: -71.669762, stdMin: 95 },
-      { id: "v_13", name: "El Litre", lat: -33.368883, lng: -71.668080, stdMin: 94 },
-      { id: "v_14", name: "Av. Peñablanca", lat: -33.372211, lng: -71.672876, stdMin: 92 },
-      { id: "v_15", name: "Parque Residencial", lat: -33.374008, lng: -71.676266, stdMin: 91 },
-      { id: "v_16", name: "Av. Bahía Mansa", lat: -33.377346, lng: -71.682297, stdMin: 90 },
-      { id: "v_17", name: "La Portada 2", lat: -33.380048, lng: -71.685564, stdMin: 89 },
-      { id: "v_18", name: "La Portada 1", lat: -33.382177, lng: -71.686995, stdMin: 88 },
-      { id: "v_19", name: "Las Balandras", lat: -33.384479, lng: -71.688527, stdMin: 87 },
-      { id: "v_20", name: "aCuenta El Quisco", lat: -33.385932, lng: -71.689444, stdMin: 86 },
-      { id: "v_21", name: "Playa Los Corsarios", lat: -33.393007, lng: -71.693891, stdMin: 85 },
-      { id: "v_22", name: "Municipalidad de El Quisco", lat: -33.399970, lng: -71.694430, stdMin: 84 },
-      { id: "v_23", name: "Parroquia El Quisco", lat: -33.402351, lng: -71.693867, stdMin: 82 },
-      { id: "v_24", name: "Capilla SUD", lat: -33.402351, lng: -71.693867, stdMin: 81 },
-      { id: "v_25", name: "Huallilemu", lat: -33.407705, lng: -71.693929, stdMin: 80 },
-      { id: "v_26", name: "Riu Tai", lat: -33.411695, lng: -71.695064, stdMin: 79 },
-      { id: "v_27", name: "Tralcamahuida", lat: -33.413916, lng: -71.695616, stdMin: 78 },
-      { id: "v_28", name: "Balneario Banco Central", lat: -33.416786, lng: -71.696407, stdMin: 77 },
-      { id: "v_29", name: "Punta de Tralca", lat: -33.425728, lng: -71.691512, stdMin: 74 },
-      { id: "v_30", name: "Av. del Escritor / Isidora Dubournais", lat: -33.428445, lng: -71.689731, stdMin: 72 },
-      { id: "v_31", name: "Portal Isla Negra", lat: -33.430222, lng: -71.688599, stdMin: 71 },
-      { id: "v_32", name: "Huallilemu Sur", lat: -33.432310, lng: -71.687443, stdMin: 70 },
-      { id: "v_33", name: "El Sauce / Isidora Dubournais", lat: -33.436651, lng: -71.685153, stdMin: 68 },
-      { id: "v_34", name: "Isla Negra", lat: -33.440817, lng: -71.682980, stdMin: 66 },
-      { id: "v_35", name: "Playa Las Ágatas", lat: -33.447169, lng: -71.677399, stdMin: 63 },
-      { id: "v_36", name: "Camping El Bosque", lat: -33.449225, lng: -71.675904, stdMin: 62 },
-      { id: "v_37", name: "Av. Centenario / Baquedano", lat: -33.451609, lng: -71.673937, stdMin: 60.5 },
-      { id: "v_38", name: "Av. Arellano / Baquedano", lat: -33.453562, lng: -71.672230, stdMin: 59.5 },
-      { id: "v_39", name: "Plaza El Tabo", lat: -33.454909, lng: -71.669124, stdMin: 58 },
-      { id: "v_40", name: "El Tabo Centro", lat: -33.455984, lng: -71.664269, stdMin: 56 },
-      { id: "v_41", name: "Monolito", lat: -33.458213, lng: -71.658797, stdMin: 54 },
-      { id: "v_42", name: "Lindero Azul", lat: -33.460601, lng: -71.652518, stdMin: 52 },
-      { id: "v_43", name: "El Tabito", lat: -33.462970, lng: -71.648604, stdMin: 50 },
-      { id: "v_44", name: "La Granja Presbiteriana", lat: -33.465840, lng: -71.644091, stdMin: 48 },
-      { id: "v_45", name: "Mirador El Tabo", lat: -33.467942, lng: -71.639526, stdMin: 46 },
-      { id: "v_46", name: "Av. El Roble / Litoral de los Poetas", lat: -33.472712, lng: -71.629017, stdMin: 43 },
-      { id: "v_47", name: "Mar y Boldo", lat: -33.481341, lng: -71.621096, stdMin: 40 },
-      { id: "v_48", name: "Municipalidad de El Tabo", lat: -33.491342, lng: -71.619852, stdMin: 36 },
-      { id: "v_49", name: "Las Cruces", lat: -33.498219, lng: -71.615048, stdMin: 33 },
-      { id: "v_50", name: "Piedra de Luna / Litoral de los Poetas", lat: -33.500187, lng: -71.610247, stdMin: 31 },
-      { id: "v_51", name: "Laguna El Peral", lat: -33.503248, lng: -71.603650, stdMin: 29 },
-      { id: "v_52", name: "Playas Blancas", lat: -33.506942, lng: -71.603333, stdMin: 28 },
-      { id: "v_53", name: "Campo Lindo", lat: -33.509052, lng: -71.602809, stdMin: 27 },
-      { id: "v_54", name: "Av. Perú / Litoral de los Poetas", lat: -33.514505, lng: -71.601430, stdMin: 25.5 },
-      { id: "v_55", name: "Camino Vecinal Chépica", lat: -33.518521, lng: -71.597809, stdMin: 24 },
-      { id: "v_56", name: "Costa Azul", lat: -33.521275, lng: -71.596704, stdMin: 23 },
-      { id: "v_57", name: "Av. Norte / El Peral", lat: -33.524909, lng: -71.597037, stdMin: 22 },
-      { id: "v_58", name: "Av. Central / El Peral", lat: -33.526558, lng: -71.597530, stdMin: 21 },
-      { id: "v_59", name: "Av. de la Plaza / El Peral", lat: -33.528118, lng: -71.597015, stdMin: 20 },
-      { id: "v_60", name: "Ailis Mall Chino", lat: -33.531641, lng: -71.595363, stdMin: 18.5 },
-      { id: "v_61", name: "Terminal de Cartagena", lat: -33.540235, lng: -71.596768, stdMin: 16 },
-      { id: "v_62", name: "Estadio Cartagena", lat: -33.541821, lng: -71.599805, stdMin: 15 },
-      { id: "v_63", name: "Playa Grande Cartagena", lat: -33.542513, lng: -71.601865, stdMin: 14 },
-      { id: "v_64", name: "Plaza de Cartagena", lat: -33.546515, lng: -71.603080, stdMin: 13 },
-      { id: "v_65", name: "Carlos Corsi", lat: -33.548244, lng: -71.597466, stdMin: 12 },
-      { id: "v_66", name: "Mariano Casanova", lat: -33.547645, lng: -71.601704, stdMin: 11 },
-      { id: "v_67", name: "Hermanos Tobar", lat: -33.549940, lng: -71.603619, stdMin: 10 },
-      { id: "v_68", name: "Vicente Huidobro", lat: -33.551759, lng: -71.606494, stdMin: 9 },
-      { id: "v_69", name: "Estación Cartagena", lat: -33.552312, lng: -71.611757, stdMin: 8 },
-      { id: "v_70", name: "Vista Hermosa", lat: -33.552820, lng: -71.614208, stdMin: 7.5 },
-      { id: "v_71", name: "Los Castaños / Av. San Martín", lat: -33.553159, lng: -71.616351, stdMin: 7 },
-      { id: "v_72", name: "Corazones", lat: -33.553475, lng: -71.619849, stdMin: 6 },
-      { id: "v_73", name: "Rocas de San Antonio", lat: -33.555441, lng: -71.623001, stdMin: 5 },
-      { id: "v_74", name: "Calle Juncos", lat: -33.560988, lng: -71.621407, stdMin: 4.2 },
-      { id: "v_75", name: "Pelancura", lat: -33.566416, lng: -71.621402, stdMin: 3.5 },
-      { id: "v_76", name: "Manuel Bulnes", lat: -33.571409, lng: -71.624098, stdMin: 2.8 },
-      { id: "v_77", name: "Faro Punta Panul", lat: -33.575865, lng: -71.626730, stdMin: 2.2 },
-      { id: "v_78", name: "Subida Las Canteras", lat: -33.579789, lng: -71.624675, stdMin: 1.8 },
-      { id: "v_79", name: "San Antonio Centro", lat: -33.580536, lng: -71.613249, stdMin: 1.5 },
-      { id: "v_80", name: "Av. Centenario / Alberto Barros", lat: -33.580749, lng: -71.611663, stdMin: 1.2 },
-      { id: "v_81", name: "4 Norte / Barros Luco", lat: -33.591183, lng: -71.612864, stdMin: 1.0 },
-      { id: "v_82", name: "Parada 3", lat: -33.592236, lng: -71.612803, stdMin: 0.8 },
-      { id: "v_83", name: "Parada 6", lat: -33.593313, lng: -71.612879, stdMin: 0.7 },
-      { id: "v_84", name: "Parada 4", lat: -33.593420, lng: -71.612894, stdMin: 0.6 },
-      { id: "v_85", name: "Municipalidad de San Antonio", lat: -33.596022, lng: -71.613104, stdMin: 0.5 },
-      { id: "v_86", name: "Parada 6", lat: -33.597322, lng: -71.613188, stdMin: 0.4 },
-      { id: "v_87", name: "Parada 8", lat: -33.600546, lng: -71.613437, stdMin: 0.3 },
-      { id: "v_88", name: "Cesfam Barrancas", lat: -33.602086, lng: -71.613571, stdMin: 0.2 },
-      { id: "v_89", name: "Parada 9", lat: -33.603318, lng: -71.613648, stdMin: 0.15 },
-      { id: "v_90", name: "Parada 10", lat: -33.605605, lng: -71.613826, stdMin: 0.1 },
-      { id: "v_91", name: "Parada 11", lat: -33.608237, lng: -71.614150, stdMin: 0.05 },
-      { id: "v_92", name: "Terminal Tejas Verdes", lat: -33.613254, lng: -71.619707, stdMin: 0 }
+      { id: "v_1", name: "Terminal Tejas Verdes", lat: -33.613254, lng: -71.619707, stdMin: 0 },
+      { id: "v_2", name: "Parada 11", lat: -33.608237, lng: -71.614150, stdMin: 0.5 },
+      { id: "v_3", name: "Parada 10", lat: -33.605605, lng: -71.613826, stdMin: 1 },
+      { id: "v_4", name: "Parada 9", lat: -33.603318, lng: -71.613648, stdMin: 1.5 },
+      { id: "v_5", name: "Cesfam Barrancas", lat: -33.602086, lng: -71.613571, stdMin: 2 },
+      { id: "v_6", name: "Parada 8", lat: -33.600546, lng: -71.613437, stdMin: 2.5 },
+      { id: "v_7", name: "Parada 6", lat: -33.597322, lng: -71.613188, stdMin: 3 },
+      { id: "v_8", name: "Municipalidad de San Antonio", lat: -33.596022, lng: -71.613104, stdMin: 3.5 },
+      { id: "v_9", name: "Parada 4", lat: -33.593420, lng: -71.612894, stdMin: 4 },
+      { id: "v_10", name: "Parada 3", lat: -33.592236, lng: -71.612803, stdMin: 4.5 },
+      { id: "v_11", name: "4 Norte / Barros Luco", lat: -33.591183, lng: -71.612864, stdMin: 5 },
+      { id: "v_12", name: "Av. Centenario / Alberto Barros", lat: -33.580749, lng: -71.611663, stdMin: 6 },
+      { id: "v_13", name: "San Antonio Centro", lat: -33.580536, lng: -71.613249, stdMin: 7 },
+      { id: "v_14", name: "Subida Las Canteras", lat: -33.579789, lng: -71.624675, stdMin: 8 },
+      { id: "v_15", name: "Faro Punta Panul", lat: -33.575865, lng: -71.626730, stdMin: 9 },
+      { id: "v_16", name: "Manuel Bulnes", lat: -33.571409, lng: -71.624098, stdMin: 10 },
+      { id: "v_17", name: "Pelancura", lat: -33.566416, lng: -71.621402, stdMin: 11.5 },
+      { id: "v_18", name: "Calle Juncos", lat: -33.560988, lng: -71.621407, stdMin: 13 },
+      { id: "v_19", name: "Rocas de San Antonio", lat: -33.555441, lng: -71.623001, stdMin: 15 },
+      { id: "v_20", name: "Corazones", lat: -33.553475, lng: -71.619849, stdMin: 16 },
+      { id: "v_21", name: "Los Castaños / Av. San Martín", lat: -33.553159, lng: -71.616351, stdMin: 17 },
+      { id: "v_22", name: "Vista Hermosa", lat: -33.552820, lng: -71.614208, stdMin: 18 },
+      { id: "v_23", name: "Estación Cartagena", lat: -33.552312, lng: -71.611757, stdMin: 19 },
+      { id: "v_24", name: "Vicente Huidobro", lat: -33.551759, lng: -71.606494, stdMin: 20 },
+      { id: "v_25", name: "Hermanos Tobar", lat: -33.549940, lng: -71.603619, stdMin: 21 },
+      { id: "v_26", name: "Mariano Casanova", lat: -33.547645, lng: -71.601704, stdMin: 22 },
+      { id: "v_27", name: "Carlos Corsi", lat: -33.548244, lng: -71.597466, stdMin: 23 },
+      { id: "v_28", name: "Plaza de Cartagena", lat: -33.546515, lng: -71.603080, stdMin: 24 },
+      { id: "v_29", name: "Playa Grande Cartagena", lat: -33.542513, lng: -71.601865, stdMin: 25 },
+      { id: "v_30", name: "Estadio Cartagena", lat: -33.541821, lng: -71.599805, stdMin: 26 },
+      { id: "v_31", name: "Terminal de Cartagena", lat: -33.540235, lng: -71.596768, stdMin: 27 },
+      { id: "v_32", name: "Ailis Mall Chino", lat: -33.531641, lng: -71.595363, stdMin: 29.5 },
+      { id: "v_33", name: "Av. de la Plaza / El Peral", lat: -33.528118, lng: -71.597015, stdMin: 31 },
+      { id: "v_34", name: "Av. Central / El Peral", lat: -33.526558, lng: -71.597530, stdMin: 32 },
+      { id: "v_35", name: "Av. Norte / El Peral", lat: -33.524909, lng: -71.597037, stdMin: 33 },
+      { id: "v_36", name: "Costa Azul", lat: -33.521275, lng: -71.596704, stdMin: 34 },
+      { id: "v_37", name: "Camino Vecinal Chépica", lat: -33.518521, lng: -71.597809, stdMin: 35 },
+      { id: "v_38", name: "Av. Perú / Litoral de los Poetas", lat: -33.514505, lng: -71.601430, stdMin: 36.5 },
+      { id: "v_39", name: "Campo Lindo", lat: -33.509052, lng: -71.602809, stdMin: 38 },
+      { id: "v_40", name: "Playas Blancas", lat: -33.506942, lng: -71.603333, stdMin: 39 },
+      { id: "v_41", name: "Laguna El Peral", lat: -33.503248, lng: -71.603650, stdMin: 40 },
+      { id: "v_42", name: "Piedra de Luna / Litoral de los Poetas", lat: -33.500187, lng: -71.610247, stdMin: 42 },
+      { id: "v_43", name: "Las Cruces", lat: -33.498219, lng: -71.615048, stdMin: 44 },
+      { id: "v_44", name: "Municipalidad de El Tabo", lat: -33.491342, lng: -71.619852, stdMin: 47 },
+      { id: "v_45", name: "Mar y Boldo", lat: -33.481341, lng: -71.621096, stdMin: 50 },
+      { id: "v_46", name: "Av. El Roble / Litoral de los Poetas", lat: -33.472712, lng: -71.629017, stdMin: 53 },
+      { id: "v_47", name: "Mirador El Tabo", lat: -33.467942, lng: -71.639526, stdMin: 56 },
+      { id: "v_48", name: "La Granja Presbiteriana", lat: -33.465840, lng: -71.644091, stdMin: 58 },
+      { id: "v_49", name: "El Tabito", lat: -33.462970, lng: -71.648604, stdMin: 60 },
+      { id: "v_50", name: "Lindero Azul", lat: -33.460601, lng: -71.652518, stdMin: 62 },
+      { id: "v_51", name: "Monolito", lat: -33.458213, lng: -71.658797, stdMin: 64 },
+      { id: "v_52", name: "El Tabo Centro", lat: -33.455984, lng: -71.664269, stdMin: 66 },
+      { id: "v_53", name: "Plaza El Tabo", lat: -33.454909, lng: -71.669124, stdMin: 68 },
+      { id: "v_54", name: "Av. Arellano / Baquedano", lat: -33.453562, lng: -71.672230, stdMin: 69.5 },
+      { id: "v_55", name: "Av. Centenario / Baquedano", lat: -33.451609, lng: -71.673937, stdMin: 70.5 },
+      { id: "v_56", name: "Camping El Bosque", lat: -33.449225, lng: -71.675904, stdMin: 72 },
+      { id: "v_57", name: "Playa Las Ágatas", lat: -33.447169, lng: -71.677399, stdMin: 73 },
+      { id: "v_58", name: "Isla Negra", lat: -33.440817, lng: -71.682980, stdMin: 76 },
+      { id: "v_59", name: "El Sauce / Isidora Dubournais", lat: -33.436651, lng: -71.685153, stdMin: 78 },
+      { id: "v_60", name: "Huallilemu Sur", lat: -33.432310, lng: -71.687443, stdMin: 80 },
+      { id: "v_61", name: "Portal Isla Negra", lat: -33.430222, lng: -71.688599, stdMin: 81 },
+      { id: "v_62", name: "Av. del Escritor / Isidora Dubournais", lat: -33.428445, lng: -71.689731, stdMin: 82 },
+      { id: "v_63", name: "Punta de Tralca", lat: -33.425728, lng: -71.691512, stdMin: 84 },
+      { id: "v_64", name: "Balneario Banco Central", lat: -33.416786, lng: -71.696407, stdMin: 87 },
+      { id: "v_65", name: "Tralcamahuida", lat: -33.413916, lng: -71.695616, stdMin: 88 },
+      { id: "v_66", name: "Riu Tai", lat: -33.411695, lng: -71.695064, stdMin: 89 },
+      { id: "v_67", name: "Huallilemu", lat: -33.407705, lng: -71.693929, stdMin: 90 },
+      { id: "v_68", name: "Capilla SUD", lat: -33.402351, lng: -71.693867, stdMin: 91 },
+      { id: "v_69", name: "Parroquia El Quisco", lat: -33.402351, lng: -71.693867, stdMin: 92 },
+      { id: "v_70", name: "Municipalidad de El Quisco", lat: -33.399970, lng: -71.694430, stdMin: 93 },
+      { id: "v_71", name: "Playa Los Corsarios", lat: -33.393007, lng: -71.693891, stdMin: 94 },
+      { id: "v_72", name: "aCuenta El Quisco", lat: -33.385932, lng: -71.689444, stdMin: 95 },
+      { id: "v_73", name: "Las Balandras", lat: -33.384479, lng: -71.688527, stdMin: 96 },
+      { id: "v_74", name: "La Portada 1", lat: -33.382177, lng: -71.686995, stdMin: 97 },
+      { id: "v_75", name: "La Portada 2", lat: -33.380048, lng: -71.685564, stdMin: 98 },
+      { id: "v_76", name: "Av. Bahía Mansa", lat: -33.377346, lng: -71.682297, stdMin: 99 },
+      { id: "v_77", name: "Parque Residencial", lat: -33.374008, lng: -71.676266, stdMin: 100 },
+      { id: "v_78", name: "Av. Peñablanca", lat: -33.372211, lng: -71.672876, stdMin: 101 },
+      { id: "v_79", name: "El Litre", lat: -33.368883, lng: -71.668080, stdMin: 103 },
+      { id: "v_80", name: "Iglesia Santa Teresita", lat: -33.365514, lng: -71.669762, stdMin: 104 },
+      { id: "v_81", name: "Playa Las Cadenas", lat: -33.360392, lng: -71.664864, stdMin: 106 },
+      { id: "v_82", name: "Plaza Bordemar", lat: -33.359007, lng: -71.663199, stdMin: 107 },
+      { id: "v_83", name: "Pueblo de Artesanos", lat: -33.355756, lng: -71.653545, stdMin: 109 },
+      { id: "v_84", name: "San Alfonso del Mar", lat: -33.350052, lng: -71.651266, stdMin: 111 },
+      { id: "v_85", name: "Camino Las Dichas", lat: -33.340408, lng: -71.648213, stdMin: 113 },
+      { id: "v_86", name: "Playa Algarrobo Norte", lat: -33.335210, lng: -71.647304, stdMin: 114 },
+      { id: "v_87", name: "Plaza de Algarrobo Norte", lat: -33.331684, lng: -71.644877, stdMin: 114.5 },
+      { id: "v_88", name: "Rotonda Mirasol", lat: -33.327238, lng: -71.644659, stdMin: 115 },
+      { id: "v_89", name: "Escuela El Yeco", lat: -33.317286, lng: -71.642168, stdMin: 115.5 },
+      { id: "v_90", name: "Mirador El Yeco", lat: -33.314416, lng: -71.642779, stdMin: 115.8 },
+      { id: "v_91", name: "El Yeco", lat: -33.309464, lng: -71.642382, stdMin: 116 }
     ];
 
     let ROUTE_STOPS = STOPS_IDA;
@@ -640,6 +638,7 @@
       lastLng: null,
       lastPassedStopIndex: 0,
       lastPassedTimestamp: null,
+      lastDistanceMeters: Infinity,
       alert2StopsTriggered: false,
       alert1StopTriggered: false,
       alertArrivedTriggered: false,
@@ -693,12 +692,10 @@
     }
 
     async function requestSystemPermissions() {
-      // 1. Notificaciones
       if ("Notification" in window && Notification.permission !== "granted") {
         await Notification.requestPermission();
       }
       
-      // 2. Audio Context Unlock
       try {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
         if (audioContext.state === 'suspended') {
@@ -706,7 +703,6 @@
         }
       } catch (e) { console.log("Audio Web API no disponible", e); }
 
-      // 3. Vibración Test
       if ("vibrate" in navigator) {
         navigator.vibrate([100]);
       }
@@ -776,15 +772,37 @@
         updateSetupSummary();
       });
 
+      // Selección de origen con auto-ajuste suave (Sin reconstruir DOM ni parpadear)
       document.getElementById("selectStartStop").addEventListener("change", (e) => {
         state.userTouchedStartStop = true;
         state.startStopId = e.target.value;
-        updateEndStopsDropdown();
+
+        const selectStart = document.getElementById("selectStartStop");
+        const selectEnd = document.getElementById("selectEndStop");
+
+        if (selectStart.selectedIndex >= selectEnd.selectedIndex) {
+          if (selectStart.selectedIndex < selectEnd.options.length - 1) {
+            selectEnd.selectedIndex = selectStart.selectedIndex + 1;
+            state.endStopId = selectEnd.value;
+          }
+        }
+
         updateDepartureSchedule();
         updateSetupSummary();
       });
 
+      // Selección de destino con auto-ajuste suave (Sin reconstruir DOM ni parpadear)
       document.getElementById("selectEndStop").addEventListener("change", (e) => {
+        const selectStart = document.getElementById("selectStartStop");
+        const selectEnd = document.getElementById("selectEndStop");
+
+        if (selectEnd.selectedIndex <= selectStart.selectedIndex) {
+          if (selectEnd.selectedIndex > 0) {
+            selectStart.selectedIndex = selectEnd.selectedIndex - 1;
+            state.startStopId = selectStart.value;
+          }
+        }
+
         state.endStopId = e.target.value;
         updateSetupSummary();
       });
@@ -875,34 +893,22 @@
 
     function populateStopsDropdowns() {
       const selectStart = document.getElementById("selectStartStop");
+      const selectEnd = document.getElementById("selectEndStop");
+      
       selectStart.innerHTML = "";
+      selectEnd.innerHTML = "";
 
       ROUTE_STOPS.forEach((s) => {
         selectStart.appendChild(new Option(s.name, s.id));
-      });
-
-      state.startStopId = ROUTE_STOPS[0].id;
-      selectStart.value = state.startStopId;
-      updateEndStopsDropdown();
-    }
-
-    function updateEndStopsDropdown() {
-      const selectEnd = document.getElementById("selectEndStop");
-      const previousEndId = state.endStopId;
-      selectEnd.innerHTML = "";
-
-      const startIdx = ROUTE_STOPS.findIndex(s => s.id === state.startStopId);
-      const remainingStops = ROUTE_STOPS.slice(startIdx + 1);
-
-      remainingStops.forEach((s) => {
         selectEnd.appendChild(new Option(s.name, s.id));
       });
 
-      if (remainingStops.length > 0) {
-        const stillValid = remainingStops.some(s => s.id === previousEndId);
-        state.endStopId = stillValid ? previousEndId : remainingStops[remainingStops.length - 1].id;
-        selectEnd.value = state.endStopId;
-      }
+      state.startStopId = ROUTE_STOPS[0].id;
+      state.endStopId = ROUTE_STOPS[ROUTE_STOPS.length - 1].id;
+
+      selectStart.value = state.startStopId;
+      selectEnd.value = state.endStopId;
+
       updateSetupSummary();
     }
 
@@ -983,7 +989,6 @@
           document.getElementById("selectStartStop").value = fav.startStopId;
           state.startStopId = fav.startStopId;
           state.userTouchedStartStop = true;
-          updateEndStopsDropdown();
           document.getElementById("selectEndStop").value = fav.endStopId;
           state.endStopId = fav.endStopId;
           updateDepartureSchedule();
@@ -1128,7 +1133,7 @@
         pedestrianMap = L.map('pedestrianMap').setView([-33.3605, -71.6649], 17);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(pedestrianMap);
 
-        const personIcon = L.divIcon({ html: '🚶‍♂️️', className: 'map-person-icon', iconSize: [26, 26] });
+        const personIcon = L.divIcon({ html: '🚶‍♂', className: 'map-person-icon', iconSize: [26, 26] });
         const stopIcon = L.divIcon({ html: '📍', className: 'map-stop-icon', iconSize: [26, 26] });
 
         pedestrianPersonMarker = L.marker([-33.3605, -71.6649], { icon: personIcon }).addTo(pedestrianMap);
@@ -1182,7 +1187,6 @@
                   state.currentBaseIndex = ROUTE_STOPS.findIndex(s => s.id === nearestStop.id);
                   document.getElementById("selectStartStop").value = nearestStop.id;
                   state.startStopId = nearestStop.id;
-                  updateEndStopsDropdown();
                 }
               } else {
                 updateHeaderGreeting(null);
@@ -1222,6 +1226,7 @@
       state.alert2StopsTriggered = false;
       state.alert1StopTriggered = false;
       state.alertArrivedTriggered = false;
+      state.lastDistanceMeters = Infinity;
 
       state.startStopId = document.getElementById("selectStartStop").value;
       state.endStopId = document.getElementById("selectEndStop").value;
@@ -1302,7 +1307,11 @@
             const dynamicLabel = document.getElementById("stopDynamicLabel");
             const distanceContainer = document.getElementById("activeNextStopDistance");
 
-            // BURBUJA DE 20 METROS EXACTOS
+            // Evaluación de dirección (acercándose o alejándose)
+            const isApproaching = distToCurrMeters <= state.lastDistanceMeters;
+            state.lastDistanceMeters = distToCurrMeters;
+
+            // GEOCERCA ASIMÉTRICA INTELIGENTE (50m antes / 20m después)
             if (distToCurrMeters <= 20) {
               dynamicLabel.innerText = "🛑 ESTÁS EN LA PARADA:";
               dynamicLabel.style.color = "var(--success)";
@@ -1316,7 +1325,7 @@
               const distToNextKm = calculateDistanceKm(state.lastLat, state.lastLng, nextStop.lat, nextStop.lng);
               const distToNextMeters = Math.round(distToNextKm * 1000);
 
-              if (distToNextMeters <= 120 && distToNextMeters > 20) {
+              if (distToNextMeters <= 50 && distToNextMeters > 20) {
                 dynamicLabel.innerText = "🔔 LLEGANDO A LA PARADA:";
                 dynamicLabel.style.color = "var(--warning)";
                 document.getElementById("activeNextStopName").innerText = nextStop.name;
@@ -1340,6 +1349,7 @@
                 saveActiveStateToStorage();
                 populateActiveChangeEndDropdown();
                 renderFixedMetroMap();
+                updateClockAndETA();
               } else {
                 dynamicLabel.innerText = "➡ PRÓXIMA PARADA:";
                 dynamicLabel.style.color = "var(--muted)";
@@ -1355,7 +1365,7 @@
             const stopsRemaining = Math.max(0, endIndex - state.currentBaseIndex);
             const destStopName = ROUTE_STOPS[endIndex] ? ROUTE_STOPS[endIndex].name : "tu destino";
 
-            // SECUENCIA GRADUAL DE ALERTAS (2 PARADAS, 1 PARADA Y LLEGADA EN 20M)
+            // SECUENCIA DE ALERTAS
             if (stopsRemaining === 2 && !state.alert2StopsTriggered) {
               state.alert2StopsTriggered = true;
               playAlertBeep(440, 0.3);
@@ -1364,7 +1374,7 @@
               state.alert1StopTriggered = true;
               playAlertBeep(660, 0.5);
               triggerSystemNotification("⚠️ ¡ATENCIÓN! PRÓXIMA PARADA", `Te bajas en la siguiente parada: ${destStopName}`, [400, 150, 400]);
-            } else if (stopsRemaining === 0 && distToCurrMeters <= 20 && !state.alertArrivedTriggered) {
+            } else if (stopsRemaining === 0 && distToCurrMeters <= 50 && !state.alertArrivedTriggered) {
               state.alertArrivedTriggered = true;
               playAlertBeep(880, 0.8);
               triggerSystemNotification("📍 ¡LLEGASTE A TU DESTINO!", `¡Bájate aquí en: ${destStopName}!`, [500, 200, 500, 200, 500]);
