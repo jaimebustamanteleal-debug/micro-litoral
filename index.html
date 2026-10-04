@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Micro Litoral GPS v3.23.0</title>
+  <title>Micro Litoral GPS v3.24.0</title>
   <meta name="theme-color" content="#090d16">
   
   <!-- Leaflet CSS -->
@@ -68,6 +68,9 @@
     .btn:active { transform: scale(0.98); }
     .btn-secondary { background: var(--btn-secondary-bg); color: var(--btn-secondary-text) !important; border: 1px solid var(--border); }
     .btn-danger { background: rgba(248, 113, 113, 0.15); color: var(--danger); border: 1px solid rgba(248, 113, 113, 0.3); }
+
+    .permission-box { background: rgba(56, 189, 248, 0.1); border: 1px solid var(--accent); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; font-size: 0.78rem; }
+    .permission-box div { font-weight: 700; color: var(--accent); }
 
     .disclaimer-box { background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.25); border-radius: 10px; padding: 10px; font-size: 0.68rem; color: var(--muted); text-align: center; line-height: 1.3; }
 
@@ -144,6 +147,13 @@
     <!-- PLANIFICAR TRAYECTO -->
     <div id="viewSetup" class="card">
       <div class="card-title">⚙️ Planificar Trayecto</div>
+
+      <!-- SOLICITUD DE PERMISOS -->
+      <div id="permissionBanner" class="permission-box">
+        <div>🔔 Permisos del Sistema</div>
+        <p style="color:var(--text); font-size:0.72rem;">Para avisarte cuando debas bajarte aunque guardes el teléfono, habilita la ubicación exacta y notificaciones.</p>
+        <button class="btn btn-secondary" id="btnGrantPermissions" style="font-size:0.75rem; padding:8px;">Activar Permisos de Alerta</button>
+      </div>
       
       <div>
         <label>Tu Nombre:</label>
@@ -212,7 +222,7 @@
 
       <button class="btn" id="btnStartTrip">🚀 Iniciar Viaje con GPS</button>
 
-      <!-- BOTONES DE INFORMACIÓN CON TEXTO VISIBLE EN AMBOS MODOS -->
+      <!-- BOTONES DE INFORMACIÓN -->
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
         <button class="btn btn-secondary" id="btnHowItWorks" style="font-size: 0.78rem; padding: 12px;">💡 ¿Cómo funciona?</button>
         <button class="btn btn-secondary" id="btnFAQ" style="font-size: 0.78rem; padding: 12px;">❓ Preguntas Frecuentes</button>
@@ -289,7 +299,7 @@
 
       <!-- MAPA REAL LEAFLET BLOQUEADO -->
       <div style="display:flex; flex-direction:column; gap:4px;">
-        <label>🗺️️ Entorno en Vivo (200m a la redonda):</label>
+        <label>🗺 Entorno en Vivo (200m a la redonda):</label>
         <div id="realMap"></div>
       </div>
 
@@ -316,7 +326,7 @@
     </div>
 
     <footer>
-      <strong>Micro Litoral PWA v3.23.0</strong><br>
+      <strong>Micro Litoral PWA v3.24.0</strong><br>
       Desarrollado por <strong>Jaime Bustamante Leal</strong> con tecnología asistida por <strong>Gemini AI</strong>.<br>
       <span style="font-size: 0.62rem; color: var(--muted);">Aplicación independiente sin afiliación a Taxibuses San Antonio S.A.</span>
     </footer>
@@ -369,7 +379,7 @@
       <div style="font-size: 0.8rem; line-height: 1.4; color: var(--text); display: flex; flex-direction: column; gap: 10px;">
         <div>
           <strong>1. ¿Esta app es oficial de la empresa de buses?</strong><br>
-          No. Es un proyecto privado, independiente y comunitario desarrollado sin financiamiento externo ni vínculo alguno con la empresa Taxibuses San Antonio S.A.
+          No. Es un proyecto privado e independiente desarrollado sin financiamiento externo ni vínculo alguno con la empresa Taxibuses San Antonio S.A.
         </div>
         <div>
           <strong>2. ¿Por qué el GPS se detiene al bloquear la pantalla?</strong><br>
@@ -409,7 +419,7 @@
       });
     }
 
-    // BASE DE DATOS DE IDA - ORTOGRAFÍA Y MAYÚSCULAS CORREGIDAS (95 PARADAS)
+    // BASE DE DATOS DE IDA - RIU TAI CORREGIDO (95 PARADAS)
     const STOPS_IDA = [
       { id: "s_1", name: "El Yeco", lat: -33.309274, lng: -71.642426, stdMin: 0 },
       { id: "s_2", name: "Mirador El Yeco", lat: -33.314191, lng: -71.642970, stdMin: 2.5 },
@@ -440,13 +450,13 @@
       { id: "s_27", name: "Parroquia El Quisco", lat: -33.402410, lng: -71.694017, stdMin: 40 },
       { id: "s_28", name: "Capilla SUD", lat: -33.405315, lng: -71.693626, stdMin: 41 },
       { id: "s_29", name: "Huallilemu", lat: -33.407660, lng: -71.694103, stdMin: 42 },
-      { id: "s_30", name: "Río Tai", lat: -33.411525, lng: -71.695206, stdMin: 43 },
+      { id: "s_30", name: "Riu Tai", lat: -33.411525, lng: -71.695206, stdMin: 43 },
       { id: "s_31", name: "Tralcamahuida", lat: -33.413909, lng: -71.695796, stdMin: 44 },
       { id: "s_32", name: "Balneario Banco Central", lat: -33.416866, lng: -71.696555, stdMin: 45 },
       { id: "s_33", name: "Punta de Tralca", lat: -33.425602, lng: -71.691802, stdMin: 48 },
       { id: "s_34", name: "Av. del Escritor / Isidora Dubournais", lat: -33.428813, lng: -71.689686, stdMin: 50 },
       { id: "s_35", name: "Portal Isla Negra", lat: -33.430297, lng: -71.688741, stdMin: 51 },
-      { id: "s_36", name: "Comunidad Huallilemu", lat: -33.432256, lng: -71.687695, stdMin: 52 },
+      { id: "s_36", name: "Huallilemu Sur", lat: -33.432256, lng: -71.687695, stdMin: 52 },
       { id: "s_37", name: "El Sauce / Isidora Dubournais", lat: -33.436566, lng: -71.685421, stdMin: 53.5 },
       { id: "s_38", name: "Ferretería Antonia", lat: -33.439622, lng: -71.683849, stdMin: 55 },
       { id: "s_39", name: "Isla Negra", lat: -33.441841, lng: -71.682615, stdMin: 56 },
@@ -462,7 +472,7 @@
       { id: "s_49", name: "Lindero Azul", lat: -33.460690, lng: -71.652762, stdMin: 68 },
       { id: "s_50", name: "El Tabito", lat: -33.462867, lng: -71.648936, stdMin: 70 },
       { id: "s_51", name: "La Granja Presbiteriana", lat: -33.466184, lng: -71.643753, stdMin: 72 },
-      { id: "s_52", name: "Comunidad Consistorial", lat: -33.467956, lng: -71.639740, stdMin: 74 },
+      { id: "s_52", name: "Sector Consistorial", lat: -33.467956, lng: -71.639740, stdMin: 74 },
       { id: "s_53", name: "Av. El Roble / Litoral de los Poetas", lat: -33.472857, lng: -71.629135, stdMin: 76 },
       { id: "s_54", name: "Mar y Boldo", lat: -33.481327, lng: -71.621257, stdMin: 78 },
       { id: "s_55", name: "Municipalidad de El Tabo", lat: -33.491516, lng: -71.620066, stdMin: 80 },
@@ -508,7 +518,7 @@
       { id: "s_95", name: "Terminal Tejas Verdes", lat: -33.613254, lng: -71.619707, stdMin: 117 }
     ];
 
-    // BASE DE DATOS DE VUELTA - ORTOGRAFÍA Y MAYÚSCULAS CORREGIDAS (92 PARADAS)
+    // BASE DE DATOS DE VUELTA - RIU TAI CORREGIDO (92 PARADAS)
     const STOPS_VUELTA = [
       { id: "v_1", name: "El Yeco", lat: -33.309464, lng: -71.642382, stdMin: 116 },
       { id: "v_2", name: "Mirador El Yeco", lat: -33.314416, lng: -71.642779, stdMin: 115 },
@@ -535,13 +545,13 @@
       { id: "v_23", name: "Parroquia El Quisco", lat: -33.402351, lng: -71.693867, stdMin: 82 },
       { id: "v_24", name: "Capilla SUD", lat: -33.402351, lng: -71.693867, stdMin: 81 },
       { id: "v_25", name: "Huallilemu", lat: -33.407705, lng: -71.693929, stdMin: 80 },
-      { id: "v_26", name: "Río Tai", lat: -33.411695, lng: -71.695064, stdMin: 79 },
+      { id: "v_26", name: "Riu Tai", lat: -33.411695, lng: -71.695064, stdMin: 79 },
       { id: "v_27", name: "Tralcamahuida", lat: -33.413916, lng: -71.695616, stdMin: 78 },
       { id: "v_28", name: "Balneario Banco Central", lat: -33.416786, lng: -71.696407, stdMin: 77 },
       { id: "v_29", name: "Punta de Tralca", lat: -33.425728, lng: -71.691512, stdMin: 74 },
       { id: "v_30", name: "Av. del Escritor / Isidora Dubournais", lat: -33.428445, lng: -71.689731, stdMin: 72 },
       { id: "v_31", name: "Portal Isla Negra", lat: -33.430222, lng: -71.688599, stdMin: 71 },
-      { id: "v_32", name: "Comunidad Huallilemu", lat: -33.432310, lng: -71.687443, stdMin: 70 },
+      { id: "v_32", name: "Huallilemu Sur", lat: -33.432310, lng: -71.687443, stdMin: 70 },
       { id: "v_33", name: "El Sauce / Isidora Dubournais", lat: -33.436651, lng: -71.685153, stdMin: 68 },
       { id: "v_34", name: "Isla Negra", lat: -33.440817, lng: -71.682980, stdMin: 66 },
       { id: "v_35", name: "Playa Las Ágatas", lat: -33.447169, lng: -71.677399, stdMin: 63 },
@@ -628,6 +638,9 @@
       lastLng: null,
       lastPassedStopIndex: 0,
       lastPassedTimestamp: null,
+      alert2StopsTriggered: false,
+      alert1StopTriggered: false,
+      alertArrivedTriggered: false,
       favorites: JSON.parse(localStorage.getItem("favorites") || "[]"),
       segmentHistory: JSON.parse(localStorage.getItem("segmentHistory") || "{}")
     };
@@ -638,10 +651,12 @@
     let pedestrianMap = null;
     let pedestrianPersonMarker = null;
     let pedestrianStopMarker = null;
+    let audioContext = null;
 
     document.addEventListener("DOMContentLoaded", () => {
       applyTheme(state.theme);
       initUI();
+      checkPermissionsStatus();
       restoreSessionIfExists();
       renderFavorites();
       initLeafletMap();
@@ -666,11 +681,82 @@
       }
     }
 
+    function checkPermissionsStatus() {
+      const banner = document.getElementById("permissionBanner");
+      if ("Notification" in window && Notification.permission === "granted") {
+        banner.classList.add("hidden");
+      } else {
+        banner.classList.remove("hidden");
+      }
+    }
+
+    async function requestSystemPermissions() {
+      // 1. Notificaciones
+      if ("Notification" in window && Notification.permission !== "granted") {
+        await Notification.requestPermission();
+      }
+      
+      // 2. Audio Context Unlock
+      try {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioContext.state === 'suspended') {
+          await audioContext.resume();
+        }
+      } catch (e) { console.log("Audio Web API no disponible", e); }
+
+      // 3. Vibración Test
+      if ("vibrate" in navigator) {
+        navigator.vibrate([100]);
+      }
+
+      checkPermissionsStatus();
+    }
+
+    function playAlertBeep(freq = 587.33, duration = 0.4) {
+      try {
+        if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioContext.state === 'suspended') audioContext.resume();
+
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+        
+        gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+
+        osc.start();
+        osc.stop(audioContext.currentTime + duration);
+      } catch (e) { console.log("Error de audio", e); }
+    }
+
+    function triggerSystemNotification(title, body, vibratePattern) {
+      if ("vibrate" in navigator && vibratePattern) {
+        navigator.vibrate(vibratePattern);
+      }
+
+      if ("Notification" in window && Notification.permission === "granted") {
+        try {
+          new Notification(title, {
+            body: body,
+            icon: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+            tag: 'micro-litoral-alert'
+          });
+        } catch(e) { console.log("Error creando notificación push", e); }
+      }
+    }
+
     function initUI() {
       document.getElementById("btnThemeToggle").addEventListener("click", () => {
         const nextTheme = state.theme === "light" ? "dark" : "light";
         applyTheme(nextTheme);
       });
+
+      document.getElementById("btnGrantPermissions").addEventListener("click", requestSystemPermissions);
 
       document.getElementById("inputName").value = state.userName;
       document.getElementById("inputName").addEventListener("input", (e) => {
@@ -703,6 +789,9 @@
 
       document.getElementById("activeChangeEndStop").addEventListener("change", (e) => {
         state.endStopId = e.target.value;
+        state.alert2StopsTriggered = false;
+        state.alert1StopTriggered = false;
+        state.alertArrivedTriggered = false;
         saveActiveStateToStorage();
         updateHeaderGreeting(null);
         updateClockAndETA();
@@ -710,7 +799,10 @@
 
       populateStopsDropdowns();
 
-      document.getElementById("btnStartTrip").addEventListener("click", startTrip);
+      document.getElementById("btnStartTrip").addEventListener("click", () => {
+        requestSystemPermissions();
+        startTrip();
+      });
       document.getElementById("btnCancelTrip").addEventListener("click", cancelTrip);
       document.getElementById("btnFinishTrip").addEventListener("click", finishTrip);
       document.getElementById("btnRefreshGPS").addEventListener("click", syncGpsPositionToClosestStop);
@@ -1034,7 +1126,7 @@
         pedestrianMap = L.map('pedestrianMap').setView([-33.3605, -71.6649], 17);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(pedestrianMap);
 
-        const personIcon = L.divIcon({ html: '🚶‍♂️', className: 'map-person-icon', iconSize: [26, 26] });
+        const personIcon = L.divIcon({ html: '🚶‍♂️️', className: 'map-person-icon', iconSize: [26, 26] });
         const stopIcon = L.divIcon({ html: '📍', className: 'map-stop-icon', iconSize: [26, 26] });
 
         pedestrianPersonMarker = L.marker([-33.3605, -71.6649], { icon: personIcon }).addTo(pedestrianMap);
@@ -1125,6 +1217,9 @@
       state.sumSpeedReadings = 0;
       state.speedingEventsCount = 0;
       state.isCurrentlySpeeding = false;
+      state.alert2StopsTriggered = false;
+      state.alert1StopTriggered = false;
+      state.alertArrivedTriggered = false;
 
       state.startStopId = document.getElementById("selectStartStop").value;
       state.endStopId = document.getElementById("selectEndStop").value;
@@ -1256,7 +1351,23 @@
             }
 
             const stopsRemaining = Math.max(0, endIndex - state.currentBaseIndex);
-            
+            const destStopName = ROUTE_STOPS[endIndex] ? ROUTE_STOPS[endIndex].name : "tu destino";
+
+            // SECUENCIA GRADUAL DE ALERTAS (2 PARADAS, 1 PARADA Y LLEGADA EN 20M)
+            if (stopsRemaining === 2 && !state.alert2StopsTriggered) {
+              state.alert2StopsTriggered = true;
+              playAlertBeep(440, 0.3);
+              triggerSystemNotification("🔔 FALTAN 2 PARADAS", `Prepárate para bajar en: ${destStopName}`, [200, 100, 200]);
+            } else if (stopsRemaining === 1 && !state.alert1StopTriggered) {
+              state.alert1StopTriggered = true;
+              playAlertBeep(660, 0.5);
+              triggerSystemNotification("⚠️ ¡ATENCIÓN! PRÓXIMA PARADA", `Te bajas en la siguiente parada: ${destStopName}`, [400, 150, 400]);
+            } else if (stopsRemaining === 0 && distToCurrMeters <= 20 && !state.alertArrivedTriggered) {
+              state.alertArrivedTriggered = true;
+              playAlertBeep(880, 0.8);
+              triggerSystemNotification("📍 ¡LLEGASTE A TU DESTINO!", `¡Bájate aquí en: ${destStopName}!`, [500, 200, 500, 200, 500]);
+            }
+
             if (state.currentSpeed > 55) {
               updateUnifiedAlertPanel("speed", "Exceso de velocidad (>55 km/h)", "El vehículo supera el límite de seguridad.", "⚠️");
               if (!state.isCurrentlySpeeding) {
@@ -1264,9 +1375,11 @@
                 state.isCurrentlySpeeding = true;
               }
             } else if (stopsRemaining === 0) {
-              updateUnifiedAlertPanel("drop", `¡Bájate Aquí! (${ROUTE_STOPS[endIndex].name})`, "Has llegado a tu destino. Presiona Terminar.", "📍");
+              updateUnifiedAlertPanel("drop", `¡Bájate Aquí! (${destStopName})`, "Has llegado a tu destino. Presiona Terminar.", "📍");
             } else if (stopsRemaining === 1) {
-              updateUnifiedAlertPanel("speed", `Prepárate: Te bajas en la Próxima Parada`, `Destino: ${ROUTE_STOPS[endIndex].name}`, "⚠️");
+              updateUnifiedAlertPanel("speed", `Prepárate: Te bajas en la Próxima Parada`, `Destino: ${destStopName}`, "⚠️");
+            } else if (stopsRemaining === 2) {
+              updateUnifiedAlertPanel("stop", `Faltan 2 Paradas para Tu Destino`, `Atento en: ${destStopName}`, "🔔");
             } else if (state.currentSpeed === 0 && distToCurrMeters <= 20) {
               updateUnifiedAlertPanel("stop", "Micro Detenida / Tomando Pasajeros", `En ${currStop.name}`, "🛑");
             } else if (state.currentSpeed <= 55) {
