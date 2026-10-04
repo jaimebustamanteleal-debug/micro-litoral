@@ -1,1 +1,9 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.github.jaimebustamanteleal_debug.twa",
+        "sha256_cert_fingerprints": ["40:7A:71:B7:27:0A:5A:65:4B:60:03:2F:6E:7C:AA:58:0C:8D:B4:A6:E8:94:03:D4:13:E8:41:6D:DE:05:72:53"]
+      }
+    }]
 
