@@ -17,14 +17,14 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// 2. Activar Service Worker y limpiar cachés antiguas
+// 2. Activar Service Worker y limpiar cachés obsoletas
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
           if (cache !== CACHE_NAME) {
-            console.log('[SW] Borrando caché obsoleta:', cache);
+            console.log('[SW] Limpiando caché antigua:', cache);
             return caches.delete(cache);
           }
         })
@@ -33,37 +33,34 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// 3. Evento FETCH: Permite que la app funcione SIN INTERNET (Offline Support)
+// 3. Estrategia Network & Cache Fallback (Requisito Offline)
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
-        // Devuelve el recurso guardado en caché
         fetch(event.request).then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
             caches.open(CACHE_NAME).then((cache) => {
               cache.put(event.request, networkResponse);
             });
           }
-        }).catch(() => {/* Ignorar errores de red en segundo plano */});
+        }).catch(() => {/* Modo sin conexión */});
         
         return cachedResponse;
       }
 
-      // Si no está en caché, va a la red
       return fetch(event.request).catch(() => {
-        // Retorno de emergencia si no hay internet
         return caches.match('./index.html');
       });
     })
   );
 });
 
-// 4. EVENTOS PUSH (Notificaciones)
+// 4. Notificaciones Push y Geocercas Nativas
 self.addEventListener('push', (event) => {
-  let data = { title: 'Micro Litoral GPS', body: '¡Atención! Tu micro está cerca.' };
+  let data = { title: 'Micro Litoral GPS', body: '¡Atención! Tu parada está cerca.' };
   
   if (event.data) {
     try {
@@ -87,7 +84,7 @@ self.addEventListener('push', (event) => {
   );
 });
 
-// 5. ACCIÓN AL HACER CLIC EN LA NOTIFICACIÓN
+// 5. Acción al presionar la notificación
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(
