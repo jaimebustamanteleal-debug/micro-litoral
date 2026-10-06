@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Micro Litoral GPS v4.0.0</title>
+  <title>Micro Litoral GPS v4.0.1</title>
   <meta name="theme-color" content="#020617">
   <link rel="manifest" href="./manifest.json">
   
@@ -45,7 +45,7 @@
     body { 
       background: var(--bg-gradient); 
       color: var(--text); 
-      padding: 16px 12px 100px 12px; /* Padding extra abajo para barra flotante */
+      padding: 16px 12px 100px 12px;
       display: flex; flex-direction: column; align-items: center; 
       min-height: 100vh; 
       background-attachment: fixed;
@@ -130,9 +130,14 @@
     .telemetry-value { font-size: 1.4rem; font-weight: 900; color: var(--accent); }
     .telemetry-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; font-weight: 700; }
 
+    /* MAPA INVERTIDO PARA MODO OSCURO SIN API KEY */
     #realMap, #pedestrianMap { width: 100%; border-radius: 20px; border: 1px solid var(--glass-border); background: var(--map-bg); z-index: 1; }
     #realMap { height: 180px; pointer-events: none; opacity: 0.85; filter: contrast(1.1) saturate(1.2); }
     #pedestrianMap { height: 320px; }
+
+    body:not(.light-mode) .leaflet-tile-pane {
+        filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+    }
 
     /* BARRA FLOTANTE (OPERACIÓN A UNA MANO) */
     .floating-action-bar {
@@ -366,7 +371,7 @@
     </div>
 
     <footer>
-      <strong>Micro Litoral PWA v4.0.0</strong><br>
+      <strong>Micro Litoral PWA v4.0.1</strong><br>
       Desarrollado por <strong>Jaime Bustamante L.</strong>
     </footer>
 
@@ -865,8 +870,9 @@
         doubleClickZoom: false, boxZoom: false, tap: false, zoomControl: false
       }).setView([-33.3605, -71.6649], 16);
 
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        maxZoom: 19, attribution: '© CartoDB'
+      // Usar OpenStreetMap directo y seguro (Sin API Key)
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19, attribution: '© OSM'
       }).addTo(realMap);
 
       const busIcon = L.divIcon({ html: '🚌', className: 'map-blue-bus-icon', iconSize: [26, 26] });
@@ -1148,7 +1154,7 @@
 
       if (!pedestrianMap) {
         pedestrianMap = L.map('pedestrianMap').setView([-33.3605, -71.6649], 17);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(pedestrianMap);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(pedestrianMap);
 
         const personIcon = L.divIcon({ html: '🚶‍♂', className: 'map-person-icon', iconSize: [26, 26] });
         const stopIcon = L.divIcon({ html: '📍', className: 'map-stop-icon', iconSize: [26, 26] });
@@ -1310,6 +1316,7 @@
               document.getElementById("gpsAvgSpeed").innerText = `${state.avgSpeed}`;
             }
 
+            // Mantiene siempre a la micro en el centro visual del mapa
             if (realMap) {
               realMap.setView([state.lastLat, state.lastLng], 16);
               if (busMarker) busMarker.setLatLng([state.lastLat, state.lastLng]);
