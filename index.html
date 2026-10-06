@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Micro Litoral GPS v4.0.1</title>
+  <title>Micro Litoral GPS v4.1.0</title>
   <meta name="theme-color" content="#020617">
   <link rel="manifest" href="./manifest.json">
   
@@ -371,7 +371,7 @@
     </div>
 
     <footer>
-      <strong>Micro Litoral PWA v4.0.1</strong><br>
+      <strong>Micro Litoral PWA v4.1.0</strong><br>
       Desarrollado por <strong>Jaime Bustamante L.</strong>
     </footer>
 
@@ -400,7 +400,7 @@
       <div style="font-weight: 900; color: var(--accent); font-size: 1.2rem;">💡 Guía Rápida</div>
       <div style="font-size: 0.85rem; line-height: 1.5; color: var(--text); display: flex; flex-direction: column; gap: 12px;">
         <div><strong>🚌 1. Horarios:</strong> Tiempos reales basados en planillas de conductores (116 min Terminal Tejas Verdes ➔ El Yeco).</div>
-        <div><strong>📍 2. Geocerca 20m:</strong> Al entrar al radio de 20m confirma la parada. Al salir, avanza.</div>
+        <div><strong>📍 2. Geocerca 25m:</strong> Al entrar al radio de 25m confirma la parada. Si el GPS falla, la IA calcula que pasaste de largo al alejarte 40m.</div>
         <div><strong>🧠 3. IA de Tiempos (ETA):</strong> Ajusta la llegada usando el promedio de tus últimos 3 viajes.</div>
       </div>
       <button id="btnCloseHowItWorks" class="btn btn-secondary" style="margin-top: 8px; font-weight: 800;">Entendido</button>
@@ -434,7 +434,7 @@
       });
     }
 
-    // BASE DE DATOS HACIA TEJAS VERDES (95 PARADAS)
+    // BASE DE DATOS HACIA TEJAS VERDES (95 PARADAS) - COORDENADAS CORREGIDAS
     const STOPS_IDA = [
       { id: "s_1", name: "El Yeco", lat: -33.309274, lng: -71.642426, stdMin: 0 },
       { id: "s_2", name: "Mirador El Yeco", lat: -33.314191, lng: -71.642970, stdMin: 2.5 },
@@ -446,7 +446,7 @@
       { id: "s_8", name: "San Alfonso del Mar", lat: -33.350052, lng: -71.651266, stdMin: 16 },
       { id: "s_9", name: "Pueblo de Artesanos", lat: -33.355572, lng: -71.654251, stdMin: 18 },
       { id: "s_10", name: "Aguas Marinas", lat: -33.357592, lng: -71.660889, stdMin: 20 },
-      { id: "s_11", name: "Plaza Bordemar", lat: -33.358928, lng: -71.663226, stdMin: 21 },
+      { id: "s_11", name: "Plaza Bordemar", lat: -33.358882, lng: -71.663185, stdMin: 21 },
       { id: "s_12", name: "Playa Las Cadenas", lat: -33.360355, lng: -71.664934, stdMin: 22 },
       { id: "s_13", name: "Av. Algarrobo", lat: -33.361464, lng: -71.668715, stdMin: 23 },
       { id: "s_14", name: "Club de Yates", lat: -33.362485, lng: -71.671119, stdMin: 24 },
@@ -463,7 +463,7 @@
       { id: "s_25", name: "Playa Los Corsarios", lat: -33.393410, lng: -71.694235, stdMin: 37 },
       { id: "s_26", name: "El Quisco Centro", lat: -33.398036, lng: -71.694685, stdMin: 38 },
       { id: "s_27", name: "Parroquia El Quisco", lat: -33.402410, lng: -71.694017, stdMin: 40 },
-      { id: "s_28", name: "Capilla SUD", lat: -33.405315, lng: -71.693626, stdMin: 41 },
+      { id: "s_28", name: "Capilla SUD", lat: -33.405314, lng: -71.693575, stdMin: 41 },
       { id: "s_29", name: "Huallilemu", lat: -33.407660, lng: -71.694103, stdMin: 42 },
       { id: "s_30", name: "Riu Tai", lat: -33.411525, lng: -71.695206, stdMin: 43 },
       { id: "s_31", name: "Tralcamahuida", lat: -33.413909, lng: -71.695796, stdMin: 44 },
@@ -472,13 +472,13 @@
       { id: "s_34", name: "Av. del Escritor / Isidora Dubournais", lat: -33.428813, lng: -71.689686, stdMin: 50 },
       { id: "s_35", name: "Portal Isla Negra", lat: -33.430297, lng: -71.688741, stdMin: 51 },
       { id: "s_36", name: "Huallilemu Sur", lat: -33.432256, lng: -71.687695, stdMin: 52 },
-      { id: "s_37", name: "El Sauce / Isidora Dubournais", lat: -33.436566, lng: -71.685421, stdMin: 53.5 },
+      { id: "s_37", name: "El Sauce / Isidora Dubournais", lat: -33.436587, lng: -71.685375, stdMin: 53.5 },
       { id: "s_38", name: "Ferretería Antonia", lat: -33.439622, lng: -71.683849, stdMin: 55 },
       { id: "s_39", name: "Isla Negra", lat: -33.441841, lng: -71.682615, stdMin: 56 },
       { id: "s_40", name: "Playa Las Ágatas", lat: -33.447254, lng: -71.677519, stdMin: 58 },
       { id: "s_41", name: "Camping El Bosque", lat: -33.449337, lng: -71.676017, stdMin: 59 },
-      { id: "s_42", name: "Av. Centenario / Baquedano", lat: -33.453506, lng: -71.672479, stdMin: 60.5 },
-      { id: "s_43", name: "Av. Arellano / Baquedano", lat: -33.453518, lng: -71.672466, stdMin: 61 },
+      { id: "s_42", name: "Av. Centenario / Baquedano", lat: -33.451669, lng: -71.674005, stdMin: 60.5 },
+      { id: "s_43", name: "Av. Arellano / Baquedano", lat: -33.453651, lng: -71.672295, stdMin: 61 },
       { id: "s_44", name: "Plaza El Tabo", lat: -33.455079, lng: -71.668877, stdMin: 62 },
       { id: "s_45", name: "Poeta Jonás / Baquedano", lat: -33.455711, lng: -71.665932, stdMin: 63 },
       { id: "s_46", name: "El Tabo Centro", lat: -33.456065, lng: -71.664800, stdMin: 64 },
@@ -506,7 +506,7 @@
       { id: "s_68", name: "Terminal de Cartagena", lat: -33.538993, lng: -71.595556, stdMin: 96 },
       { id: "s_69", name: "Estadio Cartagena", lat: -33.541643, lng: -71.599783, stdMin: 97 },
       { id: "s_70", name: "Playa Grande Cartagena", lat: -33.542711, lng: -71.602466, stdMin: 98 },
-      { id: "s_71", name: "Plaza de Cartagena", lat: -33.546883, lng: -71.603624, stdMin: 99 },
+      { id: "s_71", name: "Plaza de Cartagena", lat: -33.546745, lng: -71.603549, stdMin: 99 },
       { id: "s_72", name: "Playa Chica Cartagena", lat: -33.548641, lng: -71.605368, stdMin: 100 },
       { id: "s_73", name: "Vicente Huidobro", lat: -33.549938, lng: -71.606001, stdMin: 101 },
       { id: "s_74", name: "Estación Cartagena", lat: -33.552171, lng: -71.611801, stdMin: 102 },
@@ -533,7 +533,6 @@
       { id: "s_95", name: "Terminal Tejas Verdes", lat: -33.613254, lng: -71.619707, stdMin: 117 }
     ];
 
-    // BASE DE DATOS HACIA EL YECO (92 PARADAS - ORDEN GEOGRÁFICO CORREGIDO)
     const STOPS_VUELTA = [
       { id: "v_1", name: "Terminal Tejas Verdes", lat: -33.613254, lng: -71.619707, stdMin: 0 },
       { id: "v_2", name: "Parada 11", lat: -33.608237, lng: -71.614150, stdMin: 0.05 },
@@ -653,6 +652,7 @@
       lastLng: null,
       lastPassedStopIndex: 0,
       lastPassedTimestamp: null,
+      minDistToTarget: Infinity,
       alert2StopsTriggered: false,
       alert1StopTriggered: false,
       alertArrivedTriggered: false,
@@ -870,7 +870,6 @@
         doubleClickZoom: false, boxZoom: false, tap: false, zoomControl: false
       }).setView([-33.3605, -71.6649], 16);
 
-      // Usar OpenStreetMap directo y seguro (Sin API Key)
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19, attribution: '© OSM'
       }).addTo(realMap);
@@ -1086,6 +1085,7 @@
 
         if (newBaseIndex >= state.currentBaseIndex) {
           state.currentBaseIndex = newBaseIndex;
+          state.minDistToTarget = Infinity; // ¡RESET IMPORTANTE DE LA IA!
           saveActiveStateToStorage();
           populateActiveChangeEndDropdown();
           renderFixedMetroMap();
@@ -1099,16 +1099,20 @@
     function updateDepartureSchedule() {
       const now = new Date();
       const currentMinOfDay = now.getHours() * 60 + now.getMinutes();
-      const startMinBus = 7 * 60 + 30;
-      const lastMinBus = 19 * 60 + 30;
+      
+      // FIX LÓGICA DE HORARIOS
+      // IDA: 07:32 por Aguas Marinas (-20m stdMin) = 07:12 AM desde El Yeco
+      // VUELTA: 16:44 por P9 (-0.15m stdMin). Retrocediendo 15 mins exactos cuadra con las 06:00 AM desde Tejas
+      const startMinBus = state.direction === "IDA" ? (7 * 60 + 12) : (6 * 60 + 0);
+      const lastMinBus = 21 * 60 + 30; // ~9:30 PM
 
       const startObj = ROUTE_STOPS.find(s => s.id === state.startStopId);
       const offsetMinsToStop = Math.max(0, (startObj ? startObj.stdMin : 0));
 
       if (currentMinOfDay < startMinBus + offsetMinsToStop) {
         const nextPassMin = startMinBus + offsetMinsToStop;
-        const diff = nextPassMin - currentMinOfDay;
-        document.getElementById("setupServiceStatus").innerText = `Primer bus pasa a las ${Math.floor(nextPassMin/60)}:${String(nextPassMin%60).padStart(2,'0')} hrs`;
+        const diff = Math.round(nextPassMin - currentMinOfDay); // Fix decimales
+        document.getElementById("setupServiceStatus").innerText = `Primer bus pasa a las ${Math.floor(nextPassMin/60)}:${String(Math.round(nextPassMin%60)).padStart(2,'0')} hrs`;
         document.getElementById("setupNextDepartureMinutes").innerText = `En ${diff} min`;
       } else if (currentMinOfDay > lastMinBus + offsetMinsToStop) {
         document.getElementById("setupServiceStatus").innerText = "⚠️ Fuera de horario";
@@ -1120,9 +1124,9 @@
         }
         
         const nextPassMin = nextDepartureFromOrigin + offsetMinsToStop;
-        const diffMins = Math.max(1, nextPassMin - currentMinOfDay);
+        const diffMins = Math.max(1, Math.round(nextPassMin - currentMinOfDay)); // Fix decimales absolutos
 
-        document.getElementById("setupNextDepartureMinutes").innerText = `${diffMins} min`;
+        document.getElementById("setupNextDepartureMinutes").innerText = `En ${diffMins} min`;
         document.getElementById("setupServiceStatus").innerText = `🟢 Frecuencia regular (~15 min)`;
       }
     }
@@ -1249,6 +1253,7 @@
       state.alert2StopsTriggered = false;
       state.alert1StopTriggered = false;
       state.alertArrivedTriggered = false;
+      state.minDistToTarget = Infinity; // Reset de la memoria del GPS al arrancar
 
       state.startStopId = document.getElementById("selectStartStop").value;
       state.endStopId = document.getElementById("selectEndStop").value;
@@ -1316,76 +1321,91 @@
               document.getElementById("gpsAvgSpeed").innerText = `${state.avgSpeed}`;
             }
 
-            // Mantiene siempre a la micro en el centro visual del mapa
             if (realMap) {
               realMap.setView([state.lastLat, state.lastLng], 16);
               if (busMarker) busMarker.setLatLng([state.lastLat, state.lastLng]);
             }
 
-            const endIndex = ROUTE_STOPS.findIndex(s => s.id === state.endStopId);
-            const currStop = ROUTE_STOPS[state.currentBaseIndex];
-            const nextStop = ROUTE_STOPS[state.currentBaseIndex + 1];
+            // === IA DE AUTO-SALTO DE PARADAS Y GESTIÓN DE GEOCERCAS ===
+            let targetStop = ROUTE_STOPS[state.currentBaseIndex];
+            if (!targetStop) return;
+            
+            let distToTarget = Math.round(calculateDistanceKm(state.lastLat, state.lastLng, targetStop.lat, targetStop.lng) * 1000);
 
-            const distToCurrKm = calculateDistanceKm(state.lastLat, state.lastLng, currStop.lat, currStop.lng);
-            const distToCurrMeters = Math.round(distToCurrKm * 1000);
+            // 1. Memorizar siempre la distancia más cercana a la que hemos llegado
+            if (typeof state.minDistToTarget === 'undefined') state.minDistToTarget = distToTarget;
+            state.minDistToTarget = Math.min(state.minDistToTarget, distToTarget);
 
-            const dynamicLabel = document.getElementById("stopDynamicLabel");
-            const distanceContainer = document.getElementById("activeNextStopDistance");
+            let nextStop = ROUTE_STOPS[state.currentBaseIndex + 1];
+            let shouldAdvance = false;
 
-            if (distToCurrMeters <= 20) {
-              dynamicLabel.innerText = "🛑 ESTÁS EN LA PARADA";
-              dynamicLabel.style.color = "var(--success)";
-              document.getElementById("activeNextStopName").innerText = currStop.name;
-              distanceContainer.innerText = "";
+            if (nextStop) {
+              let distToNext = Math.round(calculateDistanceKm(state.lastLat, state.lastLng, nextStop.lat, nextStop.lng) * 1000);
               
-              if (realMap && nextStopMarker) {
-                nextStopMarker.setLatLng([currStop.lat, currStop.lng]);
-              }
-            } else if (distToCurrMeters > 20 && nextStop) {
-              const distToNextKm = calculateDistanceKm(state.lastLat, state.lastLng, nextStop.lat, nextStop.lng);
-              const distToNextMeters = Math.round(distToNextKm * 1000);
+              // 2. Condición de Alejamiento: Nos acercamos a menos de 250m de la parada, y ahora la distancia está aumentando (ya nos alejamos 40m del punto más cercano)
+              let movingAway = (state.minDistToTarget <= 250) && (distToTarget > state.minDistToTarget + 40);
+              
+              // 3. Condición Física: Físicamente ya estamos más cerca de la SIGUIENTE parada que de la actual
+              let closerToNext = (distToNext < distToTarget) && (distToNext < 400);
 
-              if (distToNextMeters <= 20) {
+              if (movingAway || closerToNext) {
+                  shouldAdvance = true;
+              }
+            }
+
+            // Si detecta que pasamos de largo o dejamos la parada, avanzar en el sistema
+            if (shouldAdvance) {
                 const nowMs = new Date().getTime();
                 if (state.lastPassedTimestamp) {
-                  const segKey = `${ROUTE_STOPS[state.lastPassedStopIndex].id}_${nextStop.id}`;
-                  const elapsedMins = (nowMs - state.lastPassedTimestamp) / 60000;
-                  if (elapsedMins > 0.3 && elapsedMins < 20) {
-                    if (!state.segmentHistory[segKey]) state.segmentHistory[segKey] = [];
-                    state.segmentHistory[segKey].push(elapsedMins);
-                    if (state.segmentHistory[segKey].length > 3) state.segmentHistory[segKey].shift();
-                    localStorage.setItem("segmentHistory", JSON.stringify(state.segmentHistory));
-                  }
+                    const segKey = `${ROUTE_STOPS[state.lastPassedStopIndex].id}_${nextStop.id}`;
+                    const elapsedMins = (nowMs - state.lastPassedTimestamp) / 60000;
+                    if (elapsedMins > 0.3 && elapsedMins < 20) {
+                        if (!state.segmentHistory[segKey]) state.segmentHistory[segKey] = [];
+                        state.segmentHistory[segKey].push(elapsedMins);
+                        if (state.segmentHistory[segKey].length > 3) state.segmentHistory[segKey].shift();
+                        localStorage.setItem("segmentHistory", JSON.stringify(state.segmentHistory));
+                    }
                 }
                 state.lastPassedStopIndex = state.currentBaseIndex + 1;
                 state.lastPassedTimestamp = nowMs;
 
                 state.currentBaseIndex++;
+                state.minDistToTarget = Infinity; // Resetear la memoria para la nueva parada
+                targetStop = ROUTE_STOPS[state.currentBaseIndex];
+                distToTarget = Math.round(calculateDistanceKm(state.lastLat, state.lastLng, targetStop.lat, targetStop.lng) * 1000);
+                state.minDistToTarget = distToTarget; // Iniciar memoria en la nueva distancia
+                
                 saveActiveStateToStorage();
                 populateActiveChangeEndDropdown();
                 renderFixedMetroMap();
                 updateClockAndETA();
-                
-                dynamicLabel.innerText = "🛑 ESTÁS EN LA PARADA";
-                dynamicLabel.style.color = "var(--success)";
-                document.getElementById("activeNextStopName").innerText = nextStop.name;
-                distanceContainer.innerText = "";
-
-                if (realMap && nextStopMarker) {
-                  nextStopMarker.setLatLng([nextStop.lat, nextStop.lng]);
-                }
-              } else {
-                dynamicLabel.innerText = "➡ PRÓXIMA PARADA";
-                dynamicLabel.style.color = "var(--muted)";
-                document.getElementById("activeNextStopName").innerText = nextStop.name;
-                distanceContainer.innerText = `+${distToNextMeters} m`;
-                
-                if (realMap && nextStopMarker) {
-                  nextStopMarker.setLatLng([nextStop.lat, nextStop.lng]);
-                }
-              }
             }
 
+            // === ACTUALIZACIÓN VISUAL (GEOFENCES) ===
+            const dynamicLabel = document.getElementById("stopDynamicLabel");
+            const distanceContainer = document.getElementById("activeNextStopDistance");
+            document.getElementById("activeNextStopName").innerText = targetStop.name;
+            
+            if (realMap && nextStopMarker) {
+                nextStopMarker.setLatLng([targetStop.lat, targetStop.lng]);
+            }
+
+            if (distToTarget <= 25) { // Estás en la parada (25m de gracia)
+                dynamicLabel.innerText = "🛑 ESTÁS EN LA PARADA";
+                dynamicLabel.style.color = "var(--success)";
+                distanceContainer.innerText = "";
+            } else if (distToTarget <= 150) { // Geocerca amarilla restaurada (150m)
+                dynamicLabel.innerText = "⚠️ LLEGANDO A LA PARADA";
+                dynamicLabel.style.color = "var(--warning)";
+                distanceContainer.innerText = `${distToTarget} m`;
+            } else { // Más lejos
+                dynamicLabel.innerText = "➡ PRÓXIMA PARADA";
+                dynamicLabel.style.color = "var(--muted)";
+                distanceContainer.innerText = `+${distToTarget} m`;
+            }
+
+            // === ALERTAS DE VIAJE ===
+            const endIndex = ROUTE_STOPS.findIndex(s => s.id === state.endStopId);
             const stopsRemaining = Math.max(0, endIndex - state.currentBaseIndex);
             const destStopName = ROUTE_STOPS[endIndex] ? ROUTE_STOPS[endIndex].name : "tu destino";
 
@@ -1397,7 +1417,7 @@
               state.alert1StopTriggered = true;
               playAlertBeep(660, 0.5);
               triggerSystemNotification("⚠️ ¡ATENCIÓN! PRÓXIMA PARADA", `Te bajas en la siguiente parada: ${destStopName}`, [400, 150, 400]);
-            } else if (stopsRemaining === 0 && distToCurrMeters <= 20 && !state.alertArrivedTriggered) {
+            } else if (stopsRemaining === 0 && distToTarget <= 25 && !state.alertArrivedTriggered) {
               state.alertArrivedTriggered = true;
               playAlertBeep(880, 0.8);
               triggerSystemNotification("📍 ¡LLEGASTE A TU DESTINO!", `¡Bájate aquí en: ${destStopName}!`, [500, 200, 500, 200, 500]);
@@ -1415,8 +1435,8 @@
               updateUnifiedAlertPanel("speed", `Prepárate para bajar`, `Destino: ${destStopName}`, "⚠️");
             } else if (stopsRemaining === 2) {
               updateUnifiedAlertPanel("stop", `Faltan 2 Paradas`, `Atento a: ${destStopName}`, "🔔");
-            } else if (state.currentSpeed === 0 && distToCurrMeters <= 20) {
-              updateUnifiedAlertPanel("stop", "Bus Detenido", `Tomando pasajeros en ${currStop.name}`, "🛑");
+            } else if (state.currentSpeed === 0 && distToTarget <= 25) {
+              updateUnifiedAlertPanel("stop", "Bus Detenido", `Tomando pasajeros en ${targetStop.name}`, "🛑");
             } else if (state.currentSpeed <= 55) {
               updateUnifiedAlertPanel("normal", "En Ruta", `Faltan ${stopsRemaining} paradas.`, "🟢");
               state.isCurrentlySpeeding = false;
@@ -1459,7 +1479,7 @@
         }
       }
 
-      minsLeft = Math.round(minsLeft);
+      minsLeft = Math.round(minsLeft); // Fix decimales ETA
       const now = new Date();
       const etaTime = new Date(now.getTime() + minsLeft * 60000);
       const etaFormatted = etaTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
