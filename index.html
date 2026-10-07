@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Micro Litoral GPS v4.1.0</title>
+  <title>Micro Litoral GPS v4.2.0</title>
   <meta name="theme-color" content="#020617">
   <link rel="manifest" href="./manifest.json">
   
@@ -308,7 +308,8 @@
             <span id="gpsPulseDot" class="pulse-dot pulse-red"></span>
             <span id="gpsStatusText" style="color: var(--danger);">GPS Offline</span>
           </div>
-          <button id="btnRefreshGPS" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.75rem; border-radius: 12px;">📍 Sincronizar</button>
+          <!-- BOTÓN RESCATE / SINCRONIZACIÓN MANUAL -->
+          <button id="btnRefreshGPS" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.75rem; border-radius: 12px; background: rgba(56,189,248,0.15); border-color: rgba(56,189,248,0.3); color: var(--accent) !important;">📍 Recalibrar GPS</button>
         </div>
 
         <div style="background: var(--input-bg); border: 1px solid var(--glass-border); padding: 16px; border-radius: 16px; display: flex; flex-direction: column; gap: 6px;">
@@ -326,7 +327,6 @@
           <select id="activeChangeEndStop" style="padding: 8px 12px; font-size: 0.8rem; width: auto; max-width: 220px; background: rgba(0,0,0,0.2);"></select>
         </div>
         
-        <!-- TYPOGRAPHY GIGANTE PARA ETA -->
         <div style="margin: 10px 0;">
           <div style="text-align: center; font-size: 0.8rem; color: var(--muted); font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">Llegada Estimada</div>
           <div id="etaBoxTime" class="eta-main-time">--:--</div>
@@ -371,7 +371,7 @@
     </div>
 
     <footer>
-      <strong>Micro Litoral PWA v4.1.0</strong><br>
+      <strong>Micro Litoral PWA v4.2.0</strong><br>
       Desarrollado por <strong>Jaime Bustamante L.</strong>
     </footer>
 
@@ -399,9 +399,9 @@
     <div class="modal-content">
       <div style="font-weight: 900; color: var(--accent); font-size: 1.2rem;">💡 Guía Rápida</div>
       <div style="font-size: 0.85rem; line-height: 1.5; color: var(--text); display: flex; flex-direction: column; gap: 12px;">
-        <div><strong>🚌 1. Horarios:</strong> Tiempos reales basados en planillas de conductores (116 min Terminal Tejas Verdes ➔ El Yeco).</div>
-        <div><strong>📍 2. Geocerca 25m:</strong> Al entrar al radio de 25m confirma la parada. Si el GPS falla, la IA calcula que pasaste de largo al alejarte 40m.</div>
-        <div><strong>🧠 3. IA de Tiempos (ETA):</strong> Ajusta la llegada usando el promedio de tus últimos 3 viajes.</div>
+        <div><strong>🚌 1. Secuencia Estricta:</strong> La app nunca se saltará paradas automáticamente. Si te pasas, avanzará secuencialmente 1 a 1.</div>
+        <div><strong>📍 2. Recalibración Maestra:</strong> Si bloqueas el teléfono mucho rato, presiona el botón "Recalibrar GPS" para escanear toda la ruta y anclarte al paradero físico más cercano.</div>
+        <div><strong>🧠 3. Geocerca Fija:</strong> El minimapa y el estado de la parada no avanzarán hasta que te alejes físicamente a más de 50m de la estación actual.</div>
       </div>
       <button id="btnCloseHowItWorks" class="btn btn-secondary" style="margin-top: 8px; font-weight: 800;">Entendido</button>
     </div>
@@ -412,7 +412,7 @@
       <div style="font-weight: 900; color: var(--accent); font-size: 1.2rem;">❓ FAQ</div>
       <div style="font-size: 0.85rem; line-height: 1.5; color: var(--text); display: flex; flex-direction: column; gap: 12px;">
         <div><strong>Oficial:</strong> App privada sin vínculo con Taxibuses San Antonio S.A.</div>
-        <div><strong>GPS en reposo:</strong> Mantén la pantalla encendida o da permisos "Todo el tiempo".</div>
+        <div><strong>GPS en reposo:</strong> Mantén la pantalla encendida o da permisos "Todo el tiempo". Usa Recalibrar si pierdes señal.</div>
         <div><strong>Velocidad:</strong> Alerta visual roja al superar los 55 km/h.</div>
       </div>
       <button id="btnCloseFAQ" class="btn btn-secondary" style="margin-top: 8px; font-weight: 800;">Cerrar</button>
@@ -434,7 +434,7 @@
       });
     }
 
-    // BASE DE DATOS HACIA TEJAS VERDES (95 PARADAS) - COORDENADAS CORREGIDAS
+    // BASE DE DATOS HACIA TEJAS VERDES (95 PARADAS)
     const STOPS_IDA = [
       { id: "s_1", name: "El Yeco", lat: -33.309274, lng: -71.642426, stdMin: 0 },
       { id: "s_2", name: "Mirador El Yeco", lat: -33.314191, lng: -71.642970, stdMin: 2.5 },
@@ -637,7 +637,9 @@
       startStopId: STOPS_IDA[0].id,
       endStopId: STOPS_IDA[STOPS_IDA.length - 1].id,
       isTripActive: false,
-      currentBaseIndex: 0,
+      currentBaseIndex: 0, // En v4.2 representa la PARADA OBJETIVO (la que viene o la que estamos)
+      atStop: false, // Variable maestra para mantener la geocerca "pegada" a 50mts
+      minDistToTarget: Infinity, // Memoria de qué tan cerca pasamos para saber si nos alejamos
       isGpsLive: false,
       userTouchedStartStop: false,
       tripStartTime: null,
@@ -650,9 +652,7 @@
       isCurrentlySpeeding: false,
       lastLat: null,
       lastLng: null,
-      lastPassedStopIndex: 0,
       lastPassedTimestamp: null,
-      minDistToTarget: Infinity,
       alert2StopsTriggered: false,
       alert1StopTriggered: false,
       alertArrivedTriggered: false,
@@ -677,8 +677,9 @@
       initLeafletMap();
 
       document.addEventListener("visibilitychange", () => {
-        if (!document.hidden && state.isTripActive) {
-          syncGpsPositionToClosestStop();
+        if (!document.hidden && state.isTripActive && !state.isGpsLive) {
+            // Un pequeño empujón visual si la app vuelve del background sin señal
+            document.getElementById("gpsStatusText").innerText = "Reconectando...";
         }
       });
     });
@@ -837,6 +838,8 @@
       });
       document.getElementById("btnCancelTrip").addEventListener("click", cancelTrip);
       document.getElementById("btnFinishTrip").addEventListener("click", finishTrip);
+      
+      // MODO RESCATE: ROMPE LA REGLA SECUENCIAL Y BUSCA EL PARADERO MÁS CERCANO EN EL PLANETA
       document.getElementById("btnRefreshGPS").addEventListener("click", syncGpsPositionToClosestStop);
 
       document.getElementById("btnSaveFavorite").addEventListener("click", saveFavoriteRoute);
@@ -1035,7 +1038,6 @@
             
             populateActiveChangeEndDropdown();
             initGPS();
-            syncGpsPositionToClosestStop();
             renderFixedMetroMap();
             updateHeaderGreeting(null);
           }
@@ -1047,7 +1049,7 @@
       if (!navigator.geolocation) return;
       
       const statusTxt = document.getElementById("gpsStatusText");
-      if (statusTxt) statusTxt.innerText = "Sincronizando GPS...";
+      if (statusTxt) statusTxt.innerText = "Recalibrando Master...";
 
       navigator.geolocation.getCurrentPosition((pos) => {
         const lat = pos.coords.latitude;
@@ -1061,10 +1063,11 @@
           busMarker.setLatLng([lat, lng]);
         }
 
-        let closestIdx = state.currentBaseIndex;
-        let minDistance = 999;
+        // MODO RESCATE: Escanea TODAS las paradas y encuentra la que esté físicamente más cerca.
+        let closestIdx = 0;
+        let minDistance = Infinity;
 
-        for (let i = state.currentBaseIndex; i < ROUTE_STOPS.length; i++) {
+        for (let i = 0; i < ROUTE_STOPS.length; i++) {
           const d = calculateDistanceKm(lat, lng, ROUTE_STOPS[i].lat, ROUTE_STOPS[i].lng);
           if (d < minDistance) {
             minDistance = d;
@@ -1072,25 +1075,16 @@
           }
         }
 
-        let newBaseIndex = closestIdx;
+        // Resetea todos los cerebros de la IA apuntando al paradero descubierto
+        state.currentBaseIndex = closestIdx;
+        state.minDistToTarget = Math.round(minDistance * 1000);
+        state.atStop = (state.minDistToTarget <= 50);
+        state.lastPassedTimestamp = new Date().getTime(); // Reinicia cronómetro del tramo
         
-        if (closestIdx > 0 && closestIdx < ROUTE_STOPS.length - 1) {
-          const dPrev = calculateDistanceKm(lat, lng, ROUTE_STOPS[closestIdx - 1].lat, ROUTE_STOPS[closestIdx - 1].lng);
-          const dNext = calculateDistanceKm(lat, lng, ROUTE_STOPS[closestIdx + 1].lat, ROUTE_STOPS[closestIdx + 1].lng);
-          
-          if (dPrev < dNext && minDistance > 0.02) { 
-            newBaseIndex = closestIdx - 1;
-          }
-        }
-
-        if (newBaseIndex >= state.currentBaseIndex) {
-          state.currentBaseIndex = newBaseIndex;
-          state.minDistToTarget = Infinity; // ¡RESET IMPORTANTE DE LA IA!
-          saveActiveStateToStorage();
-          populateActiveChangeEndDropdown();
-          renderFixedMetroMap();
-          updateClockAndETA();
-        }
+        saveActiveStateToStorage();
+        populateActiveChangeEndDropdown();
+        renderFixedMetroMap();
+        updateClockAndETA();
       }, (err) => {
         setGpsLiveStatus(false);
       }, { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 });
@@ -1100,18 +1094,15 @@
       const now = new Date();
       const currentMinOfDay = now.getHours() * 60 + now.getMinutes();
       
-      // FIX LÓGICA DE HORARIOS
-      // IDA: 07:32 por Aguas Marinas (-20m stdMin) = 07:12 AM desde El Yeco
-      // VUELTA: 16:44 por P9 (-0.15m stdMin). Retrocediendo 15 mins exactos cuadra con las 06:00 AM desde Tejas
       const startMinBus = state.direction === "IDA" ? (7 * 60 + 12) : (6 * 60 + 0);
-      const lastMinBus = 21 * 60 + 30; // ~9:30 PM
+      const lastMinBus = 21 * 60 + 30;
 
       const startObj = ROUTE_STOPS.find(s => s.id === state.startStopId);
       const offsetMinsToStop = Math.max(0, (startObj ? startObj.stdMin : 0));
 
       if (currentMinOfDay < startMinBus + offsetMinsToStop) {
         const nextPassMin = startMinBus + offsetMinsToStop;
-        const diff = Math.round(nextPassMin - currentMinOfDay); // Fix decimales
+        const diff = Math.round(nextPassMin - currentMinOfDay);
         document.getElementById("setupServiceStatus").innerText = `Primer bus pasa a las ${Math.floor(nextPassMin/60)}:${String(Math.round(nextPassMin%60)).padStart(2,'0')} hrs`;
         document.getElementById("setupNextDepartureMinutes").innerText = `En ${diff} min`;
       } else if (currentMinOfDay > lastMinBus + offsetMinsToStop) {
@@ -1124,7 +1115,7 @@
         }
         
         const nextPassMin = nextDepartureFromOrigin + offsetMinsToStop;
-        const diffMins = Math.max(1, Math.round(nextPassMin - currentMinOfDay)); // Fix decimales absolutos
+        const diffMins = Math.max(1, Math.round(nextPassMin - currentMinOfDay));
 
         document.getElementById("setupNextDepartureMinutes").innerText = `En ${diffMins} min`;
         document.getElementById("setupServiceStatus").innerText = `🟢 Frecuencia regular (~15 min)`;
@@ -1253,14 +1244,16 @@
       state.alert2StopsTriggered = false;
       state.alert1StopTriggered = false;
       state.alertArrivedTriggered = false;
-      state.minDistToTarget = Infinity; // Reset de la memoria del GPS al arrancar
 
       state.startStopId = document.getElementById("selectStartStop").value;
       state.endStopId = document.getElementById("selectEndStop").value;
       
       const baseIndex = ROUTE_STOPS.findIndex(s => s.id === state.startStopId);
       state.currentBaseIndex = baseIndex !== -1 ? baseIndex : 0;
-      state.lastPassedStopIndex = state.currentBaseIndex;
+      
+      // Al iniciar el viaje, asumimos que estamos EN la primera parada que seleccionamos
+      state.atStop = true; 
+      state.minDistToTarget = 0;
       state.lastPassedTimestamp = new Date().getTime();
 
       document.getElementById("viewSetup").classList.add("hidden");
@@ -1302,6 +1295,23 @@
       alertIcon.innerText = icon || "🔔";
     }
 
+    function recordHistoryAndAdvance(nowMs, targetStopIndex) {
+        if (state.lastPassedTimestamp) {
+            const prevStop = ROUTE_STOPS[targetStopIndex - 1];
+            const reachedStop = ROUTE_STOPS[targetStopIndex];
+            if (prevStop && reachedStop) {
+                const segKey = `${prevStop.id}_${reachedStop.id}`;
+                const elapsedMins = (nowMs - state.lastPassedTimestamp) / 60000;
+                if (elapsedMins > 0.3 && elapsedMins < 20) {
+                    if (!state.segmentHistory[segKey]) state.segmentHistory[segKey] = [];
+                    state.segmentHistory[segKey].push(elapsedMins);
+                    if (state.segmentHistory[segKey].length > 3) state.segmentHistory[segKey].shift();
+                    localStorage.setItem("segmentHistory", JSON.stringify(state.segmentHistory));
+                }
+            }
+        }
+    }
+
     function initGPS() {
       if ("geolocation" in navigator) {
         state.watchPositionId = navigator.geolocation.watchPosition(
@@ -1326,62 +1336,53 @@
               if (busMarker) busMarker.setLatLng([state.lastLat, state.lastLng]);
             }
 
-            // === IA DE AUTO-SALTO DE PARADAS Y GESTIÓN DE GEOCERCAS ===
+            // === IA SECUENCIAL (VISIÓN DE TÚNEL Y GEOCERCA PEGADA) ===
             let targetStop = ROUTE_STOPS[state.currentBaseIndex];
-            if (!targetStop) return;
-            
+            if (!targetStop) return; // Fin del trayecto
+
             let distToTarget = Math.round(calculateDistanceKm(state.lastLat, state.lastLng, targetStop.lat, targetStop.lng) * 1000);
 
-            // 1. Memorizar siempre la distancia más cercana a la que hemos llegado
+            // Memoria obligatoria
             if (typeof state.minDistToTarget === 'undefined') state.minDistToTarget = distToTarget;
             state.minDistToTarget = Math.min(state.minDistToTarget, distToTarget);
 
-            let nextStop = ROUTE_STOPS[state.currentBaseIndex + 1];
-            let shouldAdvance = false;
+            const nowMs = new Date().getTime();
 
-            if (nextStop) {
-              let distToNext = Math.round(calculateDistanceKm(state.lastLat, state.lastLng, nextStop.lat, nextStop.lng) * 1000);
-              
-              // 2. Condición de Alejamiento: Nos acercamos a menos de 250m de la parada, y ahora la distancia está aumentando (ya nos alejamos 40m del punto más cercano)
-              let movingAway = (state.minDistToTarget <= 250) && (distToTarget > state.minDistToTarget + 40);
-              
-              // 3. Condición Física: Físicamente ya estamos más cerca de la SIGUIENTE parada que de la actual
-              let closerToNext = (distToNext < distToTarget) && (distToNext < 400);
-
-              if (movingAway || closerToNext) {
-                  shouldAdvance = true;
-              }
-            }
-
-            // Si detecta que pasamos de largo o dejamos la parada, avanzar en el sistema
-            if (shouldAdvance) {
-                const nowMs = new Date().getTime();
-                if (state.lastPassedTimestamp) {
-                    const segKey = `${ROUTE_STOPS[state.lastPassedStopIndex].id}_${nextStop.id}`;
-                    const elapsedMins = (nowMs - state.lastPassedTimestamp) / 60000;
-                    if (elapsedMins > 0.3 && elapsedMins < 20) {
-                        if (!state.segmentHistory[segKey]) state.segmentHistory[segKey] = [];
-                        state.segmentHistory[segKey].push(elapsedMins);
-                        if (state.segmentHistory[segKey].length > 3) state.segmentHistory[segKey].shift();
-                        localStorage.setItem("segmentHistory", JSON.stringify(state.segmentHistory));
-                    }
+            if (state.atStop) {
+                // Estamos adentro de los 50m. Solo salimos cuando superemos los 50.
+                if (distToTarget > 50) {
+                    // El bus arranca y se aleja de la parada que acabamos de dejar.
+                    state.atStop = false;
+                    state.lastPassedTimestamp = nowMs; // Inicia el cronómetro hacia la siguiente
+                    state.currentBaseIndex++;
+                    state.minDistToTarget = Infinity; // Reset de memoria
+                    saveActiveStateToStorage();
+                    populateActiveChangeEndDropdown();
                 }
-                state.lastPassedStopIndex = state.currentBaseIndex + 1;
-                state.lastPassedTimestamp = nowMs;
-
-                state.currentBaseIndex++;
-                state.minDistToTarget = Infinity; // Resetear la memoria para la nueva parada
-                targetStop = ROUTE_STOPS[state.currentBaseIndex];
-                distToTarget = Math.round(calculateDistanceKm(state.lastLat, state.lastLng, targetStop.lat, targetStop.lng) * 1000);
-                state.minDistToTarget = distToTarget; // Iniciar memoria en la nueva distancia
-                
-                saveActiveStateToStorage();
-                populateActiveChangeEndDropdown();
-                renderFixedMetroMap();
-                updateClockAndETA();
+            } else {
+                // Vamos de camino a la próxima parada
+                if (distToTarget <= 50) {
+                    // ¡Llegamos físicamente!
+                    state.atStop = true;
+                    recordHistoryAndAdvance(nowMs, state.currentBaseIndex);
+                    saveActiveStateToStorage();
+                } else if (state.minDistToTarget < 250 && distToTarget > state.minDistToTarget + 40) {
+                    // La app se dio cuenta que pasamos de largo el paradero pero nos estamos alejando
+                    recordHistoryAndAdvance(nowMs, state.currentBaseIndex);
+                    state.lastPassedTimestamp = nowMs; // El nuevo segmento empieza ahora
+                    state.currentBaseIndex++;
+                    state.minDistToTarget = Infinity; // Reset de memoria
+                    saveActiveStateToStorage();
+                    populateActiveChangeEndDropdown();
+                }
             }
 
-            // === ACTUALIZACIÓN VISUAL (GEOFENCES) ===
+            // Actualizar la lectura por si la IA avanzó la variable targetStop
+            targetStop = ROUTE_STOPS[state.currentBaseIndex];
+            if (!targetStop) return;
+            distToTarget = Math.round(calculateDistanceKm(state.lastLat, state.lastLng, targetStop.lat, targetStop.lng) * 1000);
+
+            // === ACTUALIZACIÓN VISUAL INMEDIATA ===
             const dynamicLabel = document.getElementById("stopDynamicLabel");
             const distanceContainer = document.getElementById("activeNextStopDistance");
             document.getElementById("activeNextStopName").innerText = targetStop.name;
@@ -1390,15 +1391,15 @@
                 nextStopMarker.setLatLng([targetStop.lat, targetStop.lng]);
             }
 
-            if (distToTarget <= 25) { // Estás en la parada (25m de gracia)
+            if (state.atStop) {
                 dynamicLabel.innerText = "🛑 ESTÁS EN LA PARADA";
                 dynamicLabel.style.color = "var(--success)";
                 distanceContainer.innerText = "";
-            } else if (distToTarget <= 150) { // Geocerca amarilla restaurada (150m)
+            } else if (distToTarget <= 150) {
                 dynamicLabel.innerText = "⚠️ LLEGANDO A LA PARADA";
                 dynamicLabel.style.color = "var(--warning)";
                 distanceContainer.innerText = `${distToTarget} m`;
-            } else { // Más lejos
+            } else {
                 dynamicLabel.innerText = "➡ PRÓXIMA PARADA";
                 dynamicLabel.style.color = "var(--muted)";
                 distanceContainer.innerText = `+${distToTarget} m`;
@@ -1417,7 +1418,7 @@
               state.alert1StopTriggered = true;
               playAlertBeep(660, 0.5);
               triggerSystemNotification("⚠️ ¡ATENCIÓN! PRÓXIMA PARADA", `Te bajas en la siguiente parada: ${destStopName}`, [400, 150, 400]);
-            } else if (stopsRemaining === 0 && distToTarget <= 25 && !state.alertArrivedTriggered) {
+            } else if (stopsRemaining === 0 && state.atStop && !state.alertArrivedTriggered) {
               state.alertArrivedTriggered = true;
               playAlertBeep(880, 0.8);
               triggerSystemNotification("📍 ¡LLEGASTE A TU DESTINO!", `¡Bájate aquí en: ${destStopName}!`, [500, 200, 500, 200, 500]);
@@ -1435,7 +1436,7 @@
               updateUnifiedAlertPanel("speed", `Prepárate para bajar`, `Destino: ${destStopName}`, "⚠️");
             } else if (stopsRemaining === 2) {
               updateUnifiedAlertPanel("stop", `Faltan 2 Paradas`, `Atento a: ${destStopName}`, "🔔");
-            } else if (state.currentSpeed === 0 && distToTarget <= 25) {
+            } else if (state.currentSpeed === 0 && state.atStop) {
               updateUnifiedAlertPanel("stop", "Bus Detenido", `Tomando pasajeros en ${targetStop.name}`, "🛑");
             } else if (state.currentSpeed <= 55) {
               updateUnifiedAlertPanel("normal", "En Ruta", `Faltan ${stopsRemaining} paradas.`, "🟢");
@@ -1479,7 +1480,7 @@
         }
       }
 
-      minsLeft = Math.round(minsLeft); // Fix decimales ETA
+      minsLeft = Math.round(minsLeft);
       const now = new Date();
       const etaTime = new Date(now.getTime() + minsLeft * 60000);
       const etaFormatted = etaTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
@@ -1502,12 +1503,17 @@
       container.innerHTML = "";
 
       const total = ROUTE_STOPS.length;
-      let startIndex = Math.max(0, state.currentBaseIndex - 3);
-      let endIndex = Math.min(total - 1, state.currentBaseIndex + 3);
+      
+      // EL MINIMAPA ANCLADO: Si ya pasamos la parada o estamos yendo, muestra la que dejamos atras como activa.
+      // Solo avanza cuando entramos físicamente a la de enfrente (state.atStop = true).
+      const displayIndex = state.atStop ? state.currentBaseIndex : Math.max(0, state.currentBaseIndex - 1);
 
-      if (state.currentBaseIndex < 3) {
+      let startIndex = Math.max(0, displayIndex - 3);
+      let endIndex = Math.min(total - 1, displayIndex + 3);
+
+      if (displayIndex < 3) {
         endIndex = Math.min(total - 1, 6);
-      } else if (state.currentBaseIndex > total - 4) {
+      } else if (displayIndex > total - 4) {
         startIndex = Math.max(0, total - 7);
       }
 
@@ -1518,8 +1524,8 @@
         const node = document.createElement("div");
         node.className = "metro-fixed-node";
 
-        if (globalIdx < state.currentBaseIndex) node.classList.add("visited");
-        if (globalIdx === state.currentBaseIndex) node.classList.add("current");
+        if (globalIdx < displayIndex) node.classList.add("visited");
+        if (globalIdx === displayIndex) node.classList.add("current");
         if (s.id === state.endStopId) node.classList.add("destination");
 
         node.innerHTML = `
@@ -1529,7 +1535,7 @@
         container.appendChild(node);
       });
 
-      const currLocalIdx = visibleStops.findIndex(s => s.id === ROUTE_STOPS[state.currentBaseIndex].id);
+      const currLocalIdx = visibleStops.findIndex(s => s.id === ROUTE_STOPS[displayIndex].id);
       const fillPct = (currLocalIdx / (visibleStops.length - 1)) * 100;
       fill.style.width = `${Math.min(100, Math.max(0, fillPct))}%`;
     }
