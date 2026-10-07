@@ -1,4 +1,4 @@
-const CACHE_NAME = 'micro-litoral-v4.1.0';
+const CACHE_NAME = 'micro-litoral-v4.2.0';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -11,7 +11,7 @@ const ASSETS_TO_CACHE = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[SW] Guardando en caché para soporte offline...');
+      console.log('[SW] Guardando en caché v4.2.0 para soporte offline...');
       return cache.addAll(ASSETS_TO_CACHE);
     }).then(() => self.skipWaiting())
   );
