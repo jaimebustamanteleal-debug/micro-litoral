@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Micro Litoral GPS v4.2.0</title>
+  <title>Micro Litoral GPS v4.3.0</title>
   <meta name="theme-color" content="#020617">
   <link rel="manifest" href="./manifest.json">
   
@@ -371,7 +371,7 @@
     </div>
 
     <footer>
-      <strong>Micro Litoral PWA v4.2.0</strong><br>
+      <strong>Micro Litoral PWA v4.3.0</strong><br>
       Desarrollado por <strong>Jaime Bustamante L.</strong>
     </footer>
 
@@ -400,7 +400,7 @@
       <div style="font-weight: 900; color: var(--accent); font-size: 1.2rem;">💡 Guía Rápida</div>
       <div style="font-size: 0.85rem; line-height: 1.5; color: var(--text); display: flex; flex-direction: column; gap: 12px;">
         <div><strong>🚌 1. Secuencia Estricta:</strong> La app nunca se saltará paradas automáticamente. Si te pasas, avanzará secuencialmente 1 a 1.</div>
-        <div><strong>📍 2. Recalibración Maestra:</strong> Si bloqueas el teléfono mucho rato, presiona el botón "Recalibrar GPS" para escanear toda la ruta y anclarte al paradero físico más cercano.</div>
+        <div><strong>📍 2. Recalibración Maestra:</strong> Al abrir la app tras bloquear la pantalla, el GPS escaneará toda la ruta y te anclará automáticamente al paradero físico más cercano.</div>
         <div><strong>🧠 3. Geocerca Fija:</strong> El minimapa y el estado de la parada no avanzarán hasta que te alejes físicamente a más de 50m de la estación actual.</div>
       </div>
       <button id="btnCloseHowItWorks" class="btn btn-secondary" style="margin-top: 8px; font-weight: 800;">Entendido</button>
@@ -412,7 +412,7 @@
       <div style="font-weight: 900; color: var(--accent); font-size: 1.2rem;">❓ FAQ</div>
       <div style="font-size: 0.85rem; line-height: 1.5; color: var(--text); display: flex; flex-direction: column; gap: 12px;">
         <div><strong>Oficial:</strong> App privada sin vínculo con Taxibuses San Antonio S.A.</div>
-        <div><strong>GPS en reposo:</strong> Mantén la pantalla encendida o da permisos "Todo el tiempo". Usa Recalibrar si pierdes señal.</div>
+        <div><strong>Batería:</strong> La app mantiene la pantalla activa durante el viaje. Si la bloqueas, el viaje se pausa y se recalibra al volver.</div>
         <div><strong>Velocidad:</strong> Alerta visual roja al superar los 55 km/h.</div>
       </div>
       <button id="btnCloseFAQ" class="btn btn-secondary" style="margin-top: 8px; font-weight: 800;">Cerrar</button>
@@ -602,8 +602,8 @@
       { id: "v_66", name: "Tralcamahuida", lat: -33.413916, lng: -71.695616, stdMin: 78 },
       { id: "v_67", name: "Riu Tai", lat: -33.411695, lng: -71.695064, stdMin: 79 },
       { id: "v_68", name: "Huallilemu", lat: -33.407705, lng: -71.693929, stdMin: 80 },
-      { id: "v_69", name: "Capilla SUD", lat: -33.402351, lng: -71.693867, stdMin: 81 },
-      { id: "v_70", name: "Parroquia El Quisco", lat: -33.402351, lng: -71.693867, stdMin: 82 },
+      { id: "v_69", name: "Capilla SUD", lat: -33.404999, lng: -71.693507, stdMin: 81 },
+      { id: "v_70", name: "Parroquia El Quisco", lat: -33.403490, lng: -71.693719, stdMin: 82 },
       { id: "v_71", name: "Municipalidad de El Quisco", lat: -33.399970, lng: -71.694430, stdMin: 84 },
       { id: "v_72", name: "Playa Los Corsarios", lat: -33.393007, lng: -71.693891, stdMin: 85 },
       { id: "v_73", name: "aCuenta El Quisco", lat: -33.385932, lng: -71.689444, stdMin: 86 },
@@ -629,6 +629,7 @@
     ];
 
     let ROUTE_STOPS = STOPS_IDA;
+    let wakeLock = null;
 
     let state = {
       userName: localStorage.getItem("userName") || "Pasajero",
@@ -637,9 +638,9 @@
       startStopId: STOPS_IDA[0].id,
       endStopId: STOPS_IDA[STOPS_IDA.length - 1].id,
       isTripActive: false,
-      currentBaseIndex: 0, // En v4.2 representa la PARADA OBJETIVO (la que viene o la que estamos)
-      atStop: false, // Variable maestra para mantener la geocerca "pegada" a 50mts
-      minDistToTarget: Infinity, // Memoria de qué tan cerca pasamos para saber si nos alejamos
+      currentBaseIndex: 0,
+      atStop: false,
+      minDistToTarget: Infinity,
       isGpsLive: false,
       userTouchedStartStop: false,
       tripStartTime: null,
@@ -676,13 +677,37 @@
       renderFavorites();
       initLeafletMap();
 
+      // AUTO-RECALIBRACIÓN Y RE-ENGANCHE DE WAKELOCK AL VOLVER A LA APP
       document.addEventListener("visibilitychange", () => {
-        if (!document.hidden && state.isTripActive && !state.isGpsLive) {
-            // Un pequeño empujón visual si la app vuelve del background sin señal
-            document.getElementById("gpsStatusText").innerText = "Reconectando...";
+        if (document.visibilityState === 'visible' && state.isTripActive) {
+            requestWakeLock();
+            if (!state.isGpsLive) {
+                document.getElementById("gpsStatusText").innerText = "Reconectando...";
+            }
+            syncGpsPositionToClosestStop(); // Dispara la sincronización sin presionar el botón
         }
       });
     });
+
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await navigator.wakeLock.request('screen');
+          console.log('[Wake Lock] Pantalla mantenida activa.');
+        }
+      } catch (err) {
+        console.log('[Wake Lock] Error al solicitar:', err);
+      }
+    }
+
+    function releaseWakeLock() {
+      if (wakeLock !== null) {
+        wakeLock.release().then(() => {
+          wakeLock = null;
+          console.log('[Wake Lock] Liberado.');
+        });
+      }
+    }
 
     function applyTheme(theme) {
       state.theme = theme;
@@ -839,7 +864,6 @@
       document.getElementById("btnCancelTrip").addEventListener("click", cancelTrip);
       document.getElementById("btnFinishTrip").addEventListener("click", finishTrip);
       
-      // MODO RESCATE: ROMPE LA REGLA SECUENCIAL Y BUSCA EL PARADERO MÁS CERCANO EN EL PLANETA
       document.getElementById("btnRefreshGPS").addEventListener("click", syncGpsPositionToClosestStop);
 
       document.getElementById("btnSaveFavorite").addEventListener("click", saveFavoriteRoute);
@@ -1038,6 +1062,7 @@
             
             populateActiveChangeEndDropdown();
             initGPS();
+            requestWakeLock();
             renderFixedMetroMap();
             updateHeaderGreeting(null);
           }
@@ -1049,7 +1074,7 @@
       if (!navigator.geolocation) return;
       
       const statusTxt = document.getElementById("gpsStatusText");
-      if (statusTxt) statusTxt.innerText = "Recalibrando Master...";
+      if (statusTxt) statusTxt.innerText = "Recalibrando...";
 
       navigator.geolocation.getCurrentPosition((pos) => {
         const lat = pos.coords.latitude;
@@ -1063,7 +1088,6 @@
           busMarker.setLatLng([lat, lng]);
         }
 
-        // MODO RESCATE: Escanea TODAS las paradas y encuentra la que esté físicamente más cerca.
         let closestIdx = 0;
         let minDistance = Infinity;
 
@@ -1075,11 +1099,10 @@
           }
         }
 
-        // Resetea todos los cerebros de la IA apuntando al paradero descubierto
         state.currentBaseIndex = closestIdx;
         state.minDistToTarget = Math.round(minDistance * 1000);
         state.atStop = (state.minDistToTarget <= 50);
-        state.lastPassedTimestamp = new Date().getTime(); // Reinicia cronómetro del tramo
+        state.lastPassedTimestamp = new Date().getTime(); // Reset para evitar falsas anomalías
         
         saveActiveStateToStorage();
         populateActiveChangeEndDropdown();
@@ -1251,7 +1274,6 @@
       const baseIndex = ROUTE_STOPS.findIndex(s => s.id === state.startStopId);
       state.currentBaseIndex = baseIndex !== -1 ? baseIndex : 0;
       
-      // Al iniciar el viaje, asumimos que estamos EN la primera parada que seleccionamos
       state.atStop = true; 
       state.minDistToTarget = 0;
       state.lastPassedTimestamp = new Date().getTime();
@@ -1264,6 +1286,7 @@
       populateActiveChangeEndDropdown();
       saveActiveStateToStorage();
       initGPS();
+      requestWakeLock(); // Solicita mantener la pantalla encendida
       renderFixedMetroMap();
       updateHeaderGreeting(null);
     }
@@ -1302,7 +1325,10 @@
             if (prevStop && reachedStop) {
                 const segKey = `${prevStop.id}_${reachedStop.id}`;
                 const elapsedMins = (nowMs - state.lastPassedTimestamp) / 60000;
-                if (elapsedMins > 0.3 && elapsedMins < 20) {
+                
+                // FILTRO DE ANOMALÍAS: Si el tiempo supera los 15 minutos,
+                // significa que la app estuvo suspendida. Rechazamos el dato.
+                if (elapsedMins > 0.3 && elapsedMins <= 15) {
                     if (!state.segmentHistory[segKey]) state.segmentHistory[segKey] = [];
                     state.segmentHistory[segKey].push(elapsedMins);
                     if (state.segmentHistory[segKey].length > 3) state.segmentHistory[segKey].shift();
@@ -1336,53 +1362,44 @@
               if (busMarker) busMarker.setLatLng([state.lastLat, state.lastLng]);
             }
 
-            // === IA SECUENCIAL (VISIÓN DE TÚNEL Y GEOCERCA PEGADA) ===
             let targetStop = ROUTE_STOPS[state.currentBaseIndex];
-            if (!targetStop) return; // Fin del trayecto
+            if (!targetStop) return;
 
             let distToTarget = Math.round(calculateDistanceKm(state.lastLat, state.lastLng, targetStop.lat, targetStop.lng) * 1000);
 
-            // Memoria obligatoria
             if (typeof state.minDistToTarget === 'undefined') state.minDistToTarget = distToTarget;
             state.minDistToTarget = Math.min(state.minDistToTarget, distToTarget);
 
             const nowMs = new Date().getTime();
 
             if (state.atStop) {
-                // Estamos adentro de los 50m. Solo salimos cuando superemos los 50.
                 if (distToTarget > 50) {
-                    // El bus arranca y se aleja de la parada que acabamos de dejar.
                     state.atStop = false;
-                    state.lastPassedTimestamp = nowMs; // Inicia el cronómetro hacia la siguiente
+                    state.lastPassedTimestamp = nowMs;
                     state.currentBaseIndex++;
-                    state.minDistToTarget = Infinity; // Reset de memoria
+                    state.minDistToTarget = Infinity;
                     saveActiveStateToStorage();
                     populateActiveChangeEndDropdown();
                 }
             } else {
-                // Vamos de camino a la próxima parada
                 if (distToTarget <= 50) {
-                    // ¡Llegamos físicamente!
                     state.atStop = true;
                     recordHistoryAndAdvance(nowMs, state.currentBaseIndex);
                     saveActiveStateToStorage();
                 } else if (state.minDistToTarget < 250 && distToTarget > state.minDistToTarget + 40) {
-                    // La app se dio cuenta que pasamos de largo el paradero pero nos estamos alejando
                     recordHistoryAndAdvance(nowMs, state.currentBaseIndex);
-                    state.lastPassedTimestamp = nowMs; // El nuevo segmento empieza ahora
+                    state.lastPassedTimestamp = nowMs;
                     state.currentBaseIndex++;
-                    state.minDistToTarget = Infinity; // Reset de memoria
+                    state.minDistToTarget = Infinity;
                     saveActiveStateToStorage();
                     populateActiveChangeEndDropdown();
                 }
             }
 
-            // Actualizar la lectura por si la IA avanzó la variable targetStop
             targetStop = ROUTE_STOPS[state.currentBaseIndex];
             if (!targetStop) return;
             distToTarget = Math.round(calculateDistanceKm(state.lastLat, state.lastLng, targetStop.lat, targetStop.lng) * 1000);
 
-            // === ACTUALIZACIÓN VISUAL INMEDIATA ===
             const dynamicLabel = document.getElementById("stopDynamicLabel");
             const distanceContainer = document.getElementById("activeNextStopDistance");
             document.getElementById("activeNextStopName").innerText = targetStop.name;
@@ -1405,7 +1422,6 @@
                 distanceContainer.innerText = `+${distToTarget} m`;
             }
 
-            // === ALERTAS DE VIAJE ===
             const endIndex = ROUTE_STOPS.findIndex(s => s.id === state.endStopId);
             const stopsRemaining = Math.max(0, endIndex - state.currentBaseIndex);
             const destStopName = ROUTE_STOPS[endIndex] ? ROUTE_STOPS[endIndex].name : "tu destino";
@@ -1503,9 +1519,6 @@
       container.innerHTML = "";
 
       const total = ROUTE_STOPS.length;
-      
-      // EL MINIMAPA ANCLADO: Si ya pasamos la parada o estamos yendo, muestra la que dejamos atras como activa.
-      // Solo avanza cuando entramos físicamente a la de enfrente (state.atStop = true).
       const displayIndex = state.atStop ? state.currentBaseIndex : Math.max(0, state.currentBaseIndex - 1);
 
       let startIndex = Math.max(0, displayIndex - 3);
@@ -1542,6 +1555,7 @@
 
     function cancelTrip() {
       if (state.watchPositionId) navigator.geolocation.clearWatch(state.watchPositionId);
+      releaseWakeLock();
       state.isTripActive = false;
       saveActiveStateToStorage();
       resetToSetupView();
@@ -1560,6 +1574,7 @@
       }, 4000);
 
       if (state.watchPositionId) navigator.geolocation.clearWatch(state.watchPositionId);
+      releaseWakeLock();
       state.isTripActive = false;
       saveActiveStateToStorage();
       resetToSetupView();
