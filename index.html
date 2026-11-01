@@ -61,7 +61,6 @@
     header h1 { font-size: 1.4rem; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
     header p { font-size: 0.85rem; color: var(--accent); font-weight: 600; margin-top: 4px; }
 
-    /* ESTILO GLASSMORPHISM */
     .glass-card { 
       background: var(--glass-bg); 
       backdrop-filter: blur(12px); 
@@ -92,7 +91,6 @@
     .compass-box { background: var(--input-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 16px; display: flex; align-items: center; gap: 16px; cursor: pointer; }
     .compass-arrow { font-size: 2rem; transition: transform 0.3s ease; display: inline-block; text-shadow: 0 0 10px var(--accent); }
 
-    /* MINIMAPA DE METRO FUSIONADO */
     .metro-fixed-container { position: relative; width: 100%; overflow: hidden; padding: 30px 5px 40px 5px; }
     .metro-fixed-track { position: relative; width: 100%; }
     .metro-fixed-line-bg { position: absolute; top: 10px; left: 15px; right: 15px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; }
@@ -109,7 +107,6 @@
     .metro-fixed-node.current .metro-fixed-label { color: var(--text); font-weight: 900; opacity: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
     .metro-fixed-node.destination .metro-fixed-label { color: var(--warning) !important; opacity: 1; }
 
-    /* ALERTAS INMERSIVAS (COLOR DINÁMICO) */
     .alert-panel { display: flex; align-items: center; gap: 16px; padding: 18px; border-radius: 20px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
     .alert-normal { background: var(--glass-bg); border: 1px solid var(--glass-border); }
     .alert-speed { background: linear-gradient(135deg, rgba(220,38,38,0.85), rgba(153,27,27,0.95)); box-shadow: 0 10px 30px rgba(220,38,38,0.4); border: 1px solid rgba(255,255,255,0.2); }
@@ -121,7 +118,6 @@
     .alert-normal .alert-title { color: var(--accent); }
     .alert-normal .alert-desc { color: var(--text); }
 
-    /* TELEMETRÍA MINIMALISTA */
     .eta-box { padding: 0; background: transparent; border: none; display: flex; flex-direction: column; gap: 12px; }
     .eta-main-time { font-size: 3rem; font-weight: 900; color: var(--text); text-align: center; line-height: 1; letter-spacing: -1px; text-shadow: 0 4px 15px rgba(0,0,0,0.5); }
     
@@ -130,7 +126,6 @@
     .telemetry-value { font-size: 1.4rem; font-weight: 900; color: var(--accent); }
     .telemetry-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; font-weight: 700; }
 
-    /* MAPA INVERTIDO PARA MODO OSCURO SIN API KEY */
     #realMap, #pedestrianMap { width: 100%; border-radius: 20px; border: 1px solid var(--glass-border); background: var(--map-bg); z-index: 1; }
     #realMap { height: 180px; pointer-events: none; opacity: 0.85; filter: contrast(1.1) saturate(1.2); }
     #pedestrianMap { height: 320px; }
@@ -139,7 +134,6 @@
         filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
     }
 
-    /* BARRA FLOTANTE (OPERACIÓN A UNA MANO) */
     .floating-action-bar {
       position: fixed;
       bottom: 24px;
@@ -308,7 +302,7 @@
             <span id="gpsPulseDot" class="pulse-dot pulse-red"></span>
             <span id="gpsStatusText" style="color: var(--danger);">GPS Offline</span>
           </div>
-          <!-- BOTÓN RESCATE / SINCRONIZACIÓN MANUAL -->
+          <!-- BOTÓN RECALIBRAR MANUAL (AHORA TAMBIÉN AUTOMÁTICO AL ENCENDER PANTALLA) -->
           <button id="btnRefreshGPS" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.75rem; border-radius: 12px; background: rgba(56,189,248,0.15); border-color: rgba(56,189,248,0.3); color: var(--accent) !important;">📍 Recalibrar GPS</button>
         </div>
 
@@ -377,13 +371,11 @@
 
   </div>
 
-  <!-- BARRA DE ACCIÓN FLOTANTE -->
   <div id="floatingActionBar" class="floating-action-bar hidden">
     <button class="btn btn-danger" id="btnCancelTrip">❌ Cancelar</button>
     <button class="btn" id="btnFinishTrip" style="background: var(--success); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);">🏁 Terminar</button>
   </div>
 
-  <!-- MODALES CON GLASSMORPHISM -->
   <div id="pedestrianModal" class="modal-overlay">
     <div class="modal-content">
       <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -397,11 +389,11 @@
 
   <div id="howItWorksModal" class="modal-overlay">
     <div class="modal-content">
-      <div style="font-weight: 900; color: var(--accent); font-size: 1.2rem;">💡 Guía Rápida</div>
+      <div style="font-weight: 900; color: var(--accent); font-size: 1.2rem;">💡 Guía Rápida v4.3</div>
       <div style="font-size: 0.85rem; line-height: 1.5; color: var(--text); display: flex; flex-direction: column; gap: 12px;">
-        <div><strong>🚌 1. Secuencia Estricta:</strong> La app nunca se saltará paradas automáticamente. Si te pasas, avanzará secuencialmente 1 a 1.</div>
-        <div><strong>📍 2. Recalibración Maestra:</strong> Al abrir la app tras bloquear la pantalla, el GPS escaneará toda la ruta y te anclará automáticamente al paradero físico más cercano.</div>
-        <div><strong>🧠 3. Geocerca Fija:</strong> El minimapa y el estado de la parada no avanzarán hasta que te alejes físicamente a más de 50m de la estación actual.</div>
+        <div><strong>🔋 1. Pantalla Activa:</strong> La app mantiene tu pantalla despierta para evitar suspensiones de GPS en el bolsillo.</div>
+        <div><strong>⚡ 2. Sincronización Automática:</strong> Al encender la pantalla tras guardar el teléfono, la app se recalibra sola de inmediato.</div>
+        <div><strong>🛡️ 3. Protección de ETA:</strong> Se filtran automáticamente los tiempos fantasma si la app estuvo suspendida mucho rato.</div>
       </div>
       <button id="btnCloseHowItWorks" class="btn btn-secondary" style="margin-top: 8px; font-weight: 800;">Entendido</button>
     </div>
@@ -412,8 +404,7 @@
       <div style="font-weight: 900; color: var(--accent); font-size: 1.2rem;">❓ FAQ</div>
       <div style="font-size: 0.85rem; line-height: 1.5; color: var(--text); display: flex; flex-direction: column; gap: 12px;">
         <div><strong>Oficial:</strong> App privada sin vínculo con Taxibuses San Antonio S.A.</div>
-        <div><strong>Batería:</strong> La app mantiene la pantalla activa durante el viaje. Si la bloqueas, el viaje se pausa y se recalibra al volver.</div>
-        <div><strong>Velocidad:</strong> Alerta visual roja al superar los 55 km/h.</div>
+        <div><strong>Optimizado para Play Store:</strong> Con soporte de Wake Lock y auto-recuperación de señal.</div>
       </div>
       <button id="btnCloseFAQ" class="btn btn-secondary" style="margin-top: 8px; font-weight: 800;">Cerrar</button>
     </div>
@@ -434,7 +425,6 @@
       });
     }
 
-    // BASE DE DATOS HACIA TEJAS VERDES (95 PARADAS)
     const STOPS_IDA = [
       { id: "s_1", name: "El Yeco", lat: -33.309274, lng: -71.642426, stdMin: 0 },
       { id: "s_2", name: "Mirador El Yeco", lat: -33.314191, lng: -71.642970, stdMin: 2.5 },
@@ -629,7 +619,6 @@
     ];
 
     let ROUTE_STOPS = STOPS_IDA;
-    let wakeLock = null;
 
     let state = {
       userName: localStorage.getItem("userName") || "Pasajero",
@@ -668,6 +657,22 @@
     let pedestrianPersonMarker = null;
     let pedestrianStopMarker = null;
     let audioContext = null;
+    let wakeLock = null;
+
+    // WAKE LOCK API PARA EVITAR SUSPENSIÓN DE PANTALLA
+    async function requestWakeLock() {
+      if ('wakeLock' in navigator) {
+        try {
+          wakeLock = await navigator.wakeLock.request('screen');
+        } catch (err) { console.log('Wake Lock error:', err); }
+      }
+    }
+
+    function releaseWakeLock() {
+      if (wakeLock) {
+        wakeLock.release().then(() => { wakeLock = null; });
+      }
+    }
 
     document.addEventListener("DOMContentLoaded", () => {
       applyTheme(state.theme);
@@ -677,37 +682,16 @@
       renderFavorites();
       initLeafletMap();
 
-      // AUTO-RECALIBRACIÓN Y RE-ENGANCHE DE WAKELOCK AL VOLVER A LA APP
+      // AUTO-SINCRONIZACIÓN Y RE-ACTIVACIÓN DE WAKE LOCK AL VOLVER A LA APP
       document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === 'visible' && state.isTripActive) {
+        if (!document.hidden) {
+          if (state.isTripActive) {
             requestWakeLock();
-            if (!state.isGpsLive) {
-                document.getElementById("gpsStatusText").innerText = "Reconectando...";
-            }
-            syncGpsPositionToClosestStop(); // Dispara la sincronización sin presionar el botón
+            syncGpsPositionToClosestStop(); // ¡Auto-sincronización instantánea!
+          }
         }
       });
     });
-
-    async function requestWakeLock() {
-      try {
-        if ('wakeLock' in navigator) {
-          wakeLock = await navigator.wakeLock.request('screen');
-          console.log('[Wake Lock] Pantalla mantenida activa.');
-        }
-      } catch (err) {
-        console.log('[Wake Lock] Error al solicitar:', err);
-      }
-    }
-
-    function releaseWakeLock() {
-      if (wakeLock !== null) {
-        wakeLock.release().then(() => {
-          wakeLock = null;
-          console.log('[Wake Lock] Liberado.');
-        });
-      }
-    }
 
     function applyTheme(theme) {
       state.theme = theme;
@@ -863,7 +847,6 @@
       });
       document.getElementById("btnCancelTrip").addEventListener("click", cancelTrip);
       document.getElementById("btnFinishTrip").addEventListener("click", finishTrip);
-      
       document.getElementById("btnRefreshGPS").addEventListener("click", syncGpsPositionToClosestStop);
 
       document.getElementById("btnSaveFavorite").addEventListener("click", saveFavoriteRoute);
@@ -1060,9 +1043,9 @@
             document.getElementById("viewActive").classList.remove("hidden");
             document.getElementById("floatingActionBar").classList.remove("hidden");
             
+            requestWakeLock();
             populateActiveChangeEndDropdown();
             initGPS();
-            requestWakeLock();
             renderFixedMetroMap();
             updateHeaderGreeting(null);
           }
@@ -1074,7 +1057,7 @@
       if (!navigator.geolocation) return;
       
       const statusTxt = document.getElementById("gpsStatusText");
-      if (statusTxt) statusTxt.innerText = "Recalibrando...";
+      if (statusTxt) statusTxt.innerText = "Sincronizando...";
 
       navigator.geolocation.getCurrentPosition((pos) => {
         const lat = pos.coords.latitude;
@@ -1102,7 +1085,7 @@
         state.currentBaseIndex = closestIdx;
         state.minDistToTarget = Math.round(minDistance * 1000);
         state.atStop = (state.minDistToTarget <= 50);
-        state.lastPassedTimestamp = new Date().getTime(); // Reset para evitar falsas anomalías
+        state.lastPassedTimestamp = new Date().getTime();
         
         saveActiveStateToStorage();
         populateActiveChangeEndDropdown();
@@ -1283,10 +1266,10 @@
       document.getElementById("viewActive").classList.remove("hidden");
       document.getElementById("floatingActionBar").classList.remove("hidden");
 
+      requestWakeLock(); // Activa Wake Lock API
       populateActiveChangeEndDropdown();
       saveActiveStateToStorage();
       initGPS();
-      requestWakeLock(); // Solicita mantener la pantalla encendida
       renderFixedMetroMap();
       updateHeaderGreeting(null);
     }
@@ -1318,6 +1301,7 @@
       alertIcon.innerText = icon || "🔔";
     }
 
+    // PUNTO 1: FILTRO DE ANOMALÍAS (SANITIZACIÓN DE TIEMPO)
     function recordHistoryAndAdvance(nowMs, targetStopIndex) {
         if (state.lastPassedTimestamp) {
             const prevStop = ROUTE_STOPS[targetStopIndex - 1];
@@ -1326,8 +1310,7 @@
                 const segKey = `${prevStop.id}_${reachedStop.id}`;
                 const elapsedMins = (nowMs - state.lastPassedTimestamp) / 60000;
                 
-                // FILTRO DE ANOMALÍAS: Si el tiempo supera los 15 minutos,
-                // significa que la app estuvo suspendida. Rechazamos el dato.
+                // Si tardó más de 15 minutos en un solo tramo, se asume suspensión/anomalía y SE DESCARTA
                 if (elapsedMins > 0.3 && elapsedMins <= 15) {
                     if (!state.segmentHistory[segKey]) state.segmentHistory[segKey] = [];
                     state.segmentHistory[segKey].push(elapsedMins);
@@ -1515,7 +1498,7 @@
 
     function renderFixedMetroMap() {
       const container = document.getElementById("metroFixedNodes");
-      const fill = document.getElementById("metroFixedFill");
+      const fill = document.getElementById("metroFixedLineFill");
       container.innerHTML = "";
 
       const total = ROUTE_STOPS.length;
