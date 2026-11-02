@@ -1,4 +1,4 @@
-const CACHE_NAME = 'micro-litoral-v4.3.0';
+const CACHE_NAME = 'micro-litoral-v4.3.1';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -7,24 +7,22 @@ const ASSETS_TO_CACHE = [
   './icon-512.png'
 ];
 
-// 1. Instalar Service Worker y guardar recursos esenciales
+// 1. Instalar y saltar la espera de inmediato
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[SW] Guardando en caché v4.3.0 para soporte offline...');
       return cache.addAll(ASSETS_TO_CACHE);
     }).then(() => self.skipWaiting())
   );
 });
 
-// 2. Activar Service Worker y limpiar cachés obsoletas
+// 2. Activar y limpiar cachés anteriores al instante
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
           if (cache !== CACHE_NAME) {
-            console.log('[SW] Limpiando caché antigua:', cache);
             return caches.delete(cache);
           }
         })
@@ -33,26 +31,22 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// 3. Estrategia Network & Cache Fallback (Requisito Offline)
+// 3. Estrategia de red con respaldo en caché
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        fetch(event.request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, networkResponse);
-            });
-          }
-        }).catch(() => {/* Modo sin conexión */});
-        
-        return cachedResponse;
+    fetch(event.request).then((networkResponse) => {
+      if (networkResponse && networkResponse.status === 200) {
+        const responseClone = networkResponse.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, responseClone);
+        });
       }
-
-      return fetch(event.request).catch(() => {
-        return caches.match('./index.html');
+      return networkResponse;
+    }).catch(() => {
+      return caches.match(event.request).then((cachedResponse) => {
+        return cachedResponse || caches.match('./index.html');
       });
     })
   );
@@ -61,15 +55,9 @@ self.addEventListener('fetch', (event) => {
 // 4. Notificaciones Push y Geocercas Nativas
 self.addEventListener('push', (event) => {
   let data = { title: 'Micro Litoral GPS', body: '¡Atención! Tu parada está cerca.' };
-  
   if (event.data) {
-    try {
-      data = event.data.json();
-    } catch (e) {
-      data.body = event.data.text();
-    }
+    try { data = event.data.json(); } catch (e) { data.body = event.data.text(); }
   }
-
   const options = {
     body: data.body,
     icon: 'icon-192.png',
@@ -78,13 +66,9 @@ self.addEventListener('push', (event) => {
     tag: 'micro-litoral-alert',
     renotify: true
   };
-
-  event.waitUntil(
-    self.registration.showNotification(data.title, options)
-  );
+  event.waitUntil(self.registration.showNotification(data.title, options));
 });
 
-// 5. Acción al presionar la notificación
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(
