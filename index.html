@@ -1573,6 +1573,21 @@
       updateHeaderGreeting(null);
       updateSetupSummary();
     }
+    // Detector de actualizaciones automáticas de Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').then((registration) => {
+    registration.addEventListener('updatefound', () => {
+      const newWorker = registration.installing;
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          // Hay una nueva versión lista: recargamos la página automáticamente para aplicarla
+          console.log("Nueva versión detectada. Actualizando app...");
+          window.location.reload();
+        }
+      });
+    });
+  });
+}
   </script>
 </body>
 </html>
