@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Micro Litoral GPS v4.3.0</title>
+  <title>Micro Litoral GPS v4.4.0</title>
   <meta name="theme-color" content="#020617">
   <link rel="manifest" href="./manifest.json">
   
@@ -156,6 +156,7 @@
     .gps-status-pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); }
     .pulse-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
     .pulse-green { background: var(--success); box-shadow: 0 0 10px var(--success); animation: pulse 1.5s infinite; }
+    .pulse-amber { background: var(--warning); box-shadow: 0 0 10px var(--warning); animation: pulse 1s infinite; }
     .pulse-red { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
 
     @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
@@ -167,7 +168,7 @@
     .modal-overlay.active { opacity: 1; pointer-events: auto; }
     .modal-content { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 24px; width: 100%; max-width: 440px; max-height: 85vh; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; box-shadow: var(--glass-shadow); }
 
-    .map-blue-bus-icon { background: var(--blue-bus); border: 2px solid #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 14px; box-shadow: 0 0 15px var(--accent); }
+    .map-blue-bus-icon { background: var(--blue-bus); border: 2px solid #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 14px; box-shadow: 0 0 15px var(--accent); transition: background 0.3s; }
     .map-stop-icon { filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
 
     footer { text-align: center; font-size: 0.7rem; color: var(--muted); opacity: 0.7; margin-top: auto; padding-top: 20px; }
@@ -213,6 +214,12 @@
           <option value="IDA">Hacia Tejas Verdes (San Antonio)</option>
           <option value="VUELTA">Hacia El Yeco (Algarrobo)</option>
         </select>
+      </div>
+
+      <!-- HISTORIAL INTELIGENTE DE DESTINOS RECIENTES -->
+      <div id="recentDestinationsContainer" class="hidden">
+        <label>🎯 Destinos Recientes</label>
+        <div id="recentDestinationsChips" style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; margin-bottom: 8px;"></div>
       </div>
 
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
@@ -302,7 +309,6 @@
             <span id="gpsPulseDot" class="pulse-dot pulse-red"></span>
             <span id="gpsStatusText" style="color: var(--danger);">GPS Offline</span>
           </div>
-          <!-- BOTÓN RECALIBRAR MANUAL (AHORA TAMBIÉN AUTOMÁTICO AL ENCENDER PANTALLA) -->
           <button id="btnRefreshGPS" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.75rem; border-radius: 12px; background: rgba(56,189,248,0.15); border-color: rgba(56,189,248,0.3); color: var(--accent) !important;">📍 Recalibrar GPS</button>
         </div>
 
@@ -365,7 +371,7 @@
     </div>
 
     <footer>
-      <strong>Micro Litoral PWA v4.3.0</strong><br>
+      <strong>Micro Litoral PWA v4.4.0</strong><br>
       Desarrollado por <strong>Jaime Bustamante L.</strong>
     </footer>
 
@@ -389,11 +395,11 @@
 
   <div id="howItWorksModal" class="modal-overlay">
     <div class="modal-content">
-      <div style="font-weight: 900; color: var(--accent); font-size: 1.2rem;">💡 Guía Rápida v4.3</div>
+      <div style="font-weight: 900; color: var(--accent); font-size: 1.2rem;">💡 Guía Rápida v4.4</div>
       <div style="font-size: 0.85rem; line-height: 1.5; color: var(--text); display: flex; flex-direction: column; gap: 12px;">
-        <div><strong>🔋 1. Pantalla Activa:</strong> La app mantiene tu pantalla despierta para evitar suspensiones de GPS en el bolsillo.</div>
-        <div><strong>⚡ 2. Sincronización Automática:</strong> Al encender la pantalla tras guardar el teléfono, la app se recalibra sola de inmediato.</div>
-        <div><strong>🛡️ 3. Protección de ETA:</strong> Se filtran automáticamente los tiempos fantasma si la app estuvo suspendida mucho rato.</div>
+        <div><strong>🌙 1. Tema Automático:</strong> Se adapta al modo nocturno según la hora o tu preferencia.</div>
+        <div><strong>⭐ 2. Destinos Recientes:</strong> Historial inteligente para configurar tu viaje con un toque.</div>
+        <div><strong>🚌 3. Tráfico Animado:</strong> El bus parpadea en ámbar si está detenido y en verde si va en ruta.</div>
       </div>
       <button id="btnCloseHowItWorks" class="btn btn-secondary" style="margin-top: 8px; font-weight: 800;">Entendido</button>
     </div>
@@ -404,7 +410,7 @@
       <div style="font-weight: 900; color: var(--accent); font-size: 1.2rem;">❓ FAQ</div>
       <div style="font-size: 0.85rem; line-height: 1.5; color: var(--text); display: flex; flex-direction: column; gap: 12px;">
         <div><strong>Oficial:</strong> App privada sin vínculo con Taxibuses San Antonio S.A.</div>
-        <div><strong>Optimizado para Play Store:</strong> Con soporte de Wake Lock y auto-recuperación de señal.</div>
+        <div><strong>Listos para Google Play:</strong> Con soporte de atajos rápidos y optimización móvil.</div>
       </div>
       <button id="btnCloseFAQ" class="btn btn-secondary" style="margin-top: 8px; font-weight: 800;">Cerrar</button>
     </div>
@@ -421,7 +427,16 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
+        navigator.serviceWorker.register('./sw.js').then((reg) => {
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                window.location.reload();
+              }
+            });
+          });
+        }).catch(err => console.log('SW error:', err));
       });
     }
 
@@ -622,7 +637,7 @@
 
     let state = {
       userName: localStorage.getItem("userName") || "Pasajero",
-      theme: localStorage.getItem("appTheme") || "dark",
+      theme: localStorage.getItem("appTheme") || "auto",
       direction: "IDA",
       startStopId: STOPS_IDA[0].id,
       endStopId: STOPS_IDA[STOPS_IDA.length - 1].id,
@@ -647,6 +662,7 @@
       alert1StopTriggered: false,
       alertArrivedTriggered: false,
       favorites: JSON.parse(localStorage.getItem("favorites") || "[]"),
+      recentDestinations: JSON.parse(localStorage.getItem("recentDestinations") || "[]"),
       segmentHistory: JSON.parse(localStorage.getItem("segmentHistory") || "{}")
     };
 
@@ -659,50 +675,68 @@
     let audioContext = null;
     let wakeLock = null;
 
-    // WAKE LOCK API PARA EVITAR SUSPENSIÓN DE PANTALLA
     async function requestWakeLock() {
       if ('wakeLock' in navigator) {
-        try {
-          wakeLock = await navigator.wakeLock.request('screen');
-        } catch (err) { console.log('Wake Lock error:', err); }
+        try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) { console.log(err); }
       }
     }
 
     function releaseWakeLock() {
-      if (wakeLock) {
-        wakeLock.release().then(() => { wakeLock = null; });
-      }
+      if (wakeLock) { wakeLock.release().then(() => { wakeLock = null; }); }
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      applyTheme(state.theme);
+      checkAutoTheme();
       initUI();
       checkPermissionsStatus();
+      checkUrlShortcuts();
       restoreSessionIfExists();
       renderFavorites();
+      renderRecentDestinations();
       initLeafletMap();
 
-      // AUTO-SINCRONIZACIÓN Y RE-ACTIVACIÓN DE WAKE LOCK AL VOLVER A LA APP
       document.addEventListener("visibilitychange", () => {
-        if (!document.hidden) {
-          if (state.isTripActive) {
-            requestWakeLock();
-            syncGpsPositionToClosestStop(); // ¡Auto-sincronización instantánea!
-          }
+        if (!document.hidden && state.isTripActive) {
+          requestWakeLock();
+          syncGpsPositionToClosestStop();
         }
       });
     });
+
+    // TEMA AUTOMÁTICO SEGÚN HORARIO (NOCHE DE 19:30 A 07:00)
+    function checkAutoTheme() {
+      const savedTheme = localStorage.getItem("appTheme");
+      if (savedTheme && savedTheme !== "auto") {
+        applyTheme(savedTheme);
+      } else {
+        const hour = new Date().getHours();
+        const isNight = hour >= 19 || hour < 7;
+        applyTheme(isNight ? "dark" : "light");
+      }
+    }
 
     function applyTheme(theme) {
       state.theme = theme;
       localStorage.setItem("appTheme", theme);
       const btn = document.getElementById("btnThemeToggle");
       if (theme === "light") {
+        document.body.classList.remove("light-mode"); // Corrección de inversión
         document.body.classList.add("light-mode");
         if (btn) btn.innerText = "🌙 Modo Oscuro";
       } else {
         document.body.classList.remove("light-mode");
         if (btn) btn.innerText = "☀️ Modo Claro";
+      }
+    }
+
+    function checkUrlShortcuts() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const dirParam = urlParams.get('dir');
+      if (dirParam && (dirParam === 'IDA' || dirParam === 'VUELTA')) {
+        state.direction = dirParam;
+        document.getElementById("selectDirection").value = dirParam;
+        ROUTE_STOPS = dirParam === 'IDA' ? STOPS_IDA : STOPS_VUELTA;
+        populateStopsDropdowns();
       }
     }
 
@@ -719,18 +753,11 @@
       if ("Notification" in window && Notification.permission !== "granted") {
         await Notification.requestPermission();
       }
-      
       try {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioContext.state === 'suspended') {
-          await audioContext.resume();
-        }
-      } catch (e) { console.log("Audio Web API no disponible", e); }
-
-      if ("vibrate" in navigator) {
-        navigator.vibrate([100]);
-      }
-
+        if (audioContext.state === 'suspended') await audioContext.resume();
+      } catch (e) {}
+      if ("vibrate" in navigator) navigator.vibrate([100]);
       checkPermissionsStatus();
     }
 
@@ -738,43 +765,31 @@
       try {
         if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
         if (audioContext.state === 'suspended') audioContext.resume();
-
         const osc = audioContext.createOscillator();
         const gain = audioContext.createGain();
-
         osc.type = 'sine';
         osc.frequency.setValueAtTime(freq, audioContext.currentTime);
-        
         gain.gain.setValueAtTime(0.3, audioContext.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
-
         osc.connect(gain);
         gain.connect(audioContext.destination);
-
         osc.start();
         osc.stop(audioContext.currentTime + duration);
-      } catch (e) { console.log("Error de audio", e); }
+      } catch (e) {}
     }
 
     function triggerSystemNotification(title, body, vibratePattern) {
-      if ("vibrate" in navigator && vibratePattern) {
-        navigator.vibrate(vibratePattern);
-      }
-
+      if ("vibrate" in navigator && vibratePattern) navigator.vibrate(vibratePattern);
       if ("Notification" in window && Notification.permission === "granted") {
         try {
-          new Notification(title, {
-            body: body,
-            icon: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-            tag: 'micro-litoral-alert'
-          });
-        } catch(e) { console.log("Error creando notificación push", e); }
+          new Notification(title, { body: body, icon: 'icon-192.png', tag: 'micro-litoral-alert' });
+        } catch(e) {}
       }
     }
 
     function initUI() {
       document.getElementById("btnThemeToggle").addEventListener("click", () => {
-        const nextTheme = state.theme === "light" ? "dark" : "light";
+        const nextTheme = document.body.classList.contains("light-mode") ? "dark" : "light";
         applyTheme(nextTheme);
       });
 
@@ -799,17 +814,14 @@
       document.getElementById("selectStartStop").addEventListener("change", (e) => {
         state.userTouchedStartStop = true;
         state.startStopId = e.target.value;
-
         const selectStart = document.getElementById("selectStartStop");
         const selectEnd = document.getElementById("selectEndStop");
-
         if (selectStart.selectedIndex >= selectEnd.selectedIndex) {
           if (selectStart.selectedIndex < selectEnd.options.length - 1) {
             selectEnd.selectedIndex = selectStart.selectedIndex + 1;
             state.endStopId = selectEnd.value;
           }
         }
-
         updateDepartureSchedule();
         updateSetupSummary();
       });
@@ -817,14 +829,12 @@
       document.getElementById("selectEndStop").addEventListener("change", (e) => {
         const selectStart = document.getElementById("selectStartStop");
         const selectEnd = document.getElementById("selectEndStop");
-
         if (selectEnd.selectedIndex <= selectStart.selectedIndex) {
           if (selectEnd.selectedIndex > 0) {
             selectStart.selectedIndex = selectEnd.selectedIndex - 1;
             state.startStopId = selectStart.value;
           }
         }
-
         state.endStopId = e.target.value;
         updateSetupSummary();
       });
@@ -843,6 +853,7 @@
 
       document.getElementById("btnStartTrip").addEventListener("click", () => {
         requestSystemPermissions();
+        addRecentDestination(state.endStopId);
         startTrip();
       });
       document.getElementById("btnCancelTrip").addEventListener("click", cancelTrip);
@@ -880,9 +891,7 @@
         doubleClickZoom: false, boxZoom: false, tap: false, zoomControl: false
       }).setView([-33.3605, -71.6649], 16);
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19, attribution: '© OSM'
-      }).addTo(realMap);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(realMap);
 
       const busIcon = L.divIcon({ html: '🚌', className: 'map-blue-bus-icon', iconSize: [26, 26] });
       const stopIcon = L.divIcon({ html: '📍', className: 'map-stop-icon', iconSize: [24, 24] });
@@ -894,7 +903,6 @@
     function updateHeaderGreeting(nearestStop) {
       const title = document.getElementById("headerGreeting");
       const sub = document.getElementById("headerSub");
-
       if (state.isTripActive) {
         title.innerText = `🚌 Viajando con ${state.userName}`;
         sub.innerText = state.isGpsLive ? "🟢 En Ruta | Señal Fuerte" : "⚠️ GPS Buscando Señal...";
@@ -914,7 +922,6 @@
     function populateStopsDropdowns() {
       const selectStart = document.getElementById("selectStartStop");
       const selectEnd = document.getElementById("selectEndStop");
-      
       selectStart.innerHTML = "";
       selectEnd.innerHTML = "";
 
@@ -925,7 +932,6 @@
 
       state.startStopId = ROUTE_STOPS[0].id;
       state.endStopId = ROUTE_STOPS[ROUTE_STOPS.length - 1].id;
-
       selectStart.value = state.startStopId;
       selectEnd.value = state.endStopId;
 
@@ -936,47 +942,71 @@
       const select = document.getElementById("activeChangeEndStop");
       select.innerHTML = "";
       const remaining = ROUTE_STOPS.slice(state.currentBaseIndex + 1);
-      
-      remaining.forEach(s => {
-        select.appendChild(new Option(s.name, s.id));
-      });
-
+      remaining.forEach(s => { select.appendChild(new Option(s.name, s.id)); });
       select.value = state.endStopId;
     }
 
     function updateSetupSummary() {
       const startObj = ROUTE_STOPS.find(s => s.id === state.startStopId);
       const endObj = ROUTE_STOPS.find(s => s.id === state.endStopId);
-
       if (!startObj || !endObj) return;
 
       const startIdx = ROUTE_STOPS.findIndex(s => s.id === state.startStopId);
       const endIdx = ROUTE_STOPS.findIndex(s => s.id === state.endStopId);
-
       const stopsCount = Math.max(0, endIdx - startIdx);
       const kmDist = Math.max(0.1, calculateDistanceKm(startObj.lat, startObj.lng, endObj.lat, endObj.lng) * 1.25);
       const estMins = Math.max(1, Math.round(Math.abs(endObj.stdMin - startObj.stdMin)));
 
       const now = new Date();
       const arrivalTime = new Date(now.getTime() + estMins * 60000);
-      const formattedTime = arrivalTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
-
-      document.getElementById("setupTripEta").innerText = `${formattedTime}`;
+      document.getElementById("setupTripEta").innerText = `${arrivalTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}`;
       document.getElementById("setupTripStops").innerText = `${stopsCount}`;
       document.getElementById("setupTripKm").innerText = `${kmDist.toFixed(1)}`;
     }
 
+    // HISTORIAL INTELIGENTE DE DESTINOS
+    function addRecentDestination(stopId) {
+      const stop = ROUTE_STOPS.find(s => s.id === stopId);
+      if (!stop) return;
+      state.recentDestinations = state.recentDestinations.filter(d => d.id !== stopId);
+      state.recentDestinations.unshift({ id: stop.id, name: stop.name, direction: state.direction });
+      if (state.recentDestinations.length > 4) state.recentDestinations.pop();
+      localStorage.setItem("recentDestinations", JSON.stringify(state.recentDestinations));
+      renderRecentDestinations();
+    }
+
+    function renderRecentDestinations() {
+      const container = document.getElementById("recentDestinationsChips");
+      const wrapper = document.getElementById("recentDestinationsContainer");
+      container.innerHTML = "";
+
+      if (state.recentDestinations.length === 0) {
+        wrapper.classList.add("hidden");
+        return;
+      }
+      wrapper.classList.remove("hidden");
+
+      state.recentDestinations.forEach(dest => {
+        const chip = document.createElement("button");
+        chip.className = "btn btn-secondary";
+        chip.style.cssText = "width: auto; padding: 6px 12px; font-size: 0.75rem; border-radius: 12px; background: rgba(56,189,248,0.1); border-color: rgba(56,189,248,0.3); color: var(--accent) !important;";
+        chip.innerText = `🎯 ${dest.name}`;
+        chip.addEventListener("click", () => {
+          state.direction = dest.direction;
+          document.getElementById("selectDirection").value = dest.direction;
+          ROUTE_STOPS = dest.direction === 'IDA' ? STOPS_IDA : STOPS_VUELTA;
+          populateStopsDropdowns();
+          document.getElementById("selectEndStop").value = dest.id;
+          state.endStopId = dest.id;
+          updateSetupSummary();
+        });
+        container.appendChild(chip);
+      });
+    }
+
     function saveFavoriteRoute() {
       const favName = document.getElementById("favNameInput").value.trim() || "Ruta Frecuente";
-      const newFav = {
-        id: Date.now(),
-        name: favName,
-        direction: state.direction,
-        startStopId: state.startStopId,
-        endStopId: state.endStopId
-      };
-
-      state.favorites.push(newFav);
+      state.favorites.push({ id: Date.now(), name: favName, direction: state.direction, startStopId: state.startStopId, endStopId: state.endStopId });
       localStorage.setItem("favorites", JSON.stringify(state.favorites));
       document.getElementById("favNameInput").value = "";
       renderFavorites();
@@ -985,12 +1015,10 @@
     function renderFavorites() {
       const container = document.getElementById("favoritesList");
       container.innerHTML = "";
-
       if (state.favorites.length === 0) {
         container.innerHTML = `<div style="font-size:0.75rem; color:var(--muted);">No has guardado rutas aún.</div>`;
         return;
       }
-
       state.favorites.forEach(fav => {
         const item = document.createElement("div");
         item.style.cssText = "background:rgba(255,255,255,0.03); padding:10px 14px; border-radius:12px; border:1px solid var(--glass-border); display:flex; justify-content:space-between; align-items:center;";
@@ -1004,7 +1032,7 @@
         item.querySelector("button").addEventListener("click", () => {
           state.direction = fav.direction;
           document.getElementById("selectDirection").value = fav.direction;
-          ROUTE_STOPS = state.direction === "IDA" ? STOPS_IDA : STOPS_VUELTA;
+          ROUTE_STOPS = state.direction === 'IDA' ? STOPS_IDA : STOPS_VUELTA;
           populateStopsDropdowns();
           document.getElementById("selectStartStop").value = fav.startStopId;
           state.startStopId = fav.startStopId;
@@ -1020,10 +1048,7 @@
 
     function saveActiveStateToStorage() {
       if (state.isTripActive) {
-        localStorage.setItem("activeTripState", JSON.stringify({
-          ...state,
-          tripStartTime: state.tripStartTime ? state.tripStartTime.toISOString() : null
-        }));
+        localStorage.setItem("activeTripState", JSON.stringify({ ...state, tripStartTime: state.tripStartTime ? state.tripStartTime.toISOString() : null }));
       } else {
         localStorage.removeItem("activeTripState");
       }
@@ -1036,190 +1061,127 @@
           const parsed = JSON.parse(saved);
           state = { ...state, ...parsed, tripStartTime: new Date(parsed.tripStartTime) };
           ROUTE_STOPS = state.direction === "IDA" ? STOPS_IDA : STOPS_VUELTA;
-          
           if (state.isTripActive) {
             document.getElementById("viewSetup").classList.add("hidden");
             document.getElementById("viewFavorites").classList.add("hidden");
             document.getElementById("viewActive").classList.remove("hidden");
             document.getElementById("floatingActionBar").classList.remove("hidden");
-            
             requestWakeLock();
             populateActiveChangeEndDropdown();
             initGPS();
             renderFixedMetroMap();
             updateHeaderGreeting(null);
           }
-        } catch(e) { console.error("Error restaurando sesión", e); }
+        } catch(e) {}
       }
     }
 
     function syncGpsPositionToClosestStop() {
       if (!navigator.geolocation) return;
-      
-      const statusTxt = document.getElementById("gpsStatusText");
-      if (statusTxt) statusTxt.innerText = "Sincronizando...";
-
       navigator.geolocation.getCurrentPosition((pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         state.lastLat = lat;
         state.lastLng = lng;
         setGpsLiveStatus(true);
-
-        if (realMap && busMarker) {
-          realMap.setView([lat, lng], 16);
-          busMarker.setLatLng([lat, lng]);
-        }
+        if (realMap && busMarker) { realMap.setView([lat, lng], 16); busMarker.setLatLng([lat, lng]); }
 
         let closestIdx = 0;
         let minDistance = Infinity;
-
         for (let i = 0; i < ROUTE_STOPS.length; i++) {
           const d = calculateDistanceKm(lat, lng, ROUTE_STOPS[i].lat, ROUTE_STOPS[i].lng);
-          if (d < minDistance) {
-            minDistance = d;
-            closestIdx = i;
-          }
+          if (d < minDistance) { minDistance = d; closestIdx = i; }
         }
-
         state.currentBaseIndex = closestIdx;
         state.minDistToTarget = Math.round(minDistance * 1000);
         state.atStop = (state.minDistToTarget <= 50);
         state.lastPassedTimestamp = new Date().getTime();
-        
         saveActiveStateToStorage();
         populateActiveChangeEndDropdown();
         renderFixedMetroMap();
         updateClockAndETA();
-      }, (err) => {
-        setGpsLiveStatus(false);
-      }, { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 });
+      }, () => { setGpsLiveStatus(false); }, { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 });
     }
 
     function updateDepartureSchedule() {
       const now = new Date();
       const currentMinOfDay = now.getHours() * 60 + now.getMinutes();
-      
       const startMinBus = state.direction === "IDA" ? (7 * 60 + 12) : (6 * 60 + 0);
       const lastMinBus = 21 * 60 + 30;
-
       const startObj = ROUTE_STOPS.find(s => s.id === state.startStopId);
       const offsetMinsToStop = Math.max(0, (startObj ? startObj.stdMin : 0));
 
       if (currentMinOfDay < startMinBus + offsetMinsToStop) {
         const nextPassMin = startMinBus + offsetMinsToStop;
-        const diff = Math.round(nextPassMin - currentMinOfDay);
         document.getElementById("setupServiceStatus").innerText = `Primer bus pasa a las ${Math.floor(nextPassMin/60)}:${String(Math.round(nextPassMin%60)).padStart(2,'0')} hrs`;
-        document.getElementById("setupNextDepartureMinutes").innerText = `En ${diff} min`;
+        document.getElementById("setupNextDepartureMinutes").innerText = `En ${Math.round(nextPassMin - currentMinOfDay)} min`;
       } else if (currentMinOfDay > lastMinBus + offsetMinsToStop) {
         document.getElementById("setupServiceStatus").innerText = "⚠️ Fuera de horario";
         document.getElementById("setupNextDepartureMinutes").innerText = "-- min";
       } else {
-        let nextDepartureFromOrigin = startMinBus;
-        while ((nextDepartureFromOrigin + offsetMinsToStop) <= currentMinOfDay && nextDepartureFromOrigin <= lastMinBus) {
-          nextDepartureFromOrigin += 15;
-        }
-        
-        const nextPassMin = nextDepartureFromOrigin + offsetMinsToStop;
-        const diffMins = Math.max(1, Math.round(nextPassMin - currentMinOfDay));
-
-        document.getElementById("setupNextDepartureMinutes").innerText = `En ${diffMins} min`;
+        let nextDep = startMinBus;
+        while ((nextDep + offsetMinsToStop) <= currentMinOfDay && nextDep <= lastMinBus) { nextDep += 15; }
+        const nextPassMin = nextDep + offsetMinsToStop;
+        document.getElementById("setupNextDepartureMinutes").innerText = `En ${Math.max(1, Math.round(nextPassMin - currentMinOfDay))} min`;
         document.getElementById("setupServiceStatus").innerText = `🟢 Frecuencia regular (~15 min)`;
       }
     }
 
     function calculateBearing(lat1, lon1, lat2, lon2) {
       const y = Math.sin((lon2 - lon1) * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180);
-      const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
-                Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos((lon2 - lon1) * Math.PI / 180);
-      const brng = Math.atan2(y, x) * 180 / Math.PI;
-      return (brng + 360) % 360;
+      const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) - Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos((lon2 - lon1) * Math.PI / 180);
+      return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
     }
 
     function updateCompass(userLat, userLng) {
       const startObj = ROUTE_STOPS.find(s => s.id === state.startStopId);
       if (!startObj) return;
-
-      const distKm = calculateDistanceKm(userLat, userLng, startObj.lat, startObj.lng);
-      const distMeters = Math.round(distKm * 1000);
-      const bearing = calculateBearing(userLat, userLng, startObj.lat, startObj.lng);
-
-      document.getElementById("compassArrow").style.transform = `rotate(${bearing}deg)`;
+      const distMeters = Math.round(calculateDistanceKm(userLat, userLng, startObj.lat, startObj.lng) * 1000);
+      document.getElementById("compassArrow").style.transform = `rotate(${calculateBearing(userLat, userLng, startObj.lat, startObj.lng)}deg)`;
       document.getElementById("compassTitle").innerText = `${startObj.name}`;
       document.getElementById("compassDesc").innerText = `A ${distMeters} m (Toca para mapa)`;
     }
 
     function openPedestrianModal() {
-      const modal = document.getElementById("pedestrianModal");
-      modal.classList.add("active");
-
+      document.getElementById("pedestrianModal").classList.add("active");
       if (!pedestrianMap) {
         pedestrianMap = L.map('pedestrianMap').setView([-33.3605, -71.6649], 17);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(pedestrianMap);
-
-        const personIcon = L.divIcon({ html: '🚶‍♂', className: 'map-person-icon', iconSize: [26, 26] });
-        const stopIcon = L.divIcon({ html: '📍', className: 'map-stop-icon', iconSize: [26, 26] });
-
-        pedestrianPersonMarker = L.marker([-33.3605, -71.6649], { icon: personIcon }).addTo(pedestrianMap);
-        pedestrianStopMarker = L.marker([-33.3605, -71.6649], { icon: stopIcon }).addTo(pedestrianMap);
+        pedestrianPersonMarker = L.marker([-33.3605, -71.6649], { icon: L.divIcon({ html: '🚶‍♂', className: 'map-person-icon', iconSize: [26, 26] }) }).addTo(pedestrianMap);
+        pedestrianStopMarker = L.marker([-33.3605, -71.6649], { icon: L.divIcon({ html: '📍', className: 'map-stop-icon', iconSize: [26, 26] }) }).addTo(pedestrianMap);
       }
-
       const startObj = ROUTE_STOPS.find(s => s.id === state.startStopId);
-      if (startObj && pedestrianStopMarker) {
-        pedestrianStopMarker.setLatLng([startObj.lat, startObj.lng]);
-      }
-
-      if (state.lastLat && state.lastLng && pedestrianPersonMarker) {
+      if (startObj) pedestrianStopMarker.setLatLng([startObj.lat, startObj.lng]);
+      if (state.lastLat && state.lastLng) {
         pedestrianPersonMarker.setLatLng([state.lastLat, state.lastLng]);
         pedestrianMap.fitBounds([[state.lastLat, state.lastLng], [startObj.lat, startObj.lng]], { padding: [40, 40] });
       }
-
       setTimeout(() => { pedestrianMap.invalidateSize(); }, 300);
     }
 
     function initPassiveGPS() {
       if ("geolocation" in navigator) {
-        navigator.geolocation.watchPosition(
-          (pos) => {
-            const lat = pos.coords.latitude;
-            const lng = pos.coords.longitude;
-            state.lastLat = lat;
-            state.lastLng = lng;
-
-            if (!state.isTripActive) {
-              updateCompass(lat, lng);
-
-              if (pedestrianPersonMarker && pedestrianMap) {
-                pedestrianPersonMarker.setLatLng([lat, lng]);
-                const startObj = ROUTE_STOPS.find(s => s.id === state.startStopId);
-                if (startObj) {
-                  const d = Math.round(calculateDistanceKm(lat, lng, startObj.lat, startObj.lng) * 1000);
-                  document.getElementById("pedestrianStatus").innerText = `Avanzando hacia ${startObj.name} (${d} m)`;
-                }
+        navigator.geolocation.watchPosition((pos) => {
+          state.lastLat = pos.coords.latitude;
+          state.lastLng = pos.coords.longitude;
+          if (!state.isTripActive) {
+            updateCompass(state.lastLat, state.lastLng);
+            if (pedestrianPersonMarker && pedestrianMap) pedestrianPersonMarker.setLatLng([state.lastLat, state.lastLng]);
+            let nearestStop = null, minDist = 999;
+            ROUTE_STOPS.forEach((s) => {
+              const d = calculateDistanceKm(state.lastLat, state.lastLng, s.lat, s.lng);
+              if (d < minDist) { minDist = d; nearestStop = s; }
+            });
+            if (minDist <= 0.20) {
+              updateHeaderGreeting(nearestStop);
+              if (!state.userTouchedStartStop) {
+                state.currentBaseIndex = ROUTE_STOPS.findIndex(s => s.id === nearestStop.id);
+                document.getElementById("selectStartStop").value = nearestStop.id;
+                state.startStopId = nearestStop.id;
               }
-
-              let nearestStop = null;
-              let minDist = 999;
-              ROUTE_STOPS.forEach((s) => {
-                const d = calculateDistanceKm(lat, lng, s.lat, s.lng);
-                if (d < minDist) { minDist = d; nearestStop = s; }
-              });
-
-              if (minDist <= 0.20) {
-                updateHeaderGreeting(nearestStop);
-                if (!state.userTouchedStartStop) {
-                  state.currentBaseIndex = ROUTE_STOPS.findIndex(s => s.id === nearestStop.id);
-                  document.getElementById("selectStartStop").value = nearestStop.id;
-                  state.startStopId = nearestStop.id;
-                }
-              } else {
-                updateHeaderGreeting(null);
-              }
-            }
-          },
-          () => { updateHeaderGreeting(null); },
-          { enableHighAccuracy: true, maximumAge: 2000, timeout: 5000 }
-        );
+            } else { updateHeaderGreeting(null); }
+          }
+        }, () => {}, { enableHighAccuracy: true, maximumAge: 2000, timeout: 5000 });
       }
     }
 
@@ -1227,7 +1189,6 @@
       state.isGpsLive = isLive;
       const dot = document.getElementById("gpsPulseDot");
       const txt = document.getElementById("gpsStatusText");
-
       if (isLive) {
         dot.className = "pulse-dot pulse-green";
         txt.innerText = "En Vivo";
@@ -1253,11 +1214,9 @@
 
       state.startStopId = document.getElementById("selectStartStop").value;
       state.endStopId = document.getElementById("selectEndStop").value;
-      
       const baseIndex = ROUTE_STOPS.findIndex(s => s.id === state.startStopId);
       state.currentBaseIndex = baseIndex !== -1 ? baseIndex : 0;
-      
-      state.atStop = true; 
+      state.atStop = true;
       state.minDistToTarget = 0;
       state.lastPassedTimestamp = new Date().getTime();
 
@@ -1266,7 +1225,7 @@
       document.getElementById("viewActive").classList.remove("hidden");
       document.getElementById("floatingActionBar").classList.remove("hidden");
 
-      requestWakeLock(); // Activa Wake Lock API
+      requestWakeLock();
       populateActiveChangeEndDropdown();
       saveActiveStateToStorage();
       initGPS();
@@ -1276,264 +1235,195 @@
 
     function calculateDistanceKm(lat1, lon1, lat2, lon2) {
       const R = 6371;
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLon/2) * Math.sin(dLon/2);
+      const dLat = (lat2 - lat1) * Math.PI / 180, dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
       return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     }
 
     function updateUnifiedAlertPanel(type, title, desc, icon) {
       const panel = document.getElementById("unifiedAlertPanel");
-      const alertTitle = document.getElementById("alertTitle");
-      const alertDesc = document.getElementById("alertDesc");
-      const alertIcon = document.getElementById("alertIcon");
-
       panel.className = "alert-panel";
       if (type === "speed") panel.classList.add("alert-speed");
       else if (type === "stop") panel.classList.add("alert-stop");
       else if (type === "drop") panel.classList.add("alert-drop");
       else panel.classList.add("alert-normal");
-
-      alertTitle.innerText = title;
-      alertDesc.innerText = desc;
-      alertIcon.innerText = icon || "🔔";
+      document.getElementById("alertTitle").innerText = title;
+      document.getElementById("alertDesc").innerText = desc;
+      document.getElementById("alertIcon").innerText = icon || "🔔";
     }
 
-    // PUNTO 1: FILTRO DE ANOMALÍAS (SANITIZACIÓN DE TIEMPO)
     function recordHistoryAndAdvance(nowMs, targetStopIndex) {
-        if (state.lastPassedTimestamp) {
-            const prevStop = ROUTE_STOPS[targetStopIndex - 1];
-            const reachedStop = ROUTE_STOPS[targetStopIndex];
-            if (prevStop && reachedStop) {
-                const segKey = `${prevStop.id}_${reachedStop.id}`;
-                const elapsedMins = (nowMs - state.lastPassedTimestamp) / 60000;
-                
-                // Si tardó más de 15 minutos en un solo tramo, se asume suspensión/anomalía y SE DESCARTA
-                if (elapsedMins > 0.3 && elapsedMins <= 15) {
-                    if (!state.segmentHistory[segKey]) state.segmentHistory[segKey] = [];
-                    state.segmentHistory[segKey].push(elapsedMins);
-                    if (state.segmentHistory[segKey].length > 3) state.segmentHistory[segKey].shift();
-                    localStorage.setItem("segmentHistory", JSON.stringify(state.segmentHistory));
-                }
-            }
+      if (state.lastPassedTimestamp) {
+        const prevStop = ROUTE_STOPS[targetStopIndex - 1];
+        const reachedStop = ROUTE_STOPS[targetStopIndex];
+        if (prevStop && reachedStop) {
+          const segKey = `${prevStop.id}_${reachedStop.id}`;
+          const elapsedMins = (nowMs - state.lastPassedTimestamp) / 60000;
+          if (elapsedMins > 0.3 && elapsedMins <= 15) {
+            if (!state.segmentHistory[segKey]) state.segmentHistory[segKey] = [];
+            state.segmentHistory[segKey].push(elapsedMins);
+            if (state.segmentHistory[segKey].length > 3) state.segmentHistory[segKey].shift();
+            localStorage.setItem("segmentHistory", JSON.stringify(state.segmentHistory));
+          }
         }
+      }
     }
 
     function initGPS() {
       if ("geolocation" in navigator) {
-        state.watchPositionId = navigator.geolocation.watchPosition(
-          (pos) => {
-            setGpsLiveStatus(true);
-            state.lastLat = pos.coords.latitude;
-            state.lastLng = pos.coords.longitude;
-            const speedKmH = pos.coords.speed ? (pos.coords.speed * 3.6) : 0;
-            
-            state.currentSpeed = Math.round(speedKmH);
-            document.getElementById("gpsCurrentSpeed").innerText = `${state.currentSpeed}`;
+        state.watchPositionId = navigator.geolocation.watchPosition((pos) => {
+          setGpsLiveStatus(true);
+          state.lastLat = pos.coords.latitude;
+          state.lastLng = pos.coords.longitude;
+          state.currentSpeed = Math.round(pos.coords.speed ? (pos.coords.speed * 3.6) : 0);
+          document.getElementById("gpsCurrentSpeed").innerText = `${state.currentSpeed}`;
 
-            if (state.currentSpeed > 0) {
-              state.sumSpeedReadings += state.currentSpeed;
-              state.totalSpeedReadings++;
-              state.avgSpeed = Math.round(state.sumSpeedReadings / state.totalSpeedReadings);
-              document.getElementById("gpsAvgSpeed").innerText = `${state.avgSpeed}`;
-            }
-
-            if (realMap) {
-              realMap.setView([state.lastLat, state.lastLng], 16);
-              if (busMarker) busMarker.setLatLng([state.lastLat, state.lastLng]);
-            }
-
-            let targetStop = ROUTE_STOPS[state.currentBaseIndex];
-            if (!targetStop) return;
-
-            let distToTarget = Math.round(calculateDistanceKm(state.lastLat, state.lastLng, targetStop.lat, targetStop.lng) * 1000);
-
-            if (typeof state.minDistToTarget === 'undefined') state.minDistToTarget = distToTarget;
-            state.minDistToTarget = Math.min(state.minDistToTarget, distToTarget);
-
-            const nowMs = new Date().getTime();
-
-            if (state.atStop) {
-                if (distToTarget > 50) {
-                    state.atStop = false;
-                    state.lastPassedTimestamp = nowMs;
-                    state.currentBaseIndex++;
-                    state.minDistToTarget = Infinity;
-                    saveActiveStateToStorage();
-                    populateActiveChangeEndDropdown();
-                }
+          // MEJORA 4: PULSO DE TRÁFICO ANIMADO EN EL BUS (Ambar si < 5 km/h, Azul/Celeste si en marcha)
+          const busEl = document.querySelector('.map-blue-bus-icon');
+          if (busEl) {
+            if (state.currentSpeed < 5) {
+              busEl.style.background = 'var(--warning)';
+              busEl.style.boxShadow = '0 0 15px var(--warning)';
             } else {
-                if (distToTarget <= 50) {
-                    state.atStop = true;
-                    recordHistoryAndAdvance(nowMs, state.currentBaseIndex);
-                    saveActiveStateToStorage();
-                } else if (state.minDistToTarget < 250 && distToTarget > state.minDistToTarget + 40) {
-                    recordHistoryAndAdvance(nowMs, state.currentBaseIndex);
-                    state.lastPassedTimestamp = nowMs;
-                    state.currentBaseIndex++;
-                    state.minDistToTarget = Infinity;
-                    saveActiveStateToStorage();
-                    populateActiveChangeEndDropdown();
-                }
+              busEl.style.background = 'var(--blue-bus)';
+              busEl.style.boxShadow = '0 0 15px var(--accent)';
             }
+          }
 
-            targetStop = ROUTE_STOPS[state.currentBaseIndex];
-            if (!targetStop) return;
-            distToTarget = Math.round(calculateDistanceKm(state.lastLat, state.lastLng, targetStop.lat, targetStop.lng) * 1000);
+          if (state.currentSpeed > 0) {
+            state.sumSpeedReadings += state.currentSpeed;
+            state.totalSpeedReadings++;
+            state.avgSpeed = Math.round(state.sumSpeedReadings / state.totalSpeedReadings);
+            document.getElementById("gpsAvgSpeed").innerText = `${state.avgSpeed}`;
+          }
 
-            const dynamicLabel = document.getElementById("stopDynamicLabel");
-            const distanceContainer = document.getElementById("activeNextStopDistance");
-            document.getElementById("activeNextStopName").innerText = targetStop.name;
-            
-            if (realMap && nextStopMarker) {
-                nextStopMarker.setLatLng([targetStop.lat, targetStop.lng]);
+          if (realMap) { realMap.setView([state.lastLat, state.lastLng], 16); if (busMarker) busMarker.setLatLng([state.lastLat, state.lastLng]); }
+
+          let targetStop = ROUTE_STOPS[state.currentBaseIndex];
+          if (!targetStop) return;
+          let distToTarget = Math.round(calculateDistanceKm(state.lastLat, state.lastLng, targetStop.lat, targetStop.lng) * 1000);
+
+          if (typeof state.minDistToTarget === 'undefined') state.minDistToTarget = distToTarget;
+          state.minDistToTarget = Math.min(state.minDistToTarget, distToTarget);
+          const nowMs = new Date().getTime();
+
+          if (state.atStop) {
+            if (distToTarget > 50) {
+              state.atStop = false;
+              state.lastPassedTimestamp = nowMs;
+              state.currentBaseIndex++;
+              state.minDistToTarget = Infinity;
+              saveActiveStateToStorage();
+              populateActiveChangeEndDropdown();
             }
-
-            if (state.atStop) {
-                dynamicLabel.innerText = "🛑 ESTÁS EN LA PARADA";
-                dynamicLabel.style.color = "var(--success)";
-                distanceContainer.innerText = "";
-            } else if (distToTarget <= 150) {
-                dynamicLabel.innerText = "⚠️ LLEGANDO A LA PARADA";
-                dynamicLabel.style.color = "var(--warning)";
-                distanceContainer.innerText = `${distToTarget} m`;
-            } else {
-                dynamicLabel.innerText = "➡ PRÓXIMA PARADA";
-                dynamicLabel.style.color = "var(--muted)";
-                distanceContainer.innerText = `+${distToTarget} m`;
+          } else {
+            if (distToTarget <= 50) {
+              state.atStop = true;
+              recordHistoryAndAdvance(nowMs, state.currentBaseIndex);
+              saveActiveStateToStorage();
+            } else if (state.minDistToTarget < 250 && distToTarget > state.minDistToTarget + 40) {
+              recordHistoryAndAdvance(nowMs, state.currentBaseIndex);
+              state.lastPassedTimestamp = nowMs;
+              state.currentBaseIndex++;
+              state.minDistToTarget = Infinity;
+              saveActiveStateToStorage();
+              populateActiveChangeEndDropdown();
             }
+          }
 
-            const endIndex = ROUTE_STOPS.findIndex(s => s.id === state.endStopId);
-            const stopsRemaining = Math.max(0, endIndex - state.currentBaseIndex);
-            const destStopName = ROUTE_STOPS[endIndex] ? ROUTE_STOPS[endIndex].name : "tu destino";
+          targetStop = ROUTE_STOPS[state.currentBaseIndex];
+          if (!targetStop) return;
+          distToTarget = Math.round(calculateDistanceKm(state.lastLat, state.lastLng, targetStop.lat, targetStop.lng) * 1000);
 
-            if (stopsRemaining === 2 && !state.alert2StopsTriggered) {
-              state.alert2StopsTriggered = true;
-              playAlertBeep(440, 0.3);
-              triggerSystemNotification("🔔 FALTAN 2 PARADAS", `Prepárate para bajar en: ${destStopName}`, [200, 100, 200]);
-            } else if (stopsRemaining === 1 && !state.alert1StopTriggered) {
-              state.alert1StopTriggered = true;
-              playAlertBeep(660, 0.5);
-              triggerSystemNotification("⚠️ ¡ATENCIÓN! PRÓXIMA PARADA", `Te bajas en la siguiente parada: ${destStopName}`, [400, 150, 400]);
-            } else if (stopsRemaining === 0 && state.atStop && !state.alertArrivedTriggered) {
-              state.alertArrivedTriggered = true;
-              playAlertBeep(880, 0.8);
-              triggerSystemNotification("📍 ¡LLEGASTE A TU DESTINO!", `¡Bájate aquí en: ${destStopName}!`, [500, 200, 500, 200, 500]);
-            }
+          const dynamicLabel = document.getElementById("stopDynamicLabel");
+          const distanceContainer = document.getElementById("activeNextStopDistance");
+          document.getElementById("activeNextStopName").innerText = targetStop.name;
+          if (realMap && nextStopMarker) nextStopMarker.setLatLng([targetStop.lat, targetStop.lng]);
 
-            if (state.currentSpeed > 55) {
-              updateUnifiedAlertPanel("speed", "Exceso de velocidad (>55 km/h)", "El vehículo supera el límite de seguridad.", "⚠️");
-              if (!state.isCurrentlySpeeding) {
-                state.speedingEventsCount++;
-                state.isCurrentlySpeeding = true;
-              }
-            } else if (stopsRemaining === 0) {
-              updateUnifiedAlertPanel("drop", `¡Llegaste! (${destStopName})`, "Has llegado a tu destino. Presiona Terminar.", "📍");
-            } else if (stopsRemaining === 1) {
-              updateUnifiedAlertPanel("speed", `Prepárate para bajar`, `Destino: ${destStopName}`, "⚠️");
-            } else if (stopsRemaining === 2) {
-              updateUnifiedAlertPanel("stop", `Faltan 2 Paradas`, `Atento a: ${destStopName}`, "🔔");
-            } else if (state.currentSpeed === 0 && state.atStop) {
-              updateUnifiedAlertPanel("stop", "Bus Detenido", `Tomando pasajeros en ${targetStop.name}`, "🛑");
-            } else if (state.currentSpeed <= 55) {
-              updateUnifiedAlertPanel("normal", "En Ruta", `Faltan ${stopsRemaining} paradas.`, "🟢");
-              state.isCurrentlySpeeding = false;
-            }
+          if (state.atStop) {
+            dynamicLabel.innerText = "🛑 ESTÁS EN LA PARADA"; dynamicLabel.style.color = "var(--success)"; distanceContainer.innerText = "";
+          } else if (distToTarget <= 150) {
+            dynamicLabel.innerText = "⚠️ LLEGANDO A LA PARADA"; dynamicLabel.style.color = "var(--warning)"; distanceContainer.innerText = `${distToTarget} m`;
+          } else {
+            dynamicLabel.innerText = "➡ PRÓXIMA PARADA"; dynamicLabel.style.color = "var(--muted)"; distanceContainer.innerText = `+${distToTarget} m`;
+          }
 
-            renderFixedMetroMap();
-          },
-          () => { setGpsLiveStatus(false); },
-          { enableHighAccuracy: true, maximumAge: 2000, timeout: 5000 }
-        );
-      } else { setGpsLiveStatus(false); }
+          const endIndex = ROUTE_STOPS.findIndex(s => s.id === state.endStopId);
+          const stopsRemaining = Math.max(0, endIndex - state.currentBaseIndex);
+          const destStopName = ROUTE_STOPS[endIndex] ? ROUTE_STOPS[endIndex].name : "tu destino";
+
+          if (stopsRemaining === 2 && !state.alert2StopsTriggered) {
+            state.alert2StopsTriggered = true; playAlertBeep(440, 0.3); triggerSystemNotification("🔔 FALTAN 2 PARADAS", `Prepárate para bajar en: ${destStopName}`, [200, 100, 200]);
+          } else if (stopsRemaining === 1 && !state.alert1StopTriggered) {
+            state.alert1StopTriggered = true; playAlertBeep(660, 0.5); triggerSystemNotification("⚠️ ¡ATENCIÓN! PRÓXIMA PARADA", `Te bajas en la siguiente parada: ${destStopName}`, [400, 150, 400]);
+          } else if (stopsRemaining === 0 && state.atStop && !state.alertArrivedTriggered) {
+            state.alertArrivedTriggered = true; playAlertBeep(880, 0.8); triggerSystemNotification("📍 ¡LLEGASTE A TU DESTINO!", `¡Bájate aquí en: ${destStopName}!`, [500, 200, 500, 200, 500]);
+          }
+
+          if (state.currentSpeed > 55) {
+            updateUnifiedAlertPanel("speed", "Exceso de velocidad (>55 km/h)", "El vehículo supera el límite de seguridad.", "⚠️");
+          } else if (stopsRemaining === 0) {
+            updateUnifiedAlertPanel("drop", `¡Llegaste! (${destStopName})`, "Has llegado a tu destino. Presiona Terminar.", "📍");
+          } else if (state.currentSpeed === 0 && state.atStop) {
+            updateUnifiedAlertPanel("stop", "Bus Detenido", `Tomando pasajeros en ${targetStop.name}`, "🛑");
+          } else {
+            updateUnifiedAlertPanel("normal", "En Ruta", `Faltan ${stopsRemaining} paradas.`, "🟢");
+          }
+
+          renderFixedMetroMap();
+        }, () => { setGpsLiveStatus(false); }, { enableHighAccuracy: true, maximumAge: 2000, timeout: 5000 });
+      }
     }
 
     function updateClockAndETA() {
-      if (!state.isTripActive) {
-        updateDepartureSchedule();
-        return;
-      }
-
+      if (!state.isTripActive) { updateDepartureSchedule(); return; }
       const endObj = ROUTE_STOPS.find(s => s.id === state.endStopId);
       const currObj = ROUTE_STOPS[state.currentBaseIndex];
-
       const endIndex = ROUTE_STOPS.findIndex(s => s.id === state.endStopId);
       let stopsRemaining = Math.max(0, endIndex - state.currentBaseIndex);
-
-      let kmLeft = 0;
-      if (currObj && endObj) {
-        kmLeft = Math.max(0.1, calculateDistanceKm(currObj.lat, currObj.lng, endObj.lat, endObj.lng) * 1.25);
-      }
+      let kmLeft = currObj && endObj ? Math.max(0.1, calculateDistanceKm(currObj.lat, currObj.lng, endObj.lat, endObj.lng) * 1.25) : 0;
 
       let minsLeft = 0;
       for (let i = state.currentBaseIndex; i < endIndex; i++) {
         const segKey = `${ROUTE_STOPS[i].id}_${ROUTE_STOPS[i+1].id}`;
         const historyArr = state.segmentHistory[segKey];
         if (historyArr && historyArr.length >= 1) {
-          const avgHist = historyArr.reduce((a, b) => a + b, 0) / historyArr.length;
-          minsLeft += avgHist;
+          minsLeft += (historyArr.reduce((a, b) => a + b, 0) / historyArr.length);
         } else {
           minsLeft += Math.abs(ROUTE_STOPS[i+1].stdMin - ROUTE_STOPS[i].stdMin);
         }
       }
 
       minsLeft = Math.round(minsLeft);
-      const now = new Date();
-      const etaTime = new Date(now.getTime() + minsLeft * 60000);
-      const etaFormatted = etaTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
-
-      document.getElementById("etaBoxTime").innerText = `${etaFormatted}`;
+      const etaTime = new Date(new Date().getTime() + minsLeft * 60000);
+      document.getElementById("etaBoxTime").innerText = `${etaTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}`;
       document.getElementById("etaStopsLeft").innerText = stopsRemaining;
       document.getElementById("etaKmLeft").innerText = `${kmLeft.toFixed(1)}`;
-
-      const hrs = Math.floor(minsLeft / 60);
-      const mins = minsLeft % 60;
-      document.getElementById("etaTimeLeft").innerText = hrs > 0 ? `${hrs}h ${mins}m` : `${mins} min`;
-
-      const elapsedMins = Math.max(1, Math.round((now - state.tripStartTime) / 60000));
-      document.getElementById("segmentTime").innerText = `${elapsedMins}`;
+      document.getElementById("etaTimeLeft").innerText = minsLeft >= 60 ? `${Math.floor(minsLeft/60)}h ${minsLeft%60}m` : `${minsLeft} min`;
+      document.getElementById("segmentTime").innerText = `${Math.max(1, Math.round((new Date() - state.tripStartTime) / 60000))}`;
     }
 
     function renderFixedMetroMap() {
       const container = document.getElementById("metroFixedNodes");
       const fill = document.getElementById("metroFixedLineFill");
       container.innerHTML = "";
-
       const total = ROUTE_STOPS.length;
       const displayIndex = state.atStop ? state.currentBaseIndex : Math.max(0, state.currentBaseIndex - 1);
+      let startIndex = Math.max(0, displayIndex - 3), endIndex = Math.min(total - 1, displayIndex + 3);
+      if (displayIndex < 3) endIndex = Math.min(total - 1, 6);
+      else if (displayIndex > total - 4) startIndex = Math.max(0, total - 7);
 
-      let startIndex = Math.max(0, displayIndex - 3);
-      let endIndex = Math.min(total - 1, displayIndex + 3);
-
-      if (displayIndex < 3) {
-        endIndex = Math.min(total - 1, 6);
-      } else if (displayIndex > total - 4) {
-        startIndex = Math.max(0, total - 7);
-      }
-
-      const visibleStops = ROUTE_STOPS.slice(startIndex, endIndex + 1);
-
-      visibleStops.forEach((s) => {
+      ROUTE_STOPS.slice(startIndex, endIndex + 1).forEach((s) => {
         const globalIdx = ROUTE_STOPS.findIndex(item => item.id === s.id);
         const node = document.createElement("div");
         node.className = "metro-fixed-node";
-
         if (globalIdx < displayIndex) node.classList.add("visited");
         if (globalIdx === displayIndex) node.classList.add("current");
         if (s.id === state.endStopId) node.classList.add("destination");
-
-        node.innerHTML = `
-          <div class="metro-fixed-circle"></div>
-          <div class="metro-fixed-label">${s.name}</div>
-        `;
+        node.innerHTML = `<div class="metro-fixed-circle"></div><div class="metro-fixed-label">${s.name}</div>`;
         container.appendChild(node);
       });
-
-      const currLocalIdx = visibleStops.findIndex(s => s.id === ROUTE_STOPS[displayIndex].id);
-      const fillPct = (currLocalIdx / (visibleStops.length - 1)) * 100;
-      fill.style.width = `${Math.min(100, Math.max(0, fillPct))}%`;
+      fill.style.width = `${Math.min(100, Math.max(0, (ROUTE_STOPS.slice(startIndex, endIndex + 1).findIndex(s => s.id === ROUTE_STOPS[displayIndex].id) / (endIndex - startIndex)) * 100))}%`;
     }
 
     function cancelTrip() {
@@ -1546,15 +1436,10 @@
 
     function finishTrip() {
       const endObj = ROUTE_STOPS[state.currentBaseIndex] || ROUTE_STOPS.find(s => s.id === state.endStopId);
-
       const toast = document.getElementById("toastNotification");
-      const msg = document.getElementById("toastMessage");
-      msg.innerText = `Te bajaste en: ${endObj ? endObj.name : 'tu destino'}.`;
-
+      document.getElementById("toastMessage").innerText = `Te bajaste en: ${endObj ? endObj.name : 'tu destino'}.`;
       toast.classList.add("active");
-      setTimeout(() => {
-        toast.classList.remove("active");
-      }, 4000);
+      setTimeout(() => { toast.classList.remove("active"); }, 4000);
 
       if (state.watchPositionId) navigator.geolocation.clearWatch(state.watchPositionId);
       releaseWakeLock();
@@ -1573,21 +1458,6 @@
       updateHeaderGreeting(null);
       updateSetupSummary();
     }
-    // Detector de actualizaciones automáticas de Service Worker
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').then((registration) => {
-    registration.addEventListener('updatefound', () => {
-      const newWorker = registration.installing;
-      newWorker.addEventListener('statechange', () => {
-        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          // Hay una nueva versión lista: recargamos la página automáticamente para aplicarla
-          console.log("Nueva versión detectada. Actualizando app...");
-          window.location.reload();
-        }
-      });
-    });
-  });
-}
   </script>
 </body>
 </html>
