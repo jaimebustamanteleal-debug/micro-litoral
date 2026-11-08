@@ -1,4 +1,4 @@
-const CACHE_NAME = 'micro-litoral-v4.3.1';
+const CACHE_NAME = 'micro-litoral-v4.4.0';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -7,7 +7,6 @@ const ASSETS_TO_CACHE = [
   './icon-512.png'
 ];
 
-// 1. Instalar y saltar la espera de inmediato
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -16,7 +15,6 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// 2. Activar y limpiar cachés anteriores al instante
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -31,7 +29,6 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// 3. Estrategia de red con respaldo en caché
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
@@ -52,7 +49,6 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// 4. Notificaciones Push y Geocercas Nativas
 self.addEventListener('push', (event) => {
   let data = { title: 'Micro Litoral GPS', body: '¡Atención! Tu parada está cerca.' };
   if (event.data) {
