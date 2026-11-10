@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Micro Litoral GPS v4.4.0</title>
+  <title>Micro Litoral GPS v4.5.0</title>
   <meta name="theme-color" content="#020617">
   <link rel="manifest" href="./manifest.json">
   
@@ -12,31 +12,33 @@
 
   <style>
     :root {
-      --bg-gradient: linear-gradient(135deg, #020617 0%, #0f172a 100%);
-      --glass-bg: rgba(30, 41, 59, 0.4);
-      --glass-border: rgba(255, 255, 255, 0.08);
-      --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+      --bg-gradient: radial-gradient(circle at top, #0f172a 0%, #020617 100%);
+      --glass-bg: rgba(30, 41, 59, 0.55);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --glass-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
       --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.4);
       --text: #f8fafc;
       --muted: #94a3b8;
       --success: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
-      --purple: #a855f7;
+      --purple: #c084fc;
       --blue-bus: #3b82f6;
-      --input-bg: rgba(15, 23, 42, 0.6);
+      --input-bg: rgba(15, 23, 42, 0.7);
       --map-bg: #0b1329;
     }
 
     body.light-mode {
-      --bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-      --glass-bg: rgba(255, 255, 255, 0.6);
-      --glass-border: rgba(0, 0, 0, 0.05);
-      --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+      --bg-gradient: radial-gradient(circle at top, #f8fafc 0%, #e2e8f0 100%);
+      --glass-bg: rgba(255, 255, 255, 0.8);
+      --glass-border: rgba(0, 0, 0, 0.08);
+      --glass-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.12);
       --accent: #0284c7;
+      --accent-glow: rgba(2, 132, 199, 0.3);
       --text: #0f172a;
       --muted: #64748b;
-      --input-bg: rgba(255, 255, 255, 0.8);
+      --input-bg: rgba(255, 255, 255, 0.9);
       --map-bg: #e5e7eb;
     }
 
@@ -45,7 +47,7 @@
     body { 
       background: var(--bg-gradient); 
       color: var(--text); 
-      padding: 16px 12px 100px 12px;
+      padding: 16px 12px 110px 12px;
       display: flex; flex-direction: column; align-items: center; 
       min-height: 100vh; 
       background-attachment: fixed;
@@ -55,46 +57,48 @@
     .app-container { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 16px; position: relative; }
 
     .top-bar { display: flex; justify-content: flex-end; width: 100%; margin-bottom: -8px; }
-    .theme-toggle-btn { background: var(--glass-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--glass-border); color: var(--text); padding: 8px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; cursor: pointer; box-shadow: var(--glass-shadow); }
+    .theme-toggle-btn { background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--glass-border); color: var(--text); padding: 8px 16px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; cursor: pointer; box-shadow: var(--glass-shadow); transition: transform 0.2s; }
+    .theme-toggle-btn:active { transform: scale(0.95); }
 
-    header { background: transparent; text-align: center; padding: 10px 0; }
-    header h1 { font-size: 1.4rem; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
-    header p { font-size: 0.85rem; color: var(--accent); font-weight: 600; margin-top: 4px; }
+    header { background: transparent; text-align: center; padding: 6px 0; }
+    header h1 { font-size: 1.5rem; font-weight: 900; color: var(--text); letter-spacing: -0.5px; }
+    header p { font-size: 0.85rem; color: var(--accent); font-weight: 700; margin-top: 4px; }
 
     .glass-card { 
       background: var(--glass-bg); 
-      backdrop-filter: blur(12px); 
-      -webkit-backdrop-filter: blur(12px); 
+      backdrop-filter: blur(16px); 
+      -webkit-backdrop-filter: blur(16px); 
       border: 1px solid var(--glass-border); 
-      border-radius: 24px; 
+      border-radius: 26px; 
       padding: 20px; 
       box-shadow: var(--glass-shadow); 
       display: flex; flex-direction: column; gap: 14px; 
     }
     
-    .card-title { font-size: 0.85rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+    .card-title { font-size: 0.8rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 1.2px; }
 
-    label { font-size: 0.75rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-    select, input { background: var(--input-bg); border: 1px solid var(--glass-border); color: var(--text); padding: 14px; border-radius: 12px; font-size: 0.95rem; width: 100%; outline: none; font-weight: 600; backdrop-filter: blur(4px); }
-    select:focus, input:focus { border-color: var(--accent); }
+    label { font-size: 0.75rem; color: var(--muted); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+    select, input { background: var(--input-bg); border: 1px solid var(--glass-border); color: var(--text); padding: 14px; border-radius: 14px; font-size: 0.95rem; width: 100%; outline: none; font-weight: 600; backdrop-filter: blur(6px); transition: border-color 0.2s; }
+    select:focus, input:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
 
-    .btn { background: var(--accent); color: #ffffff; border: none; padding: 16px; border-radius: 16px; font-size: 1.05rem; font-weight: 800; cursor: pointer; text-align: center; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3); transition: all 0.2s; }
+    .btn { background: var(--accent); color: #ffffff; border: none; padding: 16px; border-radius: 16px; font-size: 1.05rem; font-weight: 800; cursor: pointer; text-align: center; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 6px 20px var(--accent-glow); transition: all 0.2s; }
     body:not(.light-mode) .btn { color: #020617; }
     .btn:active { transform: scale(0.97); }
     
-    .btn-secondary { background: rgba(255,255,255,0.05); color: var(--text) !important; border: 1px solid var(--glass-border); box-shadow: none; backdrop-filter: blur(8px); }
+    .btn-secondary { background: rgba(255,255,255,0.06); color: var(--text) !important; border: 1px solid var(--glass-border); box-shadow: none; backdrop-filter: blur(8px); }
     .btn-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger) !important; border: 1px solid rgba(239, 68, 68, 0.3); box-shadow: none; }
 
     .permission-box { background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
     .disclaimer-box { background: transparent; border-radius: 10px; padding: 10px; font-size: 0.68rem; color: var(--muted); text-align: center; line-height: 1.4; opacity: 0.6; }
 
-    .compass-box { background: var(--input-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 16px; display: flex; align-items: center; gap: 16px; cursor: pointer; }
+    .compass-box { background: var(--input-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 16px; display: flex; align-items: center; gap: 16px; cursor: pointer; transition: border-color 0.2s; }
+    .compass-box:hover { border-color: var(--accent); }
     .compass-arrow { font-size: 2rem; transition: transform 0.3s ease; display: inline-block; text-shadow: 0 0 10px var(--accent); }
 
     .metro-fixed-container { position: relative; width: 100%; overflow: hidden; padding: 30px 5px 40px 5px; }
     .metro-fixed-track { position: relative; width: 100%; }
-    .metro-fixed-line-bg { position: absolute; top: 10px; left: 15px; right: 15px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; }
-    .metro-fixed-line-fill { position: absolute; top: 10px; left: 15px; height: 4px; background: linear-gradient(90deg, var(--accent), var(--purple)); border-radius: 2px; transition: width 0.3s ease; box-shadow: 0 0 10px var(--accent); }
+    .metro-fixed-line-bg { position: absolute; top: 10px; left: 15px; right: 15px; height: 4px; background: rgba(255,255,255,0.15); border-radius: 2px; }
+    .metro-fixed-line-fill { position: absolute; top: 10px; left: 15px; height: 4px; background: linear-gradient(90deg, var(--accent), var(--purple)); border-radius: 2px; transition: width 0.3s ease; box-shadow: 0 0 12px var(--accent); }
     .metro-fixed-stations { display: flex; justify-content: space-between; position: relative; z-index: 3; }
     .metro-fixed-node { display: flex; flex-direction: column; align-items: center; position: relative; width: 14%; }
     
@@ -107,7 +111,7 @@
     .metro-fixed-node.current .metro-fixed-label { color: var(--text); font-weight: 900; opacity: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
     .metro-fixed-node.destination .metro-fixed-label { color: var(--warning) !important; opacity: 1; }
 
-    .alert-panel { display: flex; align-items: center; gap: 16px; padding: 18px; border-radius: 20px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+    .alert-panel { display: flex; align-items: center; gap: 16px; padding: 18px; border-radius: 22px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
     .alert-normal { background: var(--glass-bg); border: 1px solid var(--glass-border); }
     .alert-speed { background: linear-gradient(135deg, rgba(220,38,38,0.85), rgba(153,27,27,0.95)); box-shadow: 0 10px 30px rgba(220,38,38,0.4); border: 1px solid rgba(255,255,255,0.2); }
     .alert-stop { background: linear-gradient(135deg, rgba(217,119,6,0.85), rgba(180,83,9,0.95)); box-shadow: 0 10px 30px rgba(217,119,6,0.4); border: 1px solid rgba(255,255,255,0.2); }
@@ -119,15 +123,15 @@
     .alert-normal .alert-desc { color: var(--text); }
 
     .eta-box { padding: 0; background: transparent; border: none; display: flex; flex-direction: column; gap: 12px; }
-    .eta-main-time { font-size: 3rem; font-weight: 900; color: var(--text); text-align: center; line-height: 1; letter-spacing: -1px; text-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+    .eta-main-time { font-size: 3.2rem; font-weight: 900; color: var(--text); text-align: center; line-height: 1; letter-spacing: -1px; text-shadow: 0 4px 20px rgba(0,0,0,0.4); }
     
-    .telemetry-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 8px; }
-    .telemetry-card { background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 16px; padding: 16px 8px; text-align: center; backdrop-filter: blur(4px); }
-    .telemetry-value { font-size: 1.4rem; font-weight: 900; color: var(--accent); }
-    .telemetry-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; font-weight: 700; }
+    .telemetry-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 6px; }
+    .telemetry-card { background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); border-radius: 16px; padding: 14px 6px; text-align: center; backdrop-filter: blur(6px); }
+    .telemetry-value { font-size: 1.35rem; font-weight: 900; color: var(--accent); }
+    .telemetry-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; font-weight: 800; }
 
     #realMap, #pedestrianMap { width: 100%; border-radius: 20px; border: 1px solid var(--glass-border); background: var(--map-bg); z-index: 1; }
-    #realMap { height: 180px; pointer-events: none; opacity: 0.85; filter: contrast(1.1) saturate(1.2); }
+    #realMap { height: 180px; pointer-events: none; opacity: 0.9; filter: contrast(1.1) saturate(1.2); }
     #pedestrianMap { height: 320px; }
 
     body:not(.light-mode) .leaflet-tile-pane {
@@ -142,18 +146,18 @@
       display: flex;
       gap: 12px;
       z-index: 1000;
-      background: rgba(15, 23, 42, 0.75);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       padding: 10px;
       border-radius: 100px;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.5);
       width: max-content;
     }
     .floating-action-bar .btn { padding: 12px 24px; font-size: 0.9rem; border-radius: 100px; margin: 0; box-shadow: none; }
 
-    .gps-status-pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); }
+    .gps-status-pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.25); }
     .pulse-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
     .pulse-green { background: var(--success); box-shadow: 0 0 10px var(--success); animation: pulse 1.5s infinite; }
     .pulse-amber { background: var(--warning); box-shadow: 0 0 10px var(--warning); animation: pulse 1s infinite; }
@@ -161,18 +165,17 @@
 
     @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
 
-    .toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--glass-bg); backdrop-filter: blur(16px); border: 1px solid var(--success); border-radius: 20px; padding: 16px 24px; color: var(--text); text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 2000; display: flex; flex-direction: column; gap: 4px; opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); width: 90%; max-width: 400px; }
+    .toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--success); border-radius: 20px; padding: 16px 24px; color: var(--text); text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 2000; display: flex; flex-direction: column; gap: 4px; opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); width: 90%; max-width: 400px; }
     .toast-notification.active { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
 
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 16px; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 16px; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
     .modal-overlay.active { opacity: 1; pointer-events: auto; }
-    .modal-content { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 24px; width: 100%; max-width: 440px; max-height: 85vh; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; box-shadow: var(--glass-shadow); }
+    .modal-content { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 28px; width: 100%; max-width: 440px; max-height: 85vh; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; box-shadow: var(--glass-shadow); }
 
     .map-blue-bus-icon { background: var(--blue-bus); border: 2px solid #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 14px; box-shadow: 0 0 15px var(--accent); transition: background 0.3s; }
     .map-stop-icon { filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
 
     footer { text-align: center; font-size: 0.7rem; color: var(--muted); opacity: 0.7; margin-top: auto; padding-top: 20px; }
-    
     .hidden { display: none !important; }
   </style>
 </head>
@@ -216,7 +219,6 @@
         </select>
       </div>
 
-      <!-- HISTORIAL INTELIGENTE DE DESTINOS RECIENTES -->
       <div id="recentDestinationsContainer" class="hidden">
         <label>🎯 Destinos Recientes</label>
         <div id="recentDestinationsChips" style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; margin-bottom: 8px;"></div>
@@ -283,7 +285,6 @@
     <!-- VISTA EN VIAJE ACTIVO -->
     <div id="viewActive" class="hidden" style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
       
-      <!-- MINIMAPA DE METRO -->
       <div class="glass-card" style="padding: 10px;">
         <div class="metro-fixed-container">
           <div class="metro-fixed-track">
@@ -294,7 +295,6 @@
         </div>
       </div>
 
-      <!-- PANEL DE ALERTAS INMERSIVO -->
       <div id="unifiedAlertPanel" class="alert-panel alert-normal">
         <span id="alertIcon" style="font-size: 2rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">🔔</span>
         <div style="flex: 1;">
@@ -371,7 +371,7 @@
     </div>
 
     <footer>
-      <strong>Micro Litoral PWA v4.4.0</strong><br>
+      <strong>Micro Litoral PWA v4.5.0</strong><br>
       Desarrollado por <strong>Jaime Bustamante L.</strong>
     </footer>
 
@@ -395,11 +395,11 @@
 
   <div id="howItWorksModal" class="modal-overlay">
     <div class="modal-content">
-      <div style="font-weight: 900; color: var(--accent); font-size: 1.2rem;">💡 Guía Rápida v4.4</div>
+      <div style="font-weight: 900; color: var(--accent); font-size: 1.2rem;">💡 Guía Rápida v4.5</div>
       <div style="font-size: 0.85rem; line-height: 1.5; color: var(--text); display: flex; flex-direction: column; gap: 12px;">
-        <div><strong>🌙 1. Tema Automático:</strong> Se adapta al modo nocturno según la hora o tu preferencia.</div>
-        <div><strong>⭐ 2. Destinos Recientes:</strong> Historial inteligente para configurar tu viaje con un toque.</div>
-        <div><strong>🚌 3. Tráfico Animado:</strong> El bus parpadea en ámbar si está detenido y en verde si va en ruta.</div>
+        <div><strong>⚡ 1. Sincronización Inteligente:</strong> Al encender la pantalla, la app se reorienta de inmediato a tu parada real.</div>
+        <div><strong>🛡️ 2. ETA Blindado:</strong> Cálculo exacto basado en tablas estándar y velocidad real, sin datos corruptos.</div>
+        <div><strong>🌙 3. Diseño Fluido:</strong> Interfaz renovada con efectos de luz y adaptación automática nocturna.</div>
       </div>
       <button id="btnCloseHowItWorks" class="btn btn-secondary" style="margin-top: 8px; font-weight: 800;">Entendido</button>
     </div>
@@ -409,8 +409,8 @@
     <div class="modal-content">
       <div style="font-weight: 900; color: var(--accent); font-size: 1.2rem;">❓ FAQ</div>
       <div style="font-size: 0.85rem; line-height: 1.5; color: var(--text); display: flex; flex-direction: column; gap: 12px;">
-        <div><strong>Oficial:</strong> App privada sin vínculo con Taxibuses San Antonio S.A.</div>
-        <div><strong>Listos para Google Play:</strong> Con soporte de atajos rápidos y optimización móvil.</div>
+        <div><strong>Oficial:</strong> App independiente sin vínculo con Taxibuses San Antonio S.A.</div>
+        <div><strong>Listo para Play Store:</strong> Con soporte de Wake Lock y alta estabilidad offline.</div>
       </div>
       <button id="btnCloseFAQ" class="btn btn-secondary" style="margin-top: 8px; font-weight: 800;">Cerrar</button>
     </div>
@@ -657,13 +657,11 @@
       isCurrentlySpeeding: false,
       lastLat: null,
       lastLng: null,
-      lastPassedTimestamp: null,
       alert2StopsTriggered: false,
       alert1StopTriggered: false,
       alertArrivedTriggered: false,
       favorites: JSON.parse(localStorage.getItem("favorites") || "[]"),
-      recentDestinations: JSON.parse(localStorage.getItem("recentDestinations") || "[]"),
-      segmentHistory: JSON.parse(localStorage.getItem("segmentHistory") || "{}")
+      recentDestinations: JSON.parse(localStorage.getItem("recentDestinations") || "[]")
     };
 
     let realMap = null;
@@ -677,7 +675,7 @@
 
     async function requestWakeLock() {
       if ('wakeLock' in navigator) {
-        try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) { console.log(err); }
+        try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
       }
     }
 
@@ -703,15 +701,13 @@
       });
     });
 
-    // TEMA AUTOMÁTICO SEGÚN HORARIO (NOCHE DE 19:30 A 07:00)
     function checkAutoTheme() {
       const savedTheme = localStorage.getItem("appTheme");
       if (savedTheme && savedTheme !== "auto") {
         applyTheme(savedTheme);
       } else {
         const hour = new Date().getHours();
-        const isNight = hour >= 19 || hour < 7;
-        applyTheme(isNight ? "dark" : "light");
+        applyTheme((hour >= 19 || hour < 7) ? "dark" : "light");
       }
     }
 
@@ -720,7 +716,6 @@
       localStorage.setItem("appTheme", theme);
       const btn = document.getElementById("btnThemeToggle");
       if (theme === "light") {
-        document.body.classList.remove("light-mode"); // Corrección de inversión
         document.body.classList.add("light-mode");
         if (btn) btn.innerText = "🌙 Modo Oscuro";
       } else {
@@ -964,7 +959,6 @@
       document.getElementById("setupTripKm").innerText = `${kmDist.toFixed(1)}`;
     }
 
-    // HISTORIAL INTELIGENTE DE DESTINOS
     function addRecentDestination(stopId) {
       const stop = ROUTE_STOPS.find(s => s.id === stopId);
       if (!stop) return;
@@ -1021,7 +1015,7 @@
       }
       state.favorites.forEach(fav => {
         const item = document.createElement("div");
-        item.style.cssText = "background:rgba(255,255,255,0.03); padding:10px 14px; border-radius:12px; border:1px solid var(--glass-border); display:flex; justify-content:space-between; align-items:center;";
+        item.style.cssText = "background:rgba(255,255,255,0.04); padding:10px 14px; border-radius:14px; border:1px solid var(--glass-border); display:flex; justify-content:space-between; align-items:center;";
         item.innerHTML = `
           <div>
             <div style="font-size:0.9rem; font-weight:800; color:var(--text);">${fav.name}</div>
@@ -1032,7 +1026,7 @@
         item.querySelector("button").addEventListener("click", () => {
           state.direction = fav.direction;
           document.getElementById("selectDirection").value = fav.direction;
-          ROUTE_STOPS = state.direction === 'IDA' ? STOPS_IDA : STOPS_VUELTA;
+          ROUTE_STOPS = fav.direction === 'IDA' ? STOPS_IDA : STOPS_VUELTA;
           populateStopsDropdowns();
           document.getElementById("selectStartStop").value = fav.startStopId;
           state.startStopId = fav.startStopId;
@@ -1095,7 +1089,6 @@
         state.currentBaseIndex = closestIdx;
         state.minDistToTarget = Math.round(minDistance * 1000);
         state.atStop = (state.minDistToTarget <= 50);
-        state.lastPassedTimestamp = new Date().getTime();
         saveActiveStateToStorage();
         populateActiveChangeEndDropdown();
         renderFixedMetroMap();
@@ -1218,7 +1211,6 @@
       state.currentBaseIndex = baseIndex !== -1 ? baseIndex : 0;
       state.atStop = true;
       state.minDistToTarget = 0;
-      state.lastPassedTimestamp = new Date().getTime();
 
       document.getElementById("viewSetup").classList.add("hidden");
       document.getElementById("viewFavorites").classList.add("hidden");
@@ -1252,23 +1244,6 @@
       document.getElementById("alertIcon").innerText = icon || "🔔";
     }
 
-    function recordHistoryAndAdvance(nowMs, targetStopIndex) {
-      if (state.lastPassedTimestamp) {
-        const prevStop = ROUTE_STOPS[targetStopIndex - 1];
-        const reachedStop = ROUTE_STOPS[targetStopIndex];
-        if (prevStop && reachedStop) {
-          const segKey = `${prevStop.id}_${reachedStop.id}`;
-          const elapsedMins = (nowMs - state.lastPassedTimestamp) / 60000;
-          if (elapsedMins > 0.3 && elapsedMins <= 15) {
-            if (!state.segmentHistory[segKey]) state.segmentHistory[segKey] = [];
-            state.segmentHistory[segKey].push(elapsedMins);
-            if (state.segmentHistory[segKey].length > 3) state.segmentHistory[segKey].shift();
-            localStorage.setItem("segmentHistory", JSON.stringify(state.segmentHistory));
-          }
-        }
-      }
-    }
-
     function initGPS() {
       if ("geolocation" in navigator) {
         state.watchPositionId = navigator.geolocation.watchPosition((pos) => {
@@ -1278,7 +1253,6 @@
           state.currentSpeed = Math.round(pos.coords.speed ? (pos.coords.speed * 3.6) : 0);
           document.getElementById("gpsCurrentSpeed").innerText = `${state.currentSpeed}`;
 
-          // MEJORA 4: PULSO DE TRÁFICO ANIMADO EN EL BUS (Ambar si < 5 km/h, Azul/Celeste si en marcha)
           const busEl = document.querySelector('.map-blue-bus-icon');
           if (busEl) {
             if (state.currentSpeed < 5) {
@@ -1299,36 +1273,30 @@
 
           if (realMap) { realMap.setView([state.lastLat, state.lastLng], 16); if (busMarker) busMarker.setLatLng([state.lastLat, state.lastLng]); }
 
+          // Auto-reorientación inmediata si hay gran distancia acumulada
+          let closestIdx = state.currentBaseIndex;
+          let minDistance = Infinity;
+          for (let i = 0; i < ROUTE_STOPS.length; i++) {
+            const d = calculateDistanceKm(state.lastLat, state.lastLng, ROUTE_STOPS[i].lat, ROUTE_STOPS[i].lng);
+            if (d < minDistance) { minDistance = d; closestIdx = i; }
+          }
+          if (Math.round(minDistance * 1000) > 300 || closestIdx > state.currentBaseIndex) {
+            state.currentBaseIndex = closestIdx;
+          }
+
           let targetStop = ROUTE_STOPS[state.currentBaseIndex];
           if (!targetStop) return;
           let distToTarget = Math.round(calculateDistanceKm(state.lastLat, state.lastLng, targetStop.lat, targetStop.lng) * 1000);
 
-          if (typeof state.minDistToTarget === 'undefined') state.minDistToTarget = distToTarget;
-          state.minDistToTarget = Math.min(state.minDistToTarget, distToTarget);
-          const nowMs = new Date().getTime();
-
-          if (state.atStop) {
-            if (distToTarget > 50) {
-              state.atStop = false;
-              state.lastPassedTimestamp = nowMs;
+          if (distToTarget <= 50) {
+            state.atStop = true;
+            if (state.currentBaseIndex < ROUTE_STOPS.length - 1) {
               state.currentBaseIndex++;
-              state.minDistToTarget = Infinity;
               saveActiveStateToStorage();
               populateActiveChangeEndDropdown();
             }
           } else {
-            if (distToTarget <= 50) {
-              state.atStop = true;
-              recordHistoryAndAdvance(nowMs, state.currentBaseIndex);
-              saveActiveStateToStorage();
-            } else if (state.minDistToTarget < 250 && distToTarget > state.minDistToTarget + 40) {
-              recordHistoryAndAdvance(nowMs, state.currentBaseIndex);
-              state.lastPassedTimestamp = nowMs;
-              state.currentBaseIndex++;
-              state.minDistToTarget = Infinity;
-              saveActiveStateToStorage();
-              populateActiveChangeEndDropdown();
-            }
+            state.atStop = false;
           }
 
           targetStop = ROUTE_STOPS[state.currentBaseIndex];
@@ -1375,31 +1343,34 @@
       }
     }
 
+    // CÁLCULO DE ETA BLINDADO (USANDO ESTÁNDAR STDMIN + VELOCIDAD GPS, SIN HISTORIAL CORRUPTO)
     function updateClockAndETA() {
       if (!state.isTripActive) { updateDepartureSchedule(); return; }
+      
       const endObj = ROUTE_STOPS.find(s => s.id === state.endStopId);
       const currObj = ROUTE_STOPS[state.currentBaseIndex];
       const endIndex = ROUTE_STOPS.findIndex(s => s.id === state.endStopId);
       let stopsRemaining = Math.max(0, endIndex - state.currentBaseIndex);
       let kmLeft = currObj && endObj ? Math.max(0.1, calculateDistanceKm(currObj.lat, currObj.lng, endObj.lat, endObj.lng) * 1.25) : 0;
 
-      let minsLeft = 0;
-      for (let i = state.currentBaseIndex; i < endIndex; i++) {
-        const segKey = `${ROUTE_STOPS[i].id}_${ROUTE_STOPS[i+1].id}`;
-        const historyArr = state.segmentHistory[segKey];
-        if (historyArr && historyArr.length >= 1) {
-          minsLeft += (historyArr.reduce((a, b) => a + b, 0) / historyArr.length);
-        } else {
-          minsLeft += Math.abs(ROUTE_STOPS[i+1].stdMin - ROUTE_STOPS[i].stdMin);
-        }
+      // Cálculo limpio basado estrictamente en stdMin
+      let baseMins = 0;
+      if (currObj && endObj) {
+        baseMins = Math.max(1, Math.round(Math.abs(endObj.stdMin - currObj.stdMin)));
       }
 
-      minsLeft = Math.round(minsLeft);
-      const etaTime = new Date(new Date().getTime() + minsLeft * 60000);
+      // Factor de corrección por velocidad real en vivo (si el bus va lento, ajusta dinámicamente)
+      let adjustedMins = baseMins;
+      if (state.currentSpeed > 5 && state.currentSpeed < 80) {
+        const speedFactor = 40 / state.currentSpeed; // 40 km/h promedio estimado de ruta
+        adjustedMins = Math.max(1, Math.round(baseMins * speedFactor));
+      }
+
+      const etaTime = new Date(new Date().getTime() + adjustedMins * 60000);
       document.getElementById("etaBoxTime").innerText = `${etaTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}`;
       document.getElementById("etaStopsLeft").innerText = stopsRemaining;
       document.getElementById("etaKmLeft").innerText = `${kmLeft.toFixed(1)}`;
-      document.getElementById("etaTimeLeft").innerText = minsLeft >= 60 ? `${Math.floor(minsLeft/60)}h ${minsLeft%60}m` : `${minsLeft} min`;
+      document.getElementById("etaTimeLeft").innerText = adjustedMins >= 60 ? `${Math.floor(adjustedMins/60)}h ${adjustedMins%60}m` : `${adjustedMins} min`;
       document.getElementById("segmentTime").innerText = `${Math.max(1, Math.round((new Date() - state.tripStartTime) / 60000))}`;
     }
 
