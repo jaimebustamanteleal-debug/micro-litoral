@@ -62,6 +62,10 @@ document.addEventListener("DOMContentLoaded", () => {
   renderRecentDestinations();
   initLeafletMap();
 
+  window.addEventListener("resize", () => {
+    if (state.isTripActive) renderFixedMetroMap();
+  });
+
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden && state.isTripActive) {
       requestWakeLock();
@@ -163,6 +167,7 @@ function initUI() {
     saveActiveStateToStorage();
     updateHeaderGreeting(null);
     updateClockAndETA();
+    renderFixedMetroMap();
   });
 
   populateStopsDropdowns();
@@ -383,7 +388,7 @@ function restoreSessionIfExists() {
         requestWakeLock();
         populateActiveChangeEndDropdown();
         initGPS();
-        renderFixedMetroMap();
+        setTimeout(() => renderFixedMetroMap(), 50);
         updateHeaderGreeting(null);
       }
     } catch(e) {}
@@ -536,7 +541,7 @@ function startTrip() {
   populateActiveChangeEndDropdown();
   saveActiveStateToStorage();
   initGPS();
-  renderFixedMetroMap();
+  setTimeout(() => renderFixedMetroMap(), 50);
   updateHeaderGreeting(null);
 }
 
@@ -581,7 +586,6 @@ function initGPS() {
 
       if (realMap) { realMap.setView([state.lastLat, state.lastLng], 16); if (busMarker) busMarker.setLatLng([state.lastLat, state.lastLng]); }
 
-      // Auto-reorientación si hay gran distancia acumulada
       let closestIdx = state.currentBaseIndex;
       let minDistance = Infinity;
       for (let i = 0; i < ROUTE_STOPS.length; i++) {
@@ -676,28 +680,48 @@ function updateClockAndETA() {
 }
 
 function renderFixedMetroMap() {
-  const container = document.getElementById("metroFixedNodes");
-  const fill = document.getElementById("metroFixedLineFill");
-  container.innerHTML = "";
-  const total = ROUTE_STOPS.length;
-  const displayIndex = state.atStop ? state.currentBaseIndex : Math.max(0, state.currentBaseIndex - 1);
-  let startIndex = Math.max(0, displayIndex - 3), endIndex = Math.min(total - 1, displayIndex + 3);
-  if (displayIndex < 3) endIndex = Math.min(total - 1, 6);
-  else if (displayIndex > total - 4) startIndex = Math.max(0, total - 7);
+  const container = document.getElementById("metroContainer");
+  const track = document.getElementById("metroSlidingTrack");
+  const nodesContainer = document.getElementById("metroFixedNodes");
+  const fill = document.getElementById("metroFixedFill");
+  if (!container || !track || !nodesContainer || !fill) return;
 
-  ROUTE_STOPS.slice(startIndex, endIndex + 1).forEach((s) => {
-    const globalIdx = ROUTE_STOPS.findIndex(item => item.id === s.id);
+  nodesContainer.innerHTML = "";
+  const total = ROUTE_STOPS.length;
+  const containerWidth = container.offsetWidth || 360;
+  
+  // Ancho fijo de separación entre estaciones para calcular desplazamiento exacto al centro
+  const stepWidth = 74; 
+  const sidePadding = containerWidth / 2;
+
+  track.style.width = `${(total - 1) * stepWidth + sidePadding * 2}px`;
+
+  // Posición continua del bus en unidades de estación:
+  // Si estás detenido en la parada (atStop=true): índice entero exacto.
+  // Si estás avanzando entre paradas (atStop=false): índice anterior + 0.5 (justo al medio del tramo).
+  const anchorIndex = state.atStop ? state.currentBaseIndex : Math.max(0, state.currentBaseIndex - 1);
+  const continuousIndex = state.atStop ? anchorIndex : Math.min(total - 1, anchorIndex + 0.5);
+
+  ROUTE_STOPS.forEach((s, idx) => {
     const node = document.createElement("div");
     node.className = "metro-fixed-node";
-    if (globalIdx < displayIndex) node.classList.add("visited");
-    if (globalIdx === displayIndex) node.classList.add("current");
+    node.style.left = `${sidePadding + idx * stepWidth}px`;
+
+    if (idx < continuousIndex) node.classList.add("visited");
+    if (idx === anchorIndex && state.atStop) node.classList.add("current");
     if (s.id === state.endStopId) node.classList.add("destination");
 
-    const iconContent = (globalIdx === displayIndex) ? '🚌' : '';
-    node.innerHTML = `<div class="metro-fixed-circle">${iconContent}</div><div class="metro-fixed-label">${s.name}</div>`;
-    container.appendChild(node);
+    node.innerHTML = `<div class="metro-fixed-circle"></div><div class="metro-fixed-label">${s.name}</div>`;
+    nodesContainer.appendChild(node);
   });
-  fill.style.width = `${Math.min(100, Math.max(0, (ROUTE_STOPS.slice(startIndex, endIndex + 1).findIndex(s => s.id === ROUTE_STOPS[displayIndex].id) / (endIndex - startIndex)) * 100))}%`;
+
+  // La línea brillante avanza siempre desde el origen hasta el centro (donde está anclada la micro)
+  const busTrackX = sidePadding + continuousIndex * stepWidth;
+  fill.style.width = `${busTrackX}px`;
+
+  // Desplazamos la pista entera para que la posición actual de la micro quede siempre en el centro exacto (containerWidth / 2)
+  const translateX = (containerWidth / 2) - busTrackX;
+  track.style.transform = `translateX(${translateX}px)`;
 }
 
 function cancelTrip() {
