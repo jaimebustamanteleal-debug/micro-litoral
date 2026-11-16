@@ -3,11 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Micro Litoral GPS v4.5.0</title>
+  <title>Micro Litoral GPS v4.6.0</title>
   <meta name="theme-color" content="#020617">
   <link rel="manifest" href="./manifest.json">
-  
-  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <style>
@@ -45,134 +43,87 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; }
     
     body { 
-      background: var(--bg-gradient); 
-      color: var(--text); 
-      padding: 16px 12px 110px 12px;
-      display: flex; flex-direction: column; align-items: center; 
-      min-height: 100vh; 
-      background-attachment: fixed;
-      transition: all 0.3s ease; 
+      background: var(--bg-gradient); color: var(--text); padding: 16px 12px 110px 12px;
+      display: flex; flex-direction: column; align-items: center; min-height: 100vh; background-attachment: fixed; transition: all 0.3s ease; 
     }
     
     .app-container { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 16px; position: relative; }
-
     .top-bar { display: flex; justify-content: flex-end; width: 100%; margin-bottom: -8px; }
-    .theme-toggle-btn { background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--glass-border); color: var(--text); padding: 8px 16px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; cursor: pointer; box-shadow: var(--glass-shadow); transition: transform 0.2s; }
-    .theme-toggle-btn:active { transform: scale(0.95); }
+    .theme-toggle-btn { background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); color: var(--text); padding: 8px 16px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; cursor: pointer; box-shadow: var(--glass-shadow); }
 
-    header { background: transparent; text-align: center; padding: 6px 0; }
-    header h1 { font-size: 1.5rem; font-weight: 900; color: var(--text); letter-spacing: -0.5px; }
+    header { text-align: center; padding: 6px 0; }
+    header h1 { font-size: 1.5rem; font-weight: 900; letter-spacing: -0.5px; }
     header p { font-size: 0.85rem; color: var(--accent); font-weight: 700; margin-top: 4px; }
 
-    .glass-card { 
-      background: var(--glass-bg); 
-      backdrop-filter: blur(16px); 
-      -webkit-backdrop-filter: blur(16px); 
-      border: 1px solid var(--glass-border); 
-      border-radius: 26px; 
-      padding: 20px; 
-      box-shadow: var(--glass-shadow); 
-      display: flex; flex-direction: column; gap: 14px; 
-    }
-    
+    .glass-card { background: var(--glass-bg); backdrop-filter: blur(16px); border: 1px solid var(--glass-border); border-radius: 26px; padding: 20px; box-shadow: var(--glass-shadow); display: flex; flex-direction: column; gap: 14px; }
     .card-title { font-size: 0.8rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 1.2px; }
 
     label { font-size: 0.75rem; color: var(--muted); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-    select, input { background: var(--input-bg); border: 1px solid var(--glass-border); color: var(--text); padding: 14px; border-radius: 14px; font-size: 0.95rem; width: 100%; outline: none; font-weight: 600; backdrop-filter: blur(6px); transition: border-color 0.2s; }
-    select:focus, input:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
-
-    .btn { background: var(--accent); color: #ffffff; border: none; padding: 16px; border-radius: 16px; font-size: 1.05rem; font-weight: 800; cursor: pointer; text-align: center; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 6px 20px var(--accent-glow); transition: all 0.2s; }
-    body:not(.light-mode) .btn { color: #020617; }
-    .btn:active { transform: scale(0.97); }
+    select, input { background: var(--input-bg); border: 1px solid var(--glass-border); color: var(--text); padding: 14px; border-radius: 14px; font-size: 0.95rem; width: 100%; outline: none; font-weight: 600; }
     
-    .btn-secondary { background: rgba(255,255,255,0.06); color: var(--text) !important; border: 1px solid var(--glass-border); box-shadow: none; backdrop-filter: blur(8px); }
+    .btn { background: var(--accent); color: #ffffff; border: none; padding: 16px; border-radius: 16px; font-size: 1.05rem; font-weight: 800; cursor: pointer; text-align: center; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 6px 20px var(--accent-glow); }
+    body:not(.light-mode) .btn { color: #020617; }
+    .btn-secondary { background: rgba(255,255,255,0.06); color: var(--text) !important; border: 1px solid var(--glass-border); box-shadow: none; }
     .btn-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger) !important; border: 1px solid rgba(239, 68, 68, 0.3); box-shadow: none; }
 
     .permission-box { background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
-    .disclaimer-box { background: transparent; border-radius: 10px; padding: 10px; font-size: 0.68rem; color: var(--muted); text-align: center; line-height: 1.4; opacity: 0.6; }
+    .disclaimer-box { font-size: 0.68rem; color: var(--muted); text-align: center; opacity: 0.6; }
 
-    .compass-box { background: var(--input-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 16px; display: flex; align-items: center; gap: 16px; cursor: pointer; transition: border-color 0.2s; }
-    .compass-box:hover { border-color: var(--accent); }
+    .compass-box { background: var(--input-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 16px; display: flex; align-items: center; gap: 16px; cursor: pointer; }
     .compass-arrow { font-size: 2rem; transition: transform 0.3s ease; display: inline-block; text-shadow: 0 0 10px var(--accent); }
 
     .metro-fixed-container { position: relative; width: 100%; overflow: hidden; padding: 30px 5px 40px 5px; }
     .metro-fixed-track { position: relative; width: 100%; }
     .metro-fixed-line-bg { position: absolute; top: 10px; left: 15px; right: 15px; height: 4px; background: rgba(255,255,255,0.15); border-radius: 2px; }
-    .metro-fixed-line-fill { position: absolute; top: 10px; left: 15px; height: 4px; background: linear-gradient(90deg, var(--accent), var(--purple)); border-radius: 2px; transition: width 0.3s ease; box-shadow: 0 0 12px var(--accent); }
+    .metro-fixed-line-fill { position: absolute; top: 10px; left: 15px; height: 4px; background: linear-gradient(90deg, var(--accent), var(--purple)); border-radius: 2px; transition: width 0.3s ease; }
     .metro-fixed-stations { display: flex; justify-content: space-between; position: relative; z-index: 3; }
     .metro-fixed-node { display: flex; flex-direction: column; align-items: center; position: relative; width: 14%; }
-    
-    .metro-fixed-circle { width: 12px; height: 12px; border-radius: 50%; background: var(--input-bg); border: 2px solid var(--muted); transition: all 0.3s; }
-    .metro-fixed-node.visited .metro-fixed-circle { border-color: var(--accent); background: var(--accent); box-shadow: 0 0 8px var(--accent); }
-    .metro-fixed-node.current .metro-fixed-circle { border-color: #fff; background: var(--danger); box-shadow: 0 0 15px var(--danger); transform: scale(1.5); }
-    .metro-fixed-node.destination .metro-fixed-circle { border-color: #fff; background: var(--warning); box-shadow: 0 0 15px var(--warning); transform: scale(1.4); }
-    
+    .metro-fixed-circle { width: 12px; height: 12px; border-radius: 50%; background: var(--input-bg); border: 2px solid var(--muted); }
+    .metro-fixed-node.visited .metro-fixed-circle { border-color: var(--accent); background: var(--accent); }
+    .metro-fixed-node.current .metro-fixed-circle { border-color: #fff; background: var(--danger); transform: scale(1.5); }
+    .metro-fixed-node.destination .metro-fixed-circle { border-color: #fff; background: var(--warning); transform: scale(1.4); }
     .metro-fixed-label { position: absolute; top: 22px; left: 50%; transform: translateX(-20%) rotate(35deg); transform-origin: left top; font-size: 0.6rem; color: var(--muted); white-space: nowrap; font-weight: 700; width: 75px; text-align: left; overflow: hidden; text-overflow: ellipsis; opacity: 0.7; }
-    .metro-fixed-node.current .metro-fixed-label { color: var(--text); font-weight: 900; opacity: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-    .metro-fixed-node.destination .metro-fixed-label { color: var(--warning) !important; opacity: 1; }
 
-    .alert-panel { display: flex; align-items: center; gap: 16px; padding: 18px; border-radius: 22px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+    .alert-panel { display: flex; align-items: center; gap: 16px; padding: 18px; border-radius: 22px; backdrop-filter: blur(16px); }
     .alert-normal { background: var(--glass-bg); border: 1px solid var(--glass-border); }
-    .alert-speed { background: linear-gradient(135deg, rgba(220,38,38,0.85), rgba(153,27,27,0.95)); box-shadow: 0 10px 30px rgba(220,38,38,0.4); border: 1px solid rgba(255,255,255,0.2); }
-    .alert-stop { background: linear-gradient(135deg, rgba(217,119,6,0.85), rgba(180,83,9,0.95)); box-shadow: 0 10px 30px rgba(217,119,6,0.4); border: 1px solid rgba(255,255,255,0.2); }
-    .alert-drop { background: linear-gradient(135deg, rgba(16,185,129,0.85), rgba(4,120,87,0.95)); box-shadow: 0 10px 30px rgba(16,185,129,0.4); border: 1px solid rgba(255,255,255,0.2); }
-    
-    .alert-title { font-size: 0.95rem; font-weight: 900; color: #fff; letter-spacing: 0.5px; }
+    .alert-stop { background: linear-gradient(135deg, rgba(217,119,6,0.85), rgba(180,83,9,0.95)); border: 1px solid rgba(255,255,255,0.2); }
+    .alert-drop { background: linear-gradient(135deg, rgba(16,185,129,0.85), rgba(4,120,87,0.95)); border: 1px solid rgba(255,255,255,0.2); }
+    .alert-title { font-size: 0.95rem; font-weight: 900; color: #fff; }
     .alert-desc { font-size: 0.8rem; color: rgba(255,255,255,0.85); margin-top: 2px; }
-    .alert-normal .alert-title { color: var(--accent); }
-    .alert-normal .alert-desc { color: var(--text); }
 
     .eta-box { padding: 0; background: transparent; border: none; display: flex; flex-direction: column; gap: 12px; }
-    .eta-main-time { font-size: 3.2rem; font-weight: 900; color: var(--text); text-align: center; line-height: 1; letter-spacing: -1px; text-shadow: 0 4px 20px rgba(0,0,0,0.4); }
-    
+    .eta-main-time { font-size: 3.2rem; font-weight: 900; text-align: center; line-height: 1; letter-spacing: -1px; }
+
     .telemetry-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 6px; }
-    .telemetry-card { background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); border-radius: 16px; padding: 14px 6px; text-align: center; backdrop-filter: blur(6px); }
+    .telemetry-card { background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); border-radius: 16px; padding: 14px 6px; text-align: center; }
     .telemetry-value { font-size: 1.35rem; font-weight: 900; color: var(--accent); }
-    .telemetry-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; font-weight: 800; }
+    .telemetry-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; font-weight: 800; margin-top: 4px; }
 
     #realMap, #pedestrianMap { width: 100%; border-radius: 20px; border: 1px solid var(--glass-border); background: var(--map-bg); z-index: 1; }
-    #realMap { height: 180px; pointer-events: none; opacity: 0.9; filter: contrast(1.1) saturate(1.2); }
+    #realMap { height: 180px; pointer-events: none; opacity: 0.9; }
     #pedestrianMap { height: 320px; }
 
-    body:not(.light-mode) .leaflet-tile-pane {
-        filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
-    }
+    body:not(.light-mode) .leaflet-tile-pane { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
 
     .floating-action-bar {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 12px;
-      z-index: 1000;
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      padding: 10px;
-      border-radius: 100px;
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      box-shadow: 0 15px 40px rgba(0,0,0,0.5);
-      width: max-content;
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 1000;
+      background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px); padding: 10px; border-radius: 100px; border: 1px solid rgba(255, 255, 255, 0.18); box-shadow: 0 15px 40px rgba(0,0,0,0.5);
     }
     .floating-action-bar .btn { padding: 12px 24px; font-size: 0.9rem; border-radius: 100px; margin: 0; box-shadow: none; }
 
     .gps-status-pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.25); }
     .pulse-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
     .pulse-green { background: var(--success); box-shadow: 0 0 10px var(--success); animation: pulse 1.5s infinite; }
-    .pulse-amber { background: var(--warning); box-shadow: 0 0 10px var(--warning); animation: pulse 1s infinite; }
     .pulse-red { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
 
-    @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
-
-    .toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--success); border-radius: 20px; padding: 16px 24px; color: var(--text); text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 2000; display: flex; flex-direction: column; gap: 4px; opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); width: 90%; max-width: 400px; }
+    .toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--success); border-radius: 20px; padding: 16px 24px; text-align: center; z-index: 2000; opacity: 0; pointer-events: none; transition: all 0.4s; width: 90%; max-width: 400px; }
     .toast-notification.active { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
 
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 16px; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(10px); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 16px; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
     .modal-overlay.active { opacity: 1; pointer-events: auto; }
-    .modal-content { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 28px; width: 100%; max-width: 440px; max-height: 85vh; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; box-shadow: var(--glass-shadow); }
+    .modal-content { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 28px; width: 100%; max-width: 440px; max-height: 85vh; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
 
-    .map-blue-bus-icon { background: var(--blue-bus); border: 2px solid #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 14px; box-shadow: 0 0 15px var(--accent); transition: background 0.3s; }
+    .map-blue-bus-icon { background: var(--blue-bus); border: 2px solid #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 14px; box-shadow: 0 0 15px var(--accent); }
     .map-stop-icon { filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
 
     footer { text-align: center; font-size: 0.7rem; color: var(--muted); opacity: 0.7; margin-top: auto; padding-top: 20px; }
@@ -182,7 +133,6 @@
 <body>
 
   <div class="app-container">
-    
     <div class="top-bar">
       <button class="theme-toggle-btn" id="btnThemeToggle">☀️ Modo Claro</button>
     </div>
@@ -253,7 +203,7 @@
       <div class="compass-box" id="compassContainer">
         <div class="compass-arrow" id="compassArrow">➔</div>
         <div style="flex: 1;">
-          <div style="font-size: 0.85rem; font-weight: 800; color: var(--text);" id="compassTitle">Orientación</div>
+          <div style="font-size: 0.85rem; font-weight: 800;" id="compassTitle">Orientación</div>
           <div style="font-size: 0.75rem; color: var(--muted);" id="compassDesc">Buscando dirección...</div>
         </div>
         <div style="font-size: 1.2rem;">🗺️</div>
@@ -277,14 +227,11 @@
         <button class="btn btn-secondary" id="btnFAQ" style="font-size: 0.75rem; padding: 12px; border-radius: 12px;">❓ FAQ</button>
       </div>
 
-      <div class="disclaimer-box">
-        Aplicación independiente sin afiliación a Taxibuses San Antonio S.A.
-      </div>
+      <div class="disclaimer-box">Aplicación independiente sin afiliación a Taxibuses San Antonio S.A.</div>
     </div>
 
     <!-- VISTA EN VIAJE ACTIVO -->
     <div id="viewActive" class="hidden" style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
-      
       <div class="glass-card" style="padding: 10px;">
         <div class="metro-fixed-container">
           <div class="metro-fixed-track">
@@ -296,7 +243,7 @@
       </div>
 
       <div id="unifiedAlertPanel" class="alert-panel alert-normal">
-        <span id="alertIcon" style="font-size: 2rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">🔔</span>
+        <span id="alertIcon" style="font-size: 2rem;">🔔</span>
         <div style="flex: 1;">
           <div id="alertTitle" class="alert-title">Te notificaremos al aproximarte</div>
           <div id="alertDesc" class="alert-desc">Faltan paradas para tu destino.</div>
@@ -309,13 +256,12 @@
             <span id="gpsPulseDot" class="pulse-dot pulse-red"></span>
             <span id="gpsStatusText" style="color: var(--danger);">GPS Offline</span>
           </div>
-          <button id="btnRefreshGPS" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.75rem; border-radius: 12px; background: rgba(56,189,248,0.15); border-color: rgba(56,189,248,0.3); color: var(--accent) !important;">📍 Recalibrar GPS</button>
         </div>
 
         <div style="background: var(--input-bg); border: 1px solid var(--glass-border); padding: 16px; border-radius: 16px; display: flex; flex-direction: column; gap: 6px;">
           <div id="stopDynamicLabel" style="font-size: 0.75rem; color: var(--muted); font-weight: 800; text-transform: uppercase;">➡ Próxima Parada</div>
           <div style="display: flex; justify-content: space-between; align-items: baseline;">
-            <div id="activeNextStopName" style="font-size: 1.3rem; font-weight: 900; color: var(--text);">---</div>
+            <div id="activeNextStopName" style="font-size: 1.3rem; font-weight: 900;">---</div>
             <div id="activeNextStopDistance" style="font-size: 1rem; font-weight: 900; color: var(--accent);">+-- m</div>
           </div>
         </div>
@@ -367,19 +313,17 @@
           <div class="telemetry-label">Min Viaje</div>
         </div>
       </div>
-      
     </div>
 
     <footer>
-      <strong>Micro Litoral PWA v4.5.0</strong><br>
+      <strong>Micro Litoral PWA v4.6.0 (Modular)</strong><br>
       Desarrollado por <strong>Jaime Bustamante L.</strong>
     </footer>
-
   </div>
 
   <div id="floatingActionBar" class="floating-action-bar hidden">
     <button class="btn btn-danger" id="btnCancelTrip">❌ Cancelar</button>
-    <button class="btn" id="btnFinishTrip" style="background: var(--success); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);">🏁 Terminar</button>
+    <button class="btn" id="btnFinishTrip" style="background: var(--success);">🏁 Terminar</button>
   </div>
 
   <div id="pedestrianModal" class="modal-overlay">
@@ -389,1046 +333,37 @@
         <button id="btnClosePedestrianModal" class="btn btn-secondary" style="padding: 6px 12px; width: auto; font-size: 0.8rem; border-radius: 12px;">✕ Cerrar</button>
       </div>
       <div id="pedestrianMap"></div>
-      <div id="pedestrianStatus" style="font-size: 0.85rem; text-align: center; color: var(--text); font-weight: 600;">Cargando ubicación...</div>
     </div>
   </div>
 
   <div id="howItWorksModal" class="modal-overlay">
     <div class="modal-content">
-      <div style="font-weight: 900; color: var(--accent); font-size: 1.2rem;">💡 Guía Rápida v4.5</div>
-      <div style="font-size: 0.85rem; line-height: 1.5; color: var(--text); display: flex; flex-direction: column; gap: 12px;">
-        <div><strong>⚡ 1. Sincronización Inteligente:</strong> Al encender la pantalla, la app se reorienta de inmediato a tu parada real.</div>
-        <div><strong>🛡️ 2. ETA Blindado:</strong> Cálculo exacto basado en tablas estándar y velocidad real, sin datos corruptos.</div>
-        <div><strong>🌙 3. Diseño Fluido:</strong> Interfaz renovada con efectos de luz y adaptación automática nocturna.</div>
+      <div style="font-weight: 900; color: var(--accent); font-size: 1.2rem;">💡 Guía Rápida v4.6</div>
+      <div style="font-size: 0.85rem; line-height: 1.5; display: flex; flex-direction: column; gap: 12px;">
+        <div><strong>⚡ 1. Arquitectura Modular:</strong> Código limpio y separado por responsabilidades.</div>
+        <div><strong>🛡️ 2. Cercas Estables:</strong> Cero parpadeo al llegar a los paraderos.</div>
+        <div><strong>⏱️ 3. ETA Confiable:</strong> Basado en minutos estándar estables.</div>
       </div>
-      <button id="btnCloseHowItWorks" class="btn btn-secondary" style="margin-top: 8px; font-weight: 800;">Entendido</button>
+      <button id="btnCloseHowItWorks" class="btn btn-secondary" style="font-weight: 800;">Entendido</button>
     </div>
   </div>
 
   <div id="faqModal" class="modal-overlay">
     <div class="modal-content">
       <div style="font-weight: 900; color: var(--accent); font-size: 1.2rem;">❓ FAQ</div>
-      <div style="font-size: 0.85rem; line-height: 1.5; color: var(--text); display: flex; flex-direction: column; gap: 12px;">
+      <div style="font-size: 0.85rem; line-height: 1.5;">
         <div><strong>Oficial:</strong> App independiente sin vínculo con Taxibuses San Antonio S.A.</div>
-        <div><strong>Listo para Play Store:</strong> Con soporte de Wake Lock y alta estabilidad offline.</div>
       </div>
-      <button id="btnCloseFAQ" class="btn btn-secondary" style="margin-top: 8px; font-weight: 800;">Cerrar</button>
+      <button id="btnCloseFAQ" class="btn btn-secondary" style="font-weight: 800;">Cerrar</button>
     </div>
   </div>
 
   <div id="toastNotification" class="toast-notification">
     <div style="font-size: 1.2rem; font-weight: 900; color: var(--success);">🎉 ¡Viaje Finalizado!</div>
-    <div id="toastMessage" style="font-size: 0.85rem; color: var(--text); margin-top: 4px;">Te bajaste en: ---</div>
+    <div id="toastMessage" style="font-size: 0.85rem; margin-top: 4px;">Te bajaste en: ---</div>
   </div>
 
-  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').then((reg) => {
-          reg.addEventListener('updatefound', () => {
-            const newWorker = reg.installing;
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                window.location.reload();
-              }
-            });
-          });
-        }).catch(err => console.log('SW error:', err));
-      });
-    }
-
-    const STOPS_IDA = [
-      { id: "s_1", name: "El Yeco", lat: -33.309274, lng: -71.642426, stdMin: 0 },
-      { id: "s_2", name: "Mirador El Yeco", lat: -33.314191, lng: -71.642970, stdMin: 2.5 },
-      { id: "s_3", name: "Escuela El Yeco", lat: -33.317163, lng: -71.642345, stdMin: 4 },
-      { id: "s_4", name: "Rotonda Mirasol", lat: -33.327301, lng: -71.644831, stdMin: 7 },
-      { id: "s_5", name: "Plaza de Algarrobo Norte", lat: -33.331729, lng: -71.645063, stdMin: 9 },
-      { id: "s_6", name: "Playa Algarrobo Norte", lat: -33.331684, lng: -71.644877, stdMin: 10 },
-      { id: "s_7", name: "Camino Las Dichas", lat: -33.340163, lng: -71.648380, stdMin: 12.5 },
-      { id: "s_8", name: "San Alfonso del Mar", lat: -33.350052, lng: -71.651266, stdMin: 16 },
-      { id: "s_9", name: "Pueblo de Artesanos", lat: -33.355572, lng: -71.654251, stdMin: 18 },
-      { id: "s_10", name: "Aguas Marinas", lat: -33.357592, lng: -71.660889, stdMin: 20 },
-      { id: "s_11", name: "Plaza Bordemar", lat: -33.358882, lng: -71.663185, stdMin: 21 },
-      { id: "s_12", name: "Playa Las Cadenas", lat: -33.360355, lng: -71.664934, stdMin: 22 },
-      { id: "s_13", name: "Av. Algarrobo", lat: -33.361464, lng: -71.668715, stdMin: 23 },
-      { id: "s_14", name: "Club de Yates", lat: -33.362485, lng: -71.671119, stdMin: 24 },
-      { id: "s_15", name: "Municipalidad de Algarrobo", lat: -33.366649, lng: -71.673796, stdMin: 25 },
-      { id: "s_16", name: "Iglesia Santa Teresita", lat: -33.365969, lng: -71.670612, stdMin: 26 },
-      { id: "s_17", name: "El Litre", lat: -33.369027, lng: -71.668389, stdMin: 28 },
-      { id: "s_18", name: "Av. Peñablanca", lat: -33.372115, lng: -71.672837, stdMin: 30 },
-      { id: "s_19", name: "Parque Residencial", lat: -33.373922, lng: -71.676241, stdMin: 31 },
-      { id: "s_20", name: "Av. Bahía Mansa", lat: -33.376717, lng: -71.681289, stdMin: 32 },
-      { id: "s_21", name: "La Portada 1", lat: -33.379853, lng: -71.685700, stdMin: 33 },
-      { id: "s_22", name: "La Portada 2", lat: -33.381415, lng: -71.686662, stdMin: 34 },
-      { id: "s_23", name: "Las Balandras", lat: -33.384419, lng: -71.688685, stdMin: 35 },
-      { id: "s_24", name: "aCuenta El Quisco", lat: -33.386674, lng: -71.690150, stdMin: 36 },
-      { id: "s_25", name: "Playa Los Corsarios", lat: -33.393410, lng: -71.694235, stdMin: 37 },
-      { id: "s_26", name: "El Quisco Centro", lat: -33.398036, lng: -71.694685, stdMin: 38 },
-      { id: "s_27", name: "Parroquia El Quisco", lat: -33.402410, lng: -71.694017, stdMin: 40 },
-      { id: "s_28", name: "Capilla SUD", lat: -33.405314, lng: -71.693575, stdMin: 41 },
-      { id: "s_29", name: "Huallilemu", lat: -33.407660, lng: -71.694103, stdMin: 42 },
-      { id: "s_30", name: "Riu Tai", lat: -33.411525, lng: -71.695206, stdMin: 43 },
-      { id: "s_31", name: "Tralcamahuida", lat: -33.413909, lng: -71.695796, stdMin: 44 },
-      { id: "s_32", name: "Balneario Banco Central", lat: -33.416866, lng: -71.696555, stdMin: 45 },
-      { id: "s_33", name: "Punta de Tralca", lat: -33.425602, lng: -71.691802, stdMin: 48 },
-      { id: "s_34", name: "Av. del Escritor / Isidora Dubournais", lat: -33.428813, lng: -71.689686, stdMin: 50 },
-      { id: "s_35", name: "Portal Isla Negra", lat: -33.430297, lng: -71.688741, stdMin: 51 },
-      { id: "s_36", name: "Huallilemu Sur", lat: -33.432256, lng: -71.687695, stdMin: 52 },
-      { id: "s_37", name: "El Sauce / Isidora Dubournais", lat: -33.436587, lng: -71.685375, stdMin: 53.5 },
-      { id: "s_38", name: "Ferretería Antonia", lat: -33.439622, lng: -71.683849, stdMin: 55 },
-      { id: "s_39", name: "Isla Negra", lat: -33.441841, lng: -71.682615, stdMin: 56 },
-      { id: "s_40", name: "Playa Las Ágatas", lat: -33.447254, lng: -71.677519, stdMin: 58 },
-      { id: "s_41", name: "Camping El Bosque", lat: -33.449337, lng: -71.676017, stdMin: 59 },
-      { id: "s_42", name: "Av. Centenario / Baquedano", lat: -33.451669, lng: -71.674005, stdMin: 60.5 },
-      { id: "s_43", name: "Av. Arellano / Baquedano", lat: -33.453651, lng: -71.672295, stdMin: 61 },
-      { id: "s_44", name: "Plaza El Tabo", lat: -33.455079, lng: -71.668877, stdMin: 62 },
-      { id: "s_45", name: "Poeta Jonás / Baquedano", lat: -33.455711, lng: -71.665932, stdMin: 63 },
-      { id: "s_46", name: "El Tabo Centro", lat: -33.456065, lng: -71.664800, stdMin: 64 },
-      { id: "s_47", name: "José Francisco / Baquedano", lat: -33.456813, lng: -71.662077, stdMin: 65 },
-      { id: "s_48", name: "Monolito", lat: -33.458169, lng: -71.659379, stdMin: 66 },
-      { id: "s_49", name: "Lindero Azul", lat: -33.460690, lng: -71.652762, stdMin: 68 },
-      { id: "s_50", name: "El Tabito", lat: -33.462867, lng: -71.648936, stdMin: 70 },
-      { id: "s_51", name: "La Granja Presbiteriana", lat: -33.466184, lng: -71.643753, stdMin: 72 },
-      { id: "s_52", name: "Sector Consistorial", lat: -33.467956, lng: -71.639740, stdMin: 74 },
-      { id: "s_53", name: "Av. El Roble / Litoral de los Poetas", lat: -33.472857, lng: -71.629135, stdMin: 76 },
-      { id: "s_54", name: "Mar y Boldo", lat: -33.481327, lng: -71.621257, stdMin: 78 },
-      { id: "s_55", name: "Municipalidad de El Tabo", lat: -33.491516, lng: -71.620066, stdMin: 80 },
-      { id: "s_56", name: "Las Cruces", lat: -33.498270, lng: -71.615101, stdMin: 82 },
-      { id: "s_57", name: "Piedra de Luna / Ruta G-986", lat: -33.500480, lng: -71.609764, stdMin: 83.5 },
-      { id: "s_58", name: "Laguna El Peral", lat: -33.503254, lng: -71.603651, stdMin: 85 },
-      { id: "s_59", name: "Playas Blancas", lat: -33.506967, lng: -71.603513, stdMin: 86 },
-      { id: "s_60", name: "Campo Lindo", lat: -33.509902, lng: -71.602803, stdMin: 87 },
-      { id: "s_61", name: "Av. Perú / Litoral de los Poetas", lat: -33.515614, lng: -71.601334, stdMin: 88.5 },
-      { id: "s_62", name: "Camino Vecinal Chépica", lat: -33.519128, lng: -71.597552, stdMin: 89.5 },
-      { id: "s_63", name: "Costa Azul", lat: -33.520971, lng: -71.596876, stdMin: 90 },
-      { id: "s_64", name: "Av. Norte / El Peral", lat: -33.524656, lng: -71.597093, stdMin: 91 },
-      { id: "s_65", name: "Av. Central / El Peral", lat: -33.526768, lng: -71.597589, stdMin: 92 },
-      { id: "s_66", name: "Av. de la Plaza / El Peral", lat: -33.528440, lng: -71.597101, stdMin: 92.5 },
-      { id: "s_67", name: "Copec San Sebastián", lat: -33.532325, lng: -71.594607, stdMin: 94 },
-      { id: "s_68", name: "Terminal de Cartagena", lat: -33.538993, lng: -71.595556, stdMin: 96 },
-      { id: "s_69", name: "Estadio Cartagena", lat: -33.541643, lng: -71.599783, stdMin: 97 },
-      { id: "s_70", name: "Playa Grande Cartagena", lat: -33.542711, lng: -71.602466, stdMin: 98 },
-      { id: "s_71", name: "Plaza de Cartagena", lat: -33.546745, lng: -71.603549, stdMin: 99 },
-      { id: "s_72", name: "Playa Chica Cartagena", lat: -33.548641, lng: -71.605368, stdMin: 100 },
-      { id: "s_73", name: "Vicente Huidobro", lat: -33.549938, lng: -71.606001, stdMin: 101 },
-      { id: "s_74", name: "Estación Cartagena", lat: -33.552171, lng: -71.611801, stdMin: 102 },
-      { id: "s_75", name: "Vista Hermosa", lat: -33.552674, lng: -71.614039, stdMin: 102.8 },
-      { id: "s_76", name: "Los Castaños / Av. San Martín", lat: -33.553039, lng: -71.616381, stdMin: 103.5 },
-      { id: "s_77", name: "Corazones", lat: -33.553384, lng: -71.619900, stdMin: 104 },
-      { id: "s_78", name: "Rocas de San Antonio", lat: -33.555198, lng: -71.623395, stdMin: 105 },
-      { id: "s_79", name: "Calle Juncos", lat: -33.560963, lng: -71.621518, stdMin: 106.5 },
-      { id: "s_80", name: "Pelancura", lat: -33.566344, lng: -71.621520, stdMin: 108 },
-      { id: "s_81", name: "Manuel Bulnes", lat: -33.571625, lng: -71.624326, stdMin: 110 },
-      { id: "s_82", name: "Faro Punta Panul", lat: -33.576084, lng: -71.626838, stdMin: 111 },
-      { id: "s_83", name: "Subida Las Canteras", lat: -33.579854, lng: -71.624744, stdMin: 111.5 },
-      { id: "s_84", name: "San Antonio Centro", lat: -33.580819, lng: -71.614048, stdMin: 112 },
-      { id: "s_85", name: "Puertecito", lat: -33.585632, lng: -71.612726, stdMin: 112.5 },
-      { id: "s_86", name: "Alan Macowan", lat: -33.588371, lng: -71.612841, stdMin: 112.8 },
-      { id: "s_87", name: "4 Norte / Barros Luco", lat: -33.591434, lng: -71.613092, stdMin: 113 },
-      { id: "s_88", name: "Parada 5", lat: -33.593488, lng: -71.613216, stdMin: 113.5 },
-      { id: "s_89", name: "Parada 4", lat: -33.595350, lng: -71.613366, stdMin: 114 },
-      { id: "s_90", name: "Parada 7", lat: -33.598395, lng: -71.613618, stdMin: 115 },
-      { id: "s_91", name: "Parada 8", lat: -33.600580, lng: -71.613783, stdMin: 115.3 },
-      { id: "s_92", name: "Parada 9", lat: -33.603267, lng: -71.613992, stdMin: 115.8 },
-      { id: "s_93", name: "Parada 10", lat: -33.605409, lng: -71.614142, stdMin: 116.2 },
-      { id: "s_94", name: "Parada 11", lat: -33.607487, lng: -71.614532, stdMin: 116.5 },
-      { id: "s_95", name: "Terminal Tejas Verdes", lat: -33.613254, lng: -71.619707, stdMin: 117 }
-    ];
-
-    const STOPS_VUELTA = [
-      { id: "v_1", name: "Terminal Tejas Verdes", lat: -33.613254, lng: -71.619707, stdMin: 0 },
-      { id: "v_2", name: "Parada 11", lat: -33.608237, lng: -71.614150, stdMin: 0.05 },
-      { id: "v_3", name: "Parada 10", lat: -33.605605, lng: -71.613826, stdMin: 0.1 },
-      { id: "v_4", name: "Parada 9", lat: -33.603318, lng: -71.613648, stdMin: 0.15 },
-      { id: "v_5", name: "Cesfam Barrancas", lat: -33.602086, lng: -71.613571, stdMin: 0.2 },
-      { id: "v_6", name: "Parada 8", lat: -33.600546, lng: -71.613437, stdMin: 0.3 },
-      { id: "v_7", name: "Parada 6 (Municipalidad)", lat: -33.597322, lng: -71.613188, stdMin: 0.4 },
-      { id: "v_8", name: "Municipalidad de San Antonio", lat: -33.596022, lng: -71.613104, stdMin: 0.5 },
-      { id: "v_9", name: "Parada 4", lat: -33.593420, lng: -71.612894, stdMin: 0.6 },
-      { id: "v_10", name: "Parada 6", lat: -33.593313, lng: -71.612879, stdMin: 0.7 },
-      { id: "v_11", name: "Parada 3", lat: -33.592236, lng: -71.612803, stdMin: 0.8 },
-      { id: "v_12", name: "4 Norte / Barros Luco", lat: -33.591183, lng: -71.612864, stdMin: 1.0 },
-      { id: "v_13", name: "Av. Centenario / Alberto Barros", lat: -33.580749, lng: -71.611663, stdMin: 1.2 },
-      { id: "v_14", name: "San Antonio Centro", lat: -33.580536, lng: -71.613249, stdMin: 1.5 },
-      { id: "v_15", name: "Subida Las Canteras", lat: -33.579789, lng: -71.624675, stdMin: 1.8 },
-      { id: "v_16", name: "Faro Punta Panul", lat: -33.575865, lng: -71.626730, stdMin: 2.2 },
-      { id: "v_17", name: "Manuel Bulnes", lat: -33.571409, lng: -71.624098, stdMin: 2.8 },
-      { id: "v_18", name: "Pelancura", lat: -33.566416, lng: -71.621402, stdMin: 3.5 },
-      { id: "v_19", name: "Calle Juncos", lat: -33.560988, lng: -71.621407, stdMin: 4.2 },
-      { id: "v_20", name: "Rocas de San Antonio", lat: -33.555441, lng: -71.623001, stdMin: 5 },
-      { id: "v_21", name: "Corazones", lat: -33.553475, lng: -71.619849, stdMin: 6 },
-      { id: "v_22", name: "Los Castaños / Av. San Martín", lat: -33.553159, lng: -71.616351, stdMin: 7 },
-      { id: "v_23", name: "Vista Hermosa", lat: -33.552820, lng: -71.614208, stdMin: 7.5 },
-      { id: "v_24", name: "Estación Cartagena", lat: -33.552312, lng: -71.611757, stdMin: 8 },
-      { id: "v_25", name: "Vicente Huidobro", lat: -33.551759, lng: -71.606494, stdMin: 9 },
-      { id: "v_26", name: "Hermanos Tobar", lat: -33.549940, lng: -71.603619, stdMin: 10 },
-      { id: "v_27", name: "Mariano Casanova", lat: -33.547645, lng: -71.601704, stdMin: 11 },
-      { id: "v_28", name: "Carlos Corsi", lat: -33.548244, lng: -71.597466, stdMin: 12 },
-      { id: "v_29", name: "Plaza de Cartagena", lat: -33.546515, lng: -71.603080, stdMin: 13 },
-      { id: "v_30", name: "Playa Grande Cartagena", lat: -33.542513, lng: -71.601865, stdMin: 14 },
-      { id: "v_31", name: "Estadio Cartagena", lat: -33.541821, lng: -71.599805, stdMin: 15 },
-      { id: "v_32", name: "Terminal de Cartagena", lat: -33.540235, lng: -71.596768, stdMin: 16 },
-      { id: "v_33", name: "Ailis Mall Chino", lat: -33.531641, lng: -71.595363, stdMin: 18.5 },
-      { id: "v_34", name: "Av. de la Plaza / El Peral", lat: -33.528118, lng: -71.597015, stdMin: 20 },
-      { id: "v_35", name: "Av. Central / El Peral", lat: -33.526558, lng: -71.597530, stdMin: 21 },
-      { id: "v_36", name: "Av. Norte / El Peral", lat: -33.524909, lng: -71.597037, stdMin: 22 },
-      { id: "v_37", name: "Costa Azul", lat: -33.521275, lng: -71.596704, stdMin: 23 },
-      { id: "v_38", name: "Camino Vecinal Chépica", lat: -33.518521, lng: -71.597809, stdMin: 24 },
-      { id: "v_39", name: "Av. Perú / Litoral de los Poetas", lat: -33.514505, lng: -71.601430, stdMin: 25.5 },
-      { id: "v_40", name: "Campo Lindo", lat: -33.509052, lng: -71.602809, stdMin: 27 },
-      { id: "v_41", name: "Playas Blancas", lat: -33.506942, lng: -71.603333, stdMin: 28 },
-      { id: "v_42", name: "Laguna El Peral", lat: -33.503248, lng: -71.603650, stdMin: 29 },
-      { id: "v_43", name: "Piedra de Luna / Litoral de los Poetas", lat: -33.500187, lng: -71.610247, stdMin: 31 },
-      { id: "v_44", name: "Las Cruces", lat: -33.498219, lng: -71.615048, stdMin: 33 },
-      { id: "v_45", name: "Municipalidad de El Tabo", lat: -33.491342, lng: -71.619852, stdMin: 36 },
-      { id: "v_46", name: "Mar y Boldo", lat: -33.481341, lng: -71.621096, stdMin: 40 },
-      { id: "v_47", name: "Av. El Roble / Litoral de los Poetas", lat: -33.472712, lng: -71.629017, stdMin: 43 },
-      { id: "v_48", name: "Mirador El Tabo", lat: -33.467942, lng: -71.639526, stdMin: 46 },
-      { id: "v_49", name: "La Granja Presbiteriana", lat: -33.465840, lng: -71.644091, stdMin: 48 },
-      { id: "v_50", name: "El Tabito", lat: -33.462970, lng: -71.648604, stdMin: 50 },
-      { id: "v_51", name: "Lindero Azul", lat: -33.460601, lng: -71.652518, stdMin: 52 },
-      { id: "v_52", name: "Monolito", lat: -33.458213, lng: -71.658797, stdMin: 54 },
-      { id: "v_53", name: "El Tabo Centro", lat: -33.455984, lng: -71.664269, stdMin: 56 },
-      { id: "v_54", name: "Plaza El Tabo", lat: -33.454909, lng: -71.669124, stdMin: 58 },
-      { id: "v_55", name: "Av. Arellano / Baquedano", lat: -33.453562, lng: -71.672230, stdMin: 59.5 },
-      { id: "v_56", name: "Av. Centenario / Baquedano", lat: -33.451609, lng: -71.673937, stdMin: 60.5 },
-      { id: "v_57", name: "Camping El Bosque", lat: -33.449225, lng: -71.675904, stdMin: 62 },
-      { id: "v_58", name: "Playa Las Ágatas", lat: -33.447169, lng: -71.677399, stdMin: 63 },
-      { id: "v_59", name: "Isla Negra", lat: -33.440817, lng: -71.682980, stdMin: 66 },
-      { id: "v_60", name: "El Sauce / Isidora Dubournais", lat: -33.436651, lng: -71.685153, stdMin: 68 },
-      { id: "v_61", name: "Huallilemu Sur", lat: -33.432310, lng: -71.687443, stdMin: 70 },
-      { id: "v_62", name: "Portal Isla Negra", lat: -33.430222, lng: -71.688599, stdMin: 71 },
-      { id: "v_63", name: "Av. del Escritor / Isidora Dubournais", lat: -33.428445, lng: -71.689731, stdMin: 72 },
-      { id: "v_64", name: "Punta de Tralca", lat: -33.425728, lng: -71.691512, stdMin: 74 },
-      { id: "v_65", name: "Balneario Banco Central", lat: -33.416786, lng: -71.696407, stdMin: 77 },
-      { id: "v_66", name: "Tralcamahuida", lat: -33.413916, lng: -71.695616, stdMin: 78 },
-      { id: "v_67", name: "Riu Tai", lat: -33.411695, lng: -71.695064, stdMin: 79 },
-      { id: "v_68", name: "Huallilemu", lat: -33.407705, lng: -71.693929, stdMin: 80 },
-      { id: "v_69", name: "Capilla SUD", lat: -33.404999, lng: -71.693507, stdMin: 81 },
-      { id: "v_70", name: "Parroquia El Quisco", lat: -33.403490, lng: -71.693719, stdMin: 82 },
-      { id: "v_71", name: "Municipalidad de El Quisco", lat: -33.399970, lng: -71.694430, stdMin: 84 },
-      { id: "v_72", name: "Playa Los Corsarios", lat: -33.393007, lng: -71.693891, stdMin: 85 },
-      { id: "v_73", name: "aCuenta El Quisco", lat: -33.385932, lng: -71.689444, stdMin: 86 },
-      { id: "v_74", name: "Las Balandras", lat: -33.384479, lng: -71.688527, stdMin: 87 },
-      { id: "v_75", name: "La Portada 1", lat: -33.382177, lng: -71.686995, stdMin: 88 },
-      { id: "v_76", name: "La Portada 2", lat: -33.380048, lng: -71.685564, stdMin: 89 },
-      { id: "v_77", name: "Av. Bahía Mansa", lat: -33.377346, lng: -71.682297, stdMin: 90 },
-      { id: "v_78", name: "Parque Residencial", lat: -33.374008, lng: -71.676266, stdMin: 91 },
-      { id: "v_79", name: "Av. Peñablanca", lat: -33.372211, lng: -71.672876, stdMin: 92 },
-      { id: "v_80", name: "El Litre", lat: -33.368883, lng: -71.668080, stdMin: 94 },
-      { id: "v_81", name: "Iglesia Santa Teresita", lat: -33.365514, lng: -71.669762, stdMin: 95 },
-      { id: "v_82", name: "Playa Las Cadenas", lat: -33.360392, lng: -71.664864, stdMin: 98 },
-      { id: "v_83", name: "Plaza Bordemar", lat: -33.359007, lng: -71.663199, stdMin: 100 },
-      { id: "v_84", name: "Pueblo de Artesanos", lat: -33.355756, lng: -71.653545, stdMin: 103 },
-      { id: "v_85", name: "San Alfonso del Mar", lat: -33.350052, lng: -71.651266, stdMin: 105 },
-      { id: "v_86", name: "Camino Las Dichas", lat: -33.340408, lng: -71.648213, stdMin: 109 },
-      { id: "v_87", name: "Playa Algarrobo Norte", lat: -33.335210, lng: -71.647304, stdMin: 111 },
-      { id: "v_88", name: "Plaza de Algarrobo Norte", lat: -33.331684, lng: -71.644877, stdMin: 112 },
-      { id: "v_89", name: "Rotonda Mirasol", lat: -33.327238, lng: -71.644659, stdMin: 113 },
-      { id: "v_90", name: "Escuela El Yeco", lat: -33.317286, lng: -71.642168, stdMin: 114 },
-      { id: "v_91", name: "Mirador El Yeco", lat: -33.314416, lng: -71.642779, stdMin: 115 },
-      { id: "v_92", name: "El Yeco", lat: -33.309464, lng: -71.642382, stdMin: 116 }
-    ];
-
-    let ROUTE_STOPS = STOPS_IDA;
-
-    let state = {
-      userName: localStorage.getItem("userName") || "Pasajero",
-      theme: localStorage.getItem("appTheme") || "auto",
-      direction: "IDA",
-      startStopId: STOPS_IDA[0].id,
-      endStopId: STOPS_IDA[STOPS_IDA.length - 1].id,
-      isTripActive: false,
-      currentBaseIndex: 0,
-      atStop: false,
-      minDistToTarget: Infinity,
-      isGpsLive: false,
-      userTouchedStartStop: false,
-      tripStartTime: null,
-      watchPositionId: null,
-      currentSpeed: 0,
-      avgSpeed: 0,
-      totalSpeedReadings: 0,
-      sumSpeedReadings: 0,
-      speedingEventsCount: 0,
-      isCurrentlySpeeding: false,
-      lastLat: null,
-      lastLng: null,
-      alert2StopsTriggered: false,
-      alert1StopTriggered: false,
-      alertArrivedTriggered: false,
-      favorites: JSON.parse(localStorage.getItem("favorites") || "[]"),
-      recentDestinations: JSON.parse(localStorage.getItem("recentDestinations") || "[]")
-    };
-
-    let realMap = null;
-    let busMarker = null;
-    let nextStopMarker = null;
-    let pedestrianMap = null;
-    let pedestrianPersonMarker = null;
-    let pedestrianStopMarker = null;
-    let audioContext = null;
-    let wakeLock = null;
-
-    async function requestWakeLock() {
-      if ('wakeLock' in navigator) {
-        try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
-      }
-    }
-
-    function releaseWakeLock() {
-      if (wakeLock) { wakeLock.release().then(() => { wakeLock = null; }); }
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      checkAutoTheme();
-      initUI();
-      checkPermissionsStatus();
-      checkUrlShortcuts();
-      restoreSessionIfExists();
-      renderFavorites();
-      renderRecentDestinations();
-      initLeafletMap();
-
-      document.addEventListener("visibilitychange", () => {
-        if (!document.hidden && state.isTripActive) {
-          requestWakeLock();
-          syncGpsPositionToClosestStop();
-        }
-      });
-    });
-
-    function checkAutoTheme() {
-      const savedTheme = localStorage.getItem("appTheme");
-      if (savedTheme && savedTheme !== "auto") {
-        applyTheme(savedTheme);
-      } else {
-        const hour = new Date().getHours();
-        applyTheme((hour >= 19 || hour < 7) ? "dark" : "light");
-      }
-    }
-
-    function applyTheme(theme) {
-      state.theme = theme;
-      localStorage.setItem("appTheme", theme);
-      const btn = document.getElementById("btnThemeToggle");
-      if (theme === "light") {
-        document.body.classList.add("light-mode");
-        if (btn) btn.innerText = "🌙 Modo Oscuro";
-      } else {
-        document.body.classList.remove("light-mode");
-        if (btn) btn.innerText = "☀️ Modo Claro";
-      }
-    }
-
-    function checkUrlShortcuts() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const dirParam = urlParams.get('dir');
-      if (dirParam && (dirParam === 'IDA' || dirParam === 'VUELTA')) {
-        state.direction = dirParam;
-        document.getElementById("selectDirection").value = dirParam;
-        ROUTE_STOPS = dirParam === 'IDA' ? STOPS_IDA : STOPS_VUELTA;
-        populateStopsDropdowns();
-      }
-    }
-
-    function checkPermissionsStatus() {
-      const banner = document.getElementById("permissionBanner");
-      if ("Notification" in window && Notification.permission === "granted") {
-        banner.classList.add("hidden");
-      } else {
-        banner.classList.remove("hidden");
-      }
-    }
-
-    async function requestSystemPermissions() {
-      if ("Notification" in window && Notification.permission !== "granted") {
-        await Notification.requestPermission();
-      }
-      try {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioContext.state === 'suspended') await audioContext.resume();
-      } catch (e) {}
-      if ("vibrate" in navigator) navigator.vibrate([100]);
-      checkPermissionsStatus();
-    }
-
-    function playAlertBeep(freq = 587.33, duration = 0.4) {
-      try {
-        if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioContext.state === 'suspended') audioContext.resume();
-        const osc = audioContext.createOscillator();
-        const gain = audioContext.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, audioContext.currentTime);
-        gain.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
-        osc.connect(gain);
-        gain.connect(audioContext.destination);
-        osc.start();
-        osc.stop(audioContext.currentTime + duration);
-      } catch (e) {}
-    }
-
-    function triggerSystemNotification(title, body, vibratePattern) {
-      if ("vibrate" in navigator && vibratePattern) navigator.vibrate(vibratePattern);
-      if ("Notification" in window && Notification.permission === "granted") {
-        try {
-          new Notification(title, { body: body, icon: 'icon-192.png', tag: 'micro-litoral-alert' });
-        } catch(e) {}
-      }
-    }
-
-    function initUI() {
-      document.getElementById("btnThemeToggle").addEventListener("click", () => {
-        const nextTheme = document.body.classList.contains("light-mode") ? "dark" : "light";
-        applyTheme(nextTheme);
-      });
-
-      document.getElementById("btnGrantPermissions").addEventListener("click", requestSystemPermissions);
-
-      document.getElementById("inputName").value = state.userName;
-      document.getElementById("inputName").addEventListener("input", (e) => {
-        state.userName = e.target.value.trim() || "Pasajero";
-        localStorage.setItem("userName", state.userName);
-        updateHeaderGreeting(null);
-      });
-
-      document.getElementById("selectDirection").addEventListener("change", (e) => {
-        state.direction = e.target.value;
-        ROUTE_STOPS = state.direction === "IDA" ? STOPS_IDA : STOPS_VUELTA;
-        state.userTouchedStartStop = false;
-        populateStopsDropdowns();
-        updateDepartureSchedule();
-        updateSetupSummary();
-      });
-
-      document.getElementById("selectStartStop").addEventListener("change", (e) => {
-        state.userTouchedStartStop = true;
-        state.startStopId = e.target.value;
-        const selectStart = document.getElementById("selectStartStop");
-        const selectEnd = document.getElementById("selectEndStop");
-        if (selectStart.selectedIndex >= selectEnd.selectedIndex) {
-          if (selectStart.selectedIndex < selectEnd.options.length - 1) {
-            selectEnd.selectedIndex = selectStart.selectedIndex + 1;
-            state.endStopId = selectEnd.value;
-          }
-        }
-        updateDepartureSchedule();
-        updateSetupSummary();
-      });
-
-      document.getElementById("selectEndStop").addEventListener("change", (e) => {
-        const selectStart = document.getElementById("selectStartStop");
-        const selectEnd = document.getElementById("selectEndStop");
-        if (selectEnd.selectedIndex <= selectStart.selectedIndex) {
-          if (selectEnd.selectedIndex > 0) {
-            selectStart.selectedIndex = selectEnd.selectedIndex - 1;
-            state.startStopId = selectStart.value;
-          }
-        }
-        state.endStopId = e.target.value;
-        updateSetupSummary();
-      });
-
-      document.getElementById("activeChangeEndStop").addEventListener("change", (e) => {
-        state.endStopId = e.target.value;
-        state.alert2StopsTriggered = false;
-        state.alert1StopTriggered = false;
-        state.alertArrivedTriggered = false;
-        saveActiveStateToStorage();
-        updateHeaderGreeting(null);
-        updateClockAndETA();
-      });
-
-      populateStopsDropdowns();
-
-      document.getElementById("btnStartTrip").addEventListener("click", () => {
-        requestSystemPermissions();
-        addRecentDestination(state.endStopId);
-        startTrip();
-      });
-      document.getElementById("btnCancelTrip").addEventListener("click", cancelTrip);
-      document.getElementById("btnFinishTrip").addEventListener("click", finishTrip);
-      document.getElementById("btnRefreshGPS").addEventListener("click", syncGpsPositionToClosestStop);
-
-      document.getElementById("btnSaveFavorite").addEventListener("click", saveFavoriteRoute);
-
-      document.getElementById("compassContainer").addEventListener("click", openPedestrianModal);
-      document.getElementById("btnClosePedestrianModal").addEventListener("click", () => {
-        document.getElementById("pedestrianModal").classList.remove("active");
-      });
-
-      document.getElementById("btnHowItWorks").addEventListener("click", () => {
-        document.getElementById("howItWorksModal").classList.add("active");
-      });
-      document.getElementById("btnCloseHowItWorks").addEventListener("click", () => {
-        document.getElementById("howItWorksModal").classList.remove("active");
-      });
-
-      document.getElementById("btnFAQ").addEventListener("click", () => {
-        document.getElementById("faqModal").classList.add("active");
-      });
-      document.getElementById("btnCloseFAQ").addEventListener("click", () => {
-        document.getElementById("faqModal").classList.remove("active");
-      });
-
-      setInterval(updateClockAndETA, 1000);
-      initPassiveGPS();
-    }
-
-    function initLeafletMap() {
-      realMap = L.map('realMap', {
-        dragging: false, touchZoom: false, scrollWheelZoom: false,
-        doubleClickZoom: false, boxZoom: false, tap: false, zoomControl: false
-      }).setView([-33.3605, -71.6649], 16);
-
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(realMap);
-
-      const busIcon = L.divIcon({ html: '🚌', className: 'map-blue-bus-icon', iconSize: [26, 26] });
-      const stopIcon = L.divIcon({ html: '📍', className: 'map-stop-icon', iconSize: [24, 24] });
-
-      busMarker = L.marker([-33.3605, -71.6649], { icon: busIcon }).addTo(realMap);
-      nextStopMarker = L.marker([-33.3605, -71.6649], { icon: stopIcon }).addTo(realMap);
-    }
-
-    function updateHeaderGreeting(nearestStop) {
-      const title = document.getElementById("headerGreeting");
-      const sub = document.getElementById("headerSub");
-      if (state.isTripActive) {
-        title.innerText = `🚌 Viajando con ${state.userName}`;
-        sub.innerText = state.isGpsLive ? "🟢 En Ruta | Señal Fuerte" : "⚠️ GPS Buscando Señal...";
-        sub.style.color = state.isGpsLive ? "var(--success)" : "var(--warning)";
-      } else {
-        title.innerText = `¡Hola, ${state.userName}!`;
-        if (nearestStop) {
-          sub.innerText = `📍 Cerca de: ${nearestStop.name}`;
-          sub.style.color = "var(--success)";
-        } else {
-          sub.innerText = `⚠️ Estás fuera de la ruta.`;
-          sub.style.color = "var(--warning)";
-        }
-      }
-    }
-
-    function populateStopsDropdowns() {
-      const selectStart = document.getElementById("selectStartStop");
-      const selectEnd = document.getElementById("selectEndStop");
-      selectStart.innerHTML = "";
-      selectEnd.innerHTML = "";
-
-      ROUTE_STOPS.forEach((s) => {
-        selectStart.appendChild(new Option(s.name, s.id));
-        selectEnd.appendChild(new Option(s.name, s.id));
-      });
-
-      state.startStopId = ROUTE_STOPS[0].id;
-      state.endStopId = ROUTE_STOPS[ROUTE_STOPS.length - 1].id;
-      selectStart.value = state.startStopId;
-      selectEnd.value = state.endStopId;
-
-      updateSetupSummary();
-    }
-
-    function populateActiveChangeEndDropdown() {
-      const select = document.getElementById("activeChangeEndStop");
-      select.innerHTML = "";
-      const remaining = ROUTE_STOPS.slice(state.currentBaseIndex + 1);
-      remaining.forEach(s => { select.appendChild(new Option(s.name, s.id)); });
-      select.value = state.endStopId;
-    }
-
-    function updateSetupSummary() {
-      const startObj = ROUTE_STOPS.find(s => s.id === state.startStopId);
-      const endObj = ROUTE_STOPS.find(s => s.id === state.endStopId);
-      if (!startObj || !endObj) return;
-
-      const startIdx = ROUTE_STOPS.findIndex(s => s.id === state.startStopId);
-      const endIdx = ROUTE_STOPS.findIndex(s => s.id === state.endStopId);
-      const stopsCount = Math.max(0, endIdx - startIdx);
-      const kmDist = Math.max(0.1, calculateDistanceKm(startObj.lat, startObj.lng, endObj.lat, endObj.lng) * 1.25);
-      const estMins = Math.max(1, Math.round(Math.abs(endObj.stdMin - startObj.stdMin)));
-
-      const now = new Date();
-      const arrivalTime = new Date(now.getTime() + estMins * 60000);
-      document.getElementById("setupTripEta").innerText = `${arrivalTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}`;
-      document.getElementById("setupTripStops").innerText = `${stopsCount}`;
-      document.getElementById("setupTripKm").innerText = `${kmDist.toFixed(1)}`;
-    }
-
-    function addRecentDestination(stopId) {
-      const stop = ROUTE_STOPS.find(s => s.id === stopId);
-      if (!stop) return;
-      state.recentDestinations = state.recentDestinations.filter(d => d.id !== stopId);
-      state.recentDestinations.unshift({ id: stop.id, name: stop.name, direction: state.direction });
-      if (state.recentDestinations.length > 4) state.recentDestinations.pop();
-      localStorage.setItem("recentDestinations", JSON.stringify(state.recentDestinations));
-      renderRecentDestinations();
-    }
-
-    function renderRecentDestinations() {
-      const container = document.getElementById("recentDestinationsChips");
-      const wrapper = document.getElementById("recentDestinationsContainer");
-      container.innerHTML = "";
-
-      if (state.recentDestinations.length === 0) {
-        wrapper.classList.add("hidden");
-        return;
-      }
-      wrapper.classList.remove("hidden");
-
-      state.recentDestinations.forEach(dest => {
-        const chip = document.createElement("button");
-        chip.className = "btn btn-secondary";
-        chip.style.cssText = "width: auto; padding: 6px 12px; font-size: 0.75rem; border-radius: 12px; background: rgba(56,189,248,0.1); border-color: rgba(56,189,248,0.3); color: var(--accent) !important;";
-        chip.innerText = `🎯 ${dest.name}`;
-        chip.addEventListener("click", () => {
-          state.direction = dest.direction;
-          document.getElementById("selectDirection").value = dest.direction;
-          ROUTE_STOPS = dest.direction === 'IDA' ? STOPS_IDA : STOPS_VUELTA;
-          populateStopsDropdowns();
-          document.getElementById("selectEndStop").value = dest.id;
-          state.endStopId = dest.id;
-          updateSetupSummary();
-        });
-        container.appendChild(chip);
-      });
-    }
-
-    function saveFavoriteRoute() {
-      const favName = document.getElementById("favNameInput").value.trim() || "Ruta Frecuente";
-      state.favorites.push({ id: Date.now(), name: favName, direction: state.direction, startStopId: state.startStopId, endStopId: state.endStopId });
-      localStorage.setItem("favorites", JSON.stringify(state.favorites));
-      document.getElementById("favNameInput").value = "";
-      renderFavorites();
-    }
-
-    function renderFavorites() {
-      const container = document.getElementById("favoritesList");
-      container.innerHTML = "";
-      if (state.favorites.length === 0) {
-        container.innerHTML = `<div style="font-size:0.75rem; color:var(--muted);">No has guardado rutas aún.</div>`;
-        return;
-      }
-      state.favorites.forEach(fav => {
-        const item = document.createElement("div");
-        item.style.cssText = "background:rgba(255,255,255,0.04); padding:10px 14px; border-radius:14px; border:1px solid var(--glass-border); display:flex; justify-content:space-between; align-items:center;";
-        item.innerHTML = `
-          <div>
-            <div style="font-size:0.9rem; font-weight:800; color:var(--text);">${fav.name}</div>
-            <div style="font-size:0.7rem; color:var(--accent); font-weight:600;">${fav.direction === 'IDA' ? 'Hacia Tejas Verdes' : 'Hacia El Yeco'}</div>
-          </div>
-          <button class="btn btn-secondary" style="width:auto; padding:6px 12px; font-size:0.75rem; border-radius:10px;">Cargar</button>
-        `;
-        item.querySelector("button").addEventListener("click", () => {
-          state.direction = fav.direction;
-          document.getElementById("selectDirection").value = fav.direction;
-          ROUTE_STOPS = fav.direction === 'IDA' ? STOPS_IDA : STOPS_VUELTA;
-          populateStopsDropdowns();
-          document.getElementById("selectStartStop").value = fav.startStopId;
-          state.startStopId = fav.startStopId;
-          state.userTouchedStartStop = true;
-          document.getElementById("selectEndStop").value = fav.endStopId;
-          state.endStopId = fav.endStopId;
-          updateDepartureSchedule();
-          updateSetupSummary();
-        });
-        container.appendChild(item);
-      });
-    }
-
-    function saveActiveStateToStorage() {
-      if (state.isTripActive) {
-        localStorage.setItem("activeTripState", JSON.stringify({ ...state, tripStartTime: state.tripStartTime ? state.tripStartTime.toISOString() : null }));
-      } else {
-        localStorage.removeItem("activeTripState");
-      }
-    }
-
-    function restoreSessionIfExists() {
-      const saved = localStorage.getItem("activeTripState");
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          state = { ...state, ...parsed, tripStartTime: new Date(parsed.tripStartTime) };
-          ROUTE_STOPS = state.direction === "IDA" ? STOPS_IDA : STOPS_VUELTA;
-          if (state.isTripActive) {
-            document.getElementById("viewSetup").classList.add("hidden");
-            document.getElementById("viewFavorites").classList.add("hidden");
-            document.getElementById("viewActive").classList.remove("hidden");
-            document.getElementById("floatingActionBar").classList.remove("hidden");
-            requestWakeLock();
-            populateActiveChangeEndDropdown();
-            initGPS();
-            renderFixedMetroMap();
-            updateHeaderGreeting(null);
-          }
-        } catch(e) {}
-      }
-    }
-
-    function syncGpsPositionToClosestStop() {
-      if (!navigator.geolocation) return;
-      navigator.geolocation.getCurrentPosition((pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        state.lastLat = lat;
-        state.lastLng = lng;
-        setGpsLiveStatus(true);
-        if (realMap && busMarker) { realMap.setView([lat, lng], 16); busMarker.setLatLng([lat, lng]); }
-
-        let closestIdx = 0;
-        let minDistance = Infinity;
-        for (let i = 0; i < ROUTE_STOPS.length; i++) {
-          const d = calculateDistanceKm(lat, lng, ROUTE_STOPS[i].lat, ROUTE_STOPS[i].lng);
-          if (d < minDistance) { minDistance = d; closestIdx = i; }
-        }
-        state.currentBaseIndex = closestIdx;
-        state.minDistToTarget = Math.round(minDistance * 1000);
-        state.atStop = (state.minDistToTarget <= 50);
-        saveActiveStateToStorage();
-        populateActiveChangeEndDropdown();
-        renderFixedMetroMap();
-        updateClockAndETA();
-      }, () => { setGpsLiveStatus(false); }, { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 });
-    }
-
-    function updateDepartureSchedule() {
-      const now = new Date();
-      const currentMinOfDay = now.getHours() * 60 + now.getMinutes();
-      const startMinBus = state.direction === "IDA" ? (7 * 60 + 12) : (6 * 60 + 0);
-      const lastMinBus = 21 * 60 + 30;
-      const startObj = ROUTE_STOPS.find(s => s.id === state.startStopId);
-      const offsetMinsToStop = Math.max(0, (startObj ? startObj.stdMin : 0));
-
-      if (currentMinOfDay < startMinBus + offsetMinsToStop) {
-        const nextPassMin = startMinBus + offsetMinsToStop;
-        document.getElementById("setupServiceStatus").innerText = `Primer bus pasa a las ${Math.floor(nextPassMin/60)}:${String(Math.round(nextPassMin%60)).padStart(2,'0')} hrs`;
-        document.getElementById("setupNextDepartureMinutes").innerText = `En ${Math.round(nextPassMin - currentMinOfDay)} min`;
-      } else if (currentMinOfDay > lastMinBus + offsetMinsToStop) {
-        document.getElementById("setupServiceStatus").innerText = "⚠️ Fuera de horario";
-        document.getElementById("setupNextDepartureMinutes").innerText = "-- min";
-      } else {
-        let nextDep = startMinBus;
-        while ((nextDep + offsetMinsToStop) <= currentMinOfDay && nextDep <= lastMinBus) { nextDep += 15; }
-        const nextPassMin = nextDep + offsetMinsToStop;
-        document.getElementById("setupNextDepartureMinutes").innerText = `En ${Math.max(1, Math.round(nextPassMin - currentMinOfDay))} min`;
-        document.getElementById("setupServiceStatus").innerText = `🟢 Frecuencia regular (~15 min)`;
-      }
-    }
-
-    function calculateBearing(lat1, lon1, lat2, lon2) {
-      const y = Math.sin((lon2 - lon1) * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180);
-      const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) - Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos((lon2 - lon1) * Math.PI / 180);
-      return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
-    }
-
-    function updateCompass(userLat, userLng) {
-      const startObj = ROUTE_STOPS.find(s => s.id === state.startStopId);
-      if (!startObj) return;
-      const distMeters = Math.round(calculateDistanceKm(userLat, userLng, startObj.lat, startObj.lng) * 1000);
-      document.getElementById("compassArrow").style.transform = `rotate(${calculateBearing(userLat, userLng, startObj.lat, startObj.lng)}deg)`;
-      document.getElementById("compassTitle").innerText = `${startObj.name}`;
-      document.getElementById("compassDesc").innerText = `A ${distMeters} m (Toca para mapa)`;
-    }
-
-    function openPedestrianModal() {
-      document.getElementById("pedestrianModal").classList.add("active");
-      if (!pedestrianMap) {
-        pedestrianMap = L.map('pedestrianMap').setView([-33.3605, -71.6649], 17);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(pedestrianMap);
-        pedestrianPersonMarker = L.marker([-33.3605, -71.6649], { icon: L.divIcon({ html: '🚶‍♂', className: 'map-person-icon', iconSize: [26, 26] }) }).addTo(pedestrianMap);
-        pedestrianStopMarker = L.marker([-33.3605, -71.6649], { icon: L.divIcon({ html: '📍', className: 'map-stop-icon', iconSize: [26, 26] }) }).addTo(pedestrianMap);
-      }
-      const startObj = ROUTE_STOPS.find(s => s.id === state.startStopId);
-      if (startObj) pedestrianStopMarker.setLatLng([startObj.lat, startObj.lng]);
-      if (state.lastLat && state.lastLng) {
-        pedestrianPersonMarker.setLatLng([state.lastLat, state.lastLng]);
-        pedestrianMap.fitBounds([[state.lastLat, state.lastLng], [startObj.lat, startObj.lng]], { padding: [40, 40] });
-      }
-      setTimeout(() => { pedestrianMap.invalidateSize(); }, 300);
-    }
-
-    function initPassiveGPS() {
-      if ("geolocation" in navigator) {
-        navigator.geolocation.watchPosition((pos) => {
-          state.lastLat = pos.coords.latitude;
-          state.lastLng = pos.coords.longitude;
-          if (!state.isTripActive) {
-            updateCompass(state.lastLat, state.lastLng);
-            if (pedestrianPersonMarker && pedestrianMap) pedestrianPersonMarker.setLatLng([state.lastLat, state.lastLng]);
-            let nearestStop = null, minDist = 999;
-            ROUTE_STOPS.forEach((s) => {
-              const d = calculateDistanceKm(state.lastLat, state.lastLng, s.lat, s.lng);
-              if (d < minDist) { minDist = d; nearestStop = s; }
-            });
-            if (minDist <= 0.20) {
-              updateHeaderGreeting(nearestStop);
-              if (!state.userTouchedStartStop) {
-                state.currentBaseIndex = ROUTE_STOPS.findIndex(s => s.id === nearestStop.id);
-                document.getElementById("selectStartStop").value = nearestStop.id;
-                state.startStopId = nearestStop.id;
-              }
-            } else { updateHeaderGreeting(null); }
-          }
-        }, () => {}, { enableHighAccuracy: true, maximumAge: 2000, timeout: 5000 });
-      }
-    }
-
-    function setGpsLiveStatus(isLive) {
-      state.isGpsLive = isLive;
-      const dot = document.getElementById("gpsPulseDot");
-      const txt = document.getElementById("gpsStatusText");
-      if (isLive) {
-        dot.className = "pulse-dot pulse-green";
-        txt.innerText = "En Vivo";
-        txt.style.color = "var(--success)";
-      } else {
-        dot.className = "pulse-dot pulse-red";
-        txt.innerText = "Offline";
-        txt.style.color = "var(--danger)";
-      }
-      updateHeaderGreeting(null);
-    }
-
-    function startTrip() {
-      state.isTripActive = true;
-      state.tripStartTime = new Date();
-      state.totalSpeedReadings = 0;
-      state.sumSpeedReadings = 0;
-      state.speedingEventsCount = 0;
-      state.isCurrentlySpeeding = false;
-      state.alert2StopsTriggered = false;
-      state.alert1StopTriggered = false;
-      state.alertArrivedTriggered = false;
-
-      state.startStopId = document.getElementById("selectStartStop").value;
-      state.endStopId = document.getElementById("selectEndStop").value;
-      const baseIndex = ROUTE_STOPS.findIndex(s => s.id === state.startStopId);
-      state.currentBaseIndex = baseIndex !== -1 ? baseIndex : 0;
-      state.atStop = true;
-      state.minDistToTarget = 0;
-
-      document.getElementById("viewSetup").classList.add("hidden");
-      document.getElementById("viewFavorites").classList.add("hidden");
-      document.getElementById("viewActive").classList.remove("hidden");
-      document.getElementById("floatingActionBar").classList.remove("hidden");
-
-      requestWakeLock();
-      populateActiveChangeEndDropdown();
-      saveActiveStateToStorage();
-      initGPS();
-      renderFixedMetroMap();
-      updateHeaderGreeting(null);
-    }
-
-    function calculateDistanceKm(lat1, lon1, lat2, lon2) {
-      const R = 6371;
-      const dLat = (lat2 - lat1) * Math.PI / 180, dLon = (lon2 - lon1) * Math.PI / 180;
-      const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
-      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    }
-
-    function updateUnifiedAlertPanel(type, title, desc, icon) {
-      const panel = document.getElementById("unifiedAlertPanel");
-      panel.className = "alert-panel";
-      if (type === "speed") panel.classList.add("alert-speed");
-      else if (type === "stop") panel.classList.add("alert-stop");
-      else if (type === "drop") panel.classList.add("alert-drop");
-      else panel.classList.add("alert-normal");
-      document.getElementById("alertTitle").innerText = title;
-      document.getElementById("alertDesc").innerText = desc;
-      document.getElementById("alertIcon").innerText = icon || "🔔";
-    }
-
-    function initGPS() {
-      if ("geolocation" in navigator) {
-        state.watchPositionId = navigator.geolocation.watchPosition((pos) => {
-          setGpsLiveStatus(true);
-          state.lastLat = pos.coords.latitude;
-          state.lastLng = pos.coords.longitude;
-          state.currentSpeed = Math.round(pos.coords.speed ? (pos.coords.speed * 3.6) : 0);
-          document.getElementById("gpsCurrentSpeed").innerText = `${state.currentSpeed}`;
-
-          const busEl = document.querySelector('.map-blue-bus-icon');
-          if (busEl) {
-            if (state.currentSpeed < 5) {
-              busEl.style.background = 'var(--warning)';
-              busEl.style.boxShadow = '0 0 15px var(--warning)';
-            } else {
-              busEl.style.background = 'var(--blue-bus)';
-              busEl.style.boxShadow = '0 0 15px var(--accent)';
-            }
-          }
-
-          if (state.currentSpeed > 0) {
-            state.sumSpeedReadings += state.currentSpeed;
-            state.totalSpeedReadings++;
-            state.avgSpeed = Math.round(state.sumSpeedReadings / state.totalSpeedReadings);
-            document.getElementById("gpsAvgSpeed").innerText = `${state.avgSpeed}`;
-          }
-
-          if (realMap) { realMap.setView([state.lastLat, state.lastLng], 16); if (busMarker) busMarker.setLatLng([state.lastLat, state.lastLng]); }
-
-          // Auto-reorientación inmediata si hay gran distancia acumulada
-          let closestIdx = state.currentBaseIndex;
-          let minDistance = Infinity;
-          for (let i = 0; i < ROUTE_STOPS.length; i++) {
-            const d = calculateDistanceKm(state.lastLat, state.lastLng, ROUTE_STOPS[i].lat, ROUTE_STOPS[i].lng);
-            if (d < minDistance) { minDistance = d; closestIdx = i; }
-          }
-          if (Math.round(minDistance * 1000) > 300 || closestIdx > state.currentBaseIndex) {
-            state.currentBaseIndex = closestIdx;
-          }
-
-          let targetStop = ROUTE_STOPS[state.currentBaseIndex];
-          if (!targetStop) return;
-          let distToTarget = Math.round(calculateDistanceKm(state.lastLat, state.lastLng, targetStop.lat, targetStop.lng) * 1000);
-
-          if (distToTarget <= 50) {
-            state.atStop = true;
-            if (state.currentBaseIndex < ROUTE_STOPS.length - 1) {
-              state.currentBaseIndex++;
-              saveActiveStateToStorage();
-              populateActiveChangeEndDropdown();
-            }
-          } else {
-            state.atStop = false;
-          }
-
-          targetStop = ROUTE_STOPS[state.currentBaseIndex];
-          if (!targetStop) return;
-          distToTarget = Math.round(calculateDistanceKm(state.lastLat, state.lastLng, targetStop.lat, targetStop.lng) * 1000);
-
-          const dynamicLabel = document.getElementById("stopDynamicLabel");
-          const distanceContainer = document.getElementById("activeNextStopDistance");
-          document.getElementById("activeNextStopName").innerText = targetStop.name;
-          if (realMap && nextStopMarker) nextStopMarker.setLatLng([targetStop.lat, targetStop.lng]);
-
-          if (state.atStop) {
-            dynamicLabel.innerText = "🛑 ESTÁS EN LA PARADA"; dynamicLabel.style.color = "var(--success)"; distanceContainer.innerText = "";
-          } else if (distToTarget <= 150) {
-            dynamicLabel.innerText = "⚠️ LLEGANDO A LA PARADA"; dynamicLabel.style.color = "var(--warning)"; distanceContainer.innerText = `${distToTarget} m`;
-          } else {
-            dynamicLabel.innerText = "➡ PRÓXIMA PARADA"; dynamicLabel.style.color = "var(--muted)"; distanceContainer.innerText = `+${distToTarget} m`;
-          }
-
-          const endIndex = ROUTE_STOPS.findIndex(s => s.id === state.endStopId);
-          const stopsRemaining = Math.max(0, endIndex - state.currentBaseIndex);
-          const destStopName = ROUTE_STOPS[endIndex] ? ROUTE_STOPS[endIndex].name : "tu destino";
-
-          if (stopsRemaining === 2 && !state.alert2StopsTriggered) {
-            state.alert2StopsTriggered = true; playAlertBeep(440, 0.3); triggerSystemNotification("🔔 FALTAN 2 PARADAS", `Prepárate para bajar en: ${destStopName}`, [200, 100, 200]);
-          } else if (stopsRemaining === 1 && !state.alert1StopTriggered) {
-            state.alert1StopTriggered = true; playAlertBeep(660, 0.5); triggerSystemNotification("⚠️ ¡ATENCIÓN! PRÓXIMA PARADA", `Te bajas en la siguiente parada: ${destStopName}`, [400, 150, 400]);
-          } else if (stopsRemaining === 0 && state.atStop && !state.alertArrivedTriggered) {
-            state.alertArrivedTriggered = true; playAlertBeep(880, 0.8); triggerSystemNotification("📍 ¡LLEGASTE A TU DESTINO!", `¡Bájate aquí en: ${destStopName}!`, [500, 200, 500, 200, 500]);
-          }
-
-          if (state.currentSpeed > 55) {
-            updateUnifiedAlertPanel("speed", "Exceso de velocidad (>55 km/h)", "El vehículo supera el límite de seguridad.", "⚠️");
-          } else if (stopsRemaining === 0) {
-            updateUnifiedAlertPanel("drop", `¡Llegaste! (${destStopName})`, "Has llegado a tu destino. Presiona Terminar.", "📍");
-          } else if (state.currentSpeed === 0 && state.atStop) {
-            updateUnifiedAlertPanel("stop", "Bus Detenido", `Tomando pasajeros en ${targetStop.name}`, "🛑");
-          } else {
-            updateUnifiedAlertPanel("normal", "En Ruta", `Faltan ${stopsRemaining} paradas.`, "🟢");
-          }
-
-          renderFixedMetroMap();
-        }, () => { setGpsLiveStatus(false); }, { enableHighAccuracy: true, maximumAge: 2000, timeout: 5000 });
-      }
-    }
-
-    // CÁLCULO DE ETA BLINDADO (USANDO ESTÁNDAR STDMIN + VELOCIDAD GPS, SIN HISTORIAL CORRUPTO)
-    function updateClockAndETA() {
-      if (!state.isTripActive) { updateDepartureSchedule(); return; }
-      
-      const endObj = ROUTE_STOPS.find(s => s.id === state.endStopId);
-      const currObj = ROUTE_STOPS[state.currentBaseIndex];
-      const endIndex = ROUTE_STOPS.findIndex(s => s.id === state.endStopId);
-      let stopsRemaining = Math.max(0, endIndex - state.currentBaseIndex);
-      let kmLeft = currObj && endObj ? Math.max(0.1, calculateDistanceKm(currObj.lat, currObj.lng, endObj.lat, endObj.lng) * 1.25) : 0;
-
-      // Cálculo limpio basado estrictamente en stdMin
-      let baseMins = 0;
-      if (currObj && endObj) {
-        baseMins = Math.max(1, Math.round(Math.abs(endObj.stdMin - currObj.stdMin)));
-      }
-
-      // Factor de corrección por velocidad real en vivo (si el bus va lento, ajusta dinámicamente)
-      let adjustedMins = baseMins;
-      if (state.currentSpeed > 5 && state.currentSpeed < 80) {
-        const speedFactor = 40 / state.currentSpeed; // 40 km/h promedio estimado de ruta
-        adjustedMins = Math.max(1, Math.round(baseMins * speedFactor));
-      }
-
-      const etaTime = new Date(new Date().getTime() + adjustedMins * 60000);
-      document.getElementById("etaBoxTime").innerText = `${etaTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}`;
-      document.getElementById("etaStopsLeft").innerText = stopsRemaining;
-      document.getElementById("etaKmLeft").innerText = `${kmLeft.toFixed(1)}`;
-      document.getElementById("etaTimeLeft").innerText = adjustedMins >= 60 ? `${Math.floor(adjustedMins/60)}h ${adjustedMins%60}m` : `${adjustedMins} min`;
-      document.getElementById("segmentTime").innerText = `${Math.max(1, Math.round((new Date() - state.tripStartTime) / 60000))}`;
-    }
-
-    function renderFixedMetroMap() {
-      const container = document.getElementById("metroFixedNodes");
-      const fill = document.getElementById("metroFixedLineFill");
-      container.innerHTML = "";
-      const total = ROUTE_STOPS.length;
-      const displayIndex = state.atStop ? state.currentBaseIndex : Math.max(0, state.currentBaseIndex - 1);
-      let startIndex = Math.max(0, displayIndex - 3), endIndex = Math.min(total - 1, displayIndex + 3);
-      if (displayIndex < 3) endIndex = Math.min(total - 1, 6);
-      else if (displayIndex > total - 4) startIndex = Math.max(0, total - 7);
-
-      ROUTE_STOPS.slice(startIndex, endIndex + 1).forEach((s) => {
-        const globalIdx = ROUTE_STOPS.findIndex(item => item.id === s.id);
-        const node = document.createElement("div");
-        node.className = "metro-fixed-node";
-        if (globalIdx < displayIndex) node.classList.add("visited");
-        if (globalIdx === displayIndex) node.classList.add("current");
-        if (s.id === state.endStopId) node.classList.add("destination");
-        node.innerHTML = `<div class="metro-fixed-circle"></div><div class="metro-fixed-label">${s.name}</div>`;
-        container.appendChild(node);
-      });
-      fill.style.width = `${Math.min(100, Math.max(0, (ROUTE_STOPS.slice(startIndex, endIndex + 1).findIndex(s => s.id === ROUTE_STOPS[displayIndex].id) / (endIndex - startIndex)) * 100))}%`;
-    }
-
-    function cancelTrip() {
-      if (state.watchPositionId) navigator.geolocation.clearWatch(state.watchPositionId);
-      releaseWakeLock();
-      state.isTripActive = false;
-      saveActiveStateToStorage();
-      resetToSetupView();
-    }
-
-    function finishTrip() {
-      const endObj = ROUTE_STOPS[state.currentBaseIndex] || ROUTE_STOPS.find(s => s.id === state.endStopId);
-      const toast = document.getElementById("toastNotification");
-      document.getElementById("toastMessage").innerText = `Te bajaste en: ${endObj ? endObj.name : 'tu destino'}.`;
-      toast.classList.add("active");
-      setTimeout(() => { toast.classList.remove("active"); }, 4000);
-
-      if (state.watchPositionId) navigator.geolocation.clearWatch(state.watchPositionId);
-      releaseWakeLock();
-      state.isTripActive = false;
-      saveActiveStateToStorage();
-      resetToSetupView();
-    }
-
-    function resetToSetupView() {
-      state.userTouchedStartStop = false;
-      state.speedingEventsCount = 0;
-      document.getElementById("viewActive").classList.add("hidden");
-      document.getElementById("floatingActionBar").classList.add("hidden");
-      document.getElementById("viewSetup").classList.remove("hidden");
-      document.getElementById("viewFavorites").classList.remove("hidden");
-      updateHeaderGreeting(null);
-      updateSetupSummary();
-    }
-  </script>
+  <script type="module" src="./main.js"></script>
 </body>
 </html>
