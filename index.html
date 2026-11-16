@@ -3,476 +3,818 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Micro Litoral GPS v4.6.3</title>
-  <meta name="theme-color" content="#020617">
+  <title>Micro Litoral v5.0.0</title>
+  <meta name="theme-color" content="#102A43">
   <link rel="manifest" href="./manifest.json">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <style>
     :root {
-      --bg-gradient: radial-gradient(circle at top, #0f172a 0%, #020617 100%);
-      --glass-bg: rgba(30, 41, 59, 0.55);
-      --glass-border: rgba(255, 255, 255, 0.12);
-      --glass-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
-      --accent: #38bdf8;
-      --accent-glow: rgba(56, 189, 248, 0.4);
-      --text: #f8fafc;
-      --muted: #94a3b8;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --purple: #c084fc;
-      --blue-bus: #3b82f6;
-      --input-bg: rgba(15, 23, 42, 0.7);
-      --map-bg: #0b1329;
+      --primary: #102A43;
+      --secondary: #087E8B;
+      --gps-good: #35B779;
+      --gps-weak: #F5A623;
+      --gps-bad: #EF4444;
+      --bg-page: #F4F7FA;
+      --surface: #FFFFFF;
+      --surface-alt: #EBF1F6;
+      --text-main: #102A43;
+      --text-muted: #52667A;
+      --border: rgba(16, 42, 67, 0.1);
+      --shadow: 0 8px 24px rgba(16, 42, 67, 0.08);
+      --shadow-lg: 0 -8px 32px rgba(16, 42, 67, 0.14);
     }
 
-    body.light-mode {
-      --bg-gradient: radial-gradient(circle at top, #f8fafc 0%, #e2e8f0 100%);
-      --glass-bg: rgba(255, 255, 255, 0.8);
-      --glass-border: rgba(0, 0, 0, 0.08);
-      --glass-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.12);
-      --accent: #0284c7;
-      --accent-glow: rgba(2, 132, 199, 0.3);
-      --text: #0f172a;
-      --muted: #64748b;
-      --input-bg: rgba(255, 255, 255, 0.9);
-      --map-bg: #e5e7eb;
+    body.dark-mode {
+      --primary: #38BDF8;
+      --secondary: #0D9488;
+      --bg-page: #0B192C;
+      --surface: #132742;
+      --surface-alt: #1B3556;
+      --text-main: #F1F5F9;
+      --text-muted: #94A3B8;
+      --border: rgba(255, 255, 255, 0.1);
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      --shadow-lg: 0 -8px 32px rgba(0, 0, 0, 0.5);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; }
-    
-    body { 
-      background: var(--bg-gradient); color: var(--text); padding: 16px 12px 110px 12px;
-      display: flex; flex-direction: column; align-items: center; min-height: 100vh; background-attachment: fixed; transition: all 0.3s ease; 
-    }
-    
-    .app-container { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 16px; position: relative; }
-    .top-bar { display: flex; justify-content: flex-end; width: 100%; margin-bottom: -8px; }
-    .theme-toggle-btn { background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); color: var(--text); padding: 8px 16px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; cursor: pointer; box-shadow: var(--glass-shadow); }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
-    header { text-align: center; padding: 6px 0; }
-    header h1 { font-size: 1.5rem; font-weight: 900; letter-spacing: -0.5px; }
-    header p { font-size: 0.85rem; color: var(--accent); font-weight: 700; margin-top: 4px; }
-
-    .glass-card { background: var(--glass-bg); backdrop-filter: blur(16px); border: 1px solid var(--glass-border); border-radius: 26px; padding: 20px; box-shadow: var(--glass-shadow); display: flex; flex-direction: column; gap: 14px; }
-    .card-title { font-size: 0.8rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 1.2px; }
-
-    label { font-size: 0.75rem; color: var(--muted); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-    select, input { background: var(--input-bg); border: 1px solid var(--glass-border); color: var(--text); padding: 14px; border-radius: 14px; font-size: 0.95rem; width: 100%; outline: none; font-weight: 600; }
-    
-    .btn { background: var(--accent); color: #ffffff; border: none; padding: 16px; border-radius: 16px; font-size: 1.05rem; font-weight: 800; cursor: pointer; text-align: center; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 6px 20px var(--accent-glow); }
-    body:not(.light-mode) .btn { color: #020617; }
-    .btn-secondary { background: rgba(255,255,255,0.06); color: var(--text) !important; border: 1px solid var(--glass-border); box-shadow: none; }
-    .btn-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger) !important; border: 1px solid rgba(239, 68, 68, 0.3); box-shadow: none; }
-
-    .permission-box { background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
-    .disclaimer-box { font-size: 0.68rem; color: var(--muted); text-align: center; opacity: 0.6; }
-
-    .compass-box { background: var(--input-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 16px; display: flex; align-items: center; gap: 16px; cursor: pointer; }
-    .compass-arrow { font-size: 2rem; transition: transform 0.3s ease; display: inline-block; text-shadow: 0 0 10px var(--accent); }
-
-    /* MINIMAPA CON MICRO ANCLADA AL CENTRO Y VÍA DESLIZANTE */
-    .metro-fixed-container { position: relative; width: 100%; height: 98px; overflow: hidden; }
-    
-    .metro-bus-marker {
-      position: absolute;
-      top: 4px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 26px;
-      height: 26px;
-      background: var(--blue-bus);
-      border: 2px solid #ffffff;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      box-shadow: 0 0 15px var(--accent), 0 4px 10px rgba(0,0,0,0.5);
-      z-index: 20;
-    }
-    .metro-bus-marker::after {
-      content: '';
-      position: absolute;
-      bottom: -5px;
-      left: 50%;
-      transform: translateX(-50%);
-      border-width: 5px 4px 0;
-      border-style: solid;
-      border-color: #ffffff transparent transparent transparent;
-    }
-
-    .metro-sliding-track {
-      position: absolute;
-      top: 38px;
-      left: 0;
-      height: 55px;
-      transition: transform 0.55s cubic-bezier(0.25, 1, 0.5, 1);
-    }
-    .metro-fixed-line-bg {
-      position: absolute;
-      top: 4px;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: rgba(255,255,255,0.15);
-      border-radius: 2px;
-    }
-    .metro-fixed-line-fill {
-      position: absolute;
-      top: 4px;
-      left: 0;
-      height: 4px;
-      background: linear-gradient(90deg, var(--accent), var(--purple));
-      border-radius: 2px;
-      transition: width 0.55s cubic-bezier(0.25, 1, 0.5, 1);
-      box-shadow: 0 0 12px var(--accent);
-    }
-
-    .metro-fixed-node {
-      position: absolute;
-      top: 0;
-      transform: translateX(-50%);
+    body {
+      background: var(--bg-page);
+      color: var(--text-main);
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
+      transition: background 0.3s, color 0.3s;
     }
-    .metro-fixed-circle {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: var(--input-bg);
-      border: 2px solid var(--muted);
-      transition: all 0.3s;
+
+    .shell-wrapper {
+      width: 100%;
+      max-width: 520px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      padding-bottom: 86px;
     }
-    .metro-fixed-node.visited .metro-fixed-circle {
-      border-color: var(--accent);
-      background: var(--accent);
-      box-shadow: 0 0 8px var(--accent);
+
+    /* CABECERA LITORAL */
+    .app-header {
+      background: linear-gradient(135deg, #102A43 0%, #087E8B 100%);
+      color: #FFFFFF;
+      padding: 20px 20px 24px 20px;
+      border-radius: 0 0 28px 28px;
+      box-shadow: 0 10px 25px rgba(16, 42, 67, 0.18);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
-    .metro-fixed-node.current .metro-fixed-circle {
-      border-color: #fff;
-      background: var(--accent);
-      box-shadow: 0 0 15px var(--accent);
-      transform: scale(1.4);
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .metro-fixed-node.destination .metro-fixed-circle {
-      border-color: #fff;
-      background: var(--warning);
-      box-shadow: 0 0 15px var(--warning);
-      transform: scale(1.4);
-    }
-    .metro-fixed-label {
-      position: absolute;
-      top: 18px;
-      left: 50%;
-      transform: translateX(-15%) rotate(32deg);
-      transform-origin: left top;
-      font-size: 0.62rem;
-      color: var(--muted);
-      white-space: nowrap;
-      font-weight: 700;
-      width: 85px;
-      text-align: left;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      opacity: 0.75;
-    }
-    .metro-fixed-node.current .metro-fixed-label {
-      color: var(--text);
+
+    .brand-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       font-weight: 900;
-      opacity: 1;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-    }
-    .metro-fixed-node.destination .metro-fixed-label {
-      color: var(--warning) !important;
-      opacity: 1;
+      font-size: 1.15rem;
+      letter-spacing: -0.3px;
     }
 
-    .alert-panel { display: flex; align-items: center; gap: 16px; padding: 18px; border-radius: 22px; backdrop-filter: blur(16px); }
-    .alert-normal { background: var(--glass-bg); border: 1px solid var(--glass-border); }
-    .alert-speed { background: linear-gradient(135deg, rgba(220,38,38,0.85), rgba(153,27,27,0.95)); box-shadow: 0 10px 30px rgba(220,38,38,0.4); border: 1px solid rgba(255,255,255,0.2); }
-    .alert-stop { background: linear-gradient(135deg, rgba(217,119,6,0.85), rgba(180,83,9,0.95)); border: 1px solid rgba(255,255,255,0.2); }
-    .alert-drop { background: linear-gradient(135deg, rgba(16,185,129,0.85), rgba(4,120,87,0.95)); border: 1px solid rgba(255,255,255,0.2); }
-    .alert-title { font-size: 0.95rem; font-weight: 900; color: #fff; }
-    .alert-desc { font-size: 0.8rem; color: rgba(255,255,255,0.85); margin-top: 2px; }
-    .alert-normal .alert-title { color: var(--accent); }
-    .alert-normal .alert-desc { color: var(--text); }
-
-    .eta-box { padding: 0; background: transparent; border: none; display: flex; flex-direction: column; gap: 12px; }
-    .eta-main-time { font-size: 3.2rem; font-weight: 900; text-align: center; line-height: 1; letter-spacing: -1px; }
-
-    .telemetry-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 6px; }
-    .telemetry-card { background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); border-radius: 16px; padding: 14px 6px; text-align: center; }
-    .telemetry-value { font-size: 1.35rem; font-weight: 900; color: var(--accent); }
-    .telemetry-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; font-weight: 800; margin-top: 4px; }
-
-    #realMap, #pedestrianMap { width: 100%; border-radius: 20px; border: 1px solid var(--glass-border); background: var(--map-bg); z-index: 1; }
-    #realMap { height: 180px; pointer-events: none; opacity: 0.9; }
-    #pedestrianMap { height: 320px; }
-
-    body:not(.light-mode) .leaflet-tile-pane { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
-
-    .floating-action-bar {
-      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 1000;
-      background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px); padding: 10px; border-radius: 100px; border: 1px solid rgba(255, 255, 255, 0.18); box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+    .gps-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(8px);
+      padding: 6px 12px;
+      border-radius: 99px;
+      font-size: 0.75rem;
+      font-weight: 700;
     }
-    .floating-action-bar .btn { padding: 12px 24px; font-size: 0.9rem; border-radius: 100px; margin: 0; box-shadow: none; }
 
-    .gps-status-pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.25); }
-    .pulse-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-    .pulse-green { background: var(--success); box-shadow: 0 0 10px var(--success); animation: pulse 1.5s infinite; }
-    .pulse-red { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
+    .gps-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--gps-bad);
+    }
+    .gps-dot.good { background: var(--gps-good); box-shadow: 0 0 8px var(--gps-good); }
+    .gps-dot.weak { background: var(--gps-weak); box-shadow: 0 0 8px var(--gps-weak); }
+    .gps-dot.bad { background: var(--gps-bad); box-shadow: 0 0 8px var(--gps-bad); }
 
-    @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+    .header-greeting {
+      font-size: 0.9rem;
+      opacity: 0.92;
+      font-weight: 600;
+    }
 
-    .toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--success); border-radius: 20px; padding: 16px 24px; text-align: center; z-index: 2000; opacity: 0; pointer-events: none; transition: all 0.4s; width: 90%; max-width: 400px; }
-    .toast-notification.active { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+    /* CONTENEDOR DE PESTAÑAS */
+    .tab-view {
+      padding: 18px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      animation: fadeIn 0.25s ease;
+    }
 
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(10px); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 16px; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .card {
+      background: var(--surface);
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .section-label {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+    }
+
+    select, input {
+      width: 100%;
+      padding: 13px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--surface-alt);
+      color: var(--text-main);
+      font-size: 0.95rem;
+      font-weight: 600;
+      outline: none;
+    }
+
+    /* PLANIFICADOR CON SWAP */
+    .route-selector-box {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .swap-btn {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--secondary);
+      color: #FFFFFF;
+      border: 3px solid var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(8, 126, 139, 0.35);
+      z-index: 5;
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 16px;
+      border-radius: 16px;
+      border: none;
+      background: linear-gradient(135deg, #087E8B 0%, #102A43 100%);
+      color: #FFFFFF;
+      font-size: 1.05rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 8px 20px rgba(8, 126, 139, 0.3);
+      min-height: 52px;
+    }
+
+    .btn-secondary {
+      padding: 12px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--surface-alt);
+      color: var(--text-main);
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      min-height: 44px;
+    }
+
+    .summary-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      background: var(--surface-alt);
+      padding: 12px;
+      border-radius: 16px;
+      text-align: center;
+    }
+
+    .summary-val { font-size: 1.15rem; font-weight: 900; color: var(--secondary); }
+    .summary-lbl { font-size: 0.68rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+
+    .compass-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--surface-alt);
+      border-radius: 16px;
+      cursor: pointer;
+    }
+
+    /* NAVEGACIÓN INFERIOR 4 PESTAÑAS */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 520px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding: 8px 6px calc(8px + env(safe-area-inset-bottom)) 6px;
+      z-index: 1000;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+    }
+
+    .nav-item {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 6px 0;
+      cursor: pointer;
+      border-radius: 12px;
+    }
+
+    .nav-item.active {
+      color: var(--secondary);
+      font-weight: 900;
+    }
+
+    .nav-icon { font-size: 1.35rem; }
+
+    /* VISTA SEGUIMIENTO FULLSCREEN + BOTTOM SHEET */
+    .active-trip-screen {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1500;
+      background: var(--bg-page);
+      display: flex;
+      flex-direction: column;
+    }
+
+    #fullMap {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    body.dark-mode #fullMap .leaflet-tile-pane {
+      filter: invert(100%) hue-rotate(180deg) brightness(92%) contrast(92%);
+    }
+
+    .map-top-overlay {
+      position: absolute;
+      top: calc(14px + env(safe-area-inset-top));
+      left: 14px;
+      right: 14px;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    .map-pill {
+      pointer-events: auto;
+      background: var(--surface);
+      color: var(--text-main);
+      padding: 10px 14px;
+      border-radius: 99px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      font-size: 0.8rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-recenter {
+      position: absolute;
+      right: 16px;
+      bottom: 295px;
+      z-index: 15;
+      background: var(--surface);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 12px 16px;
+      border-radius: 99px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* BOTTOM SHEET */
+    .bottom-sheet {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 520px;
+      background: var(--surface);
+      border-radius: 28px 28px 0 0;
+      box-shadow: var(--shadow-lg);
+      border-top: 1px solid var(--border);
+      padding: 14px 20px calc(20px + env(safe-area-inset-bottom)) 20px;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: background 0.35s ease, border-color 0.35s ease;
+    }
+
+    .sheet-handle {
+      width: 42px;
+      height: 5px;
+      border-radius: 99px;
+      background: var(--border);
+      margin: 0 auto 2px auto;
+    }
+
+    /* MODO ALERTA DE BAJADA */
+    .bottom-sheet.alert-approaching {
+      background: linear-gradient(180deg, #FFFBEB 0%, var(--surface) 45%);
+      border-top: 4px solid #F5A623;
+    }
+    body.dark-mode .bottom-sheet.alert-approaching {
+      background: linear-gradient(180deg, #451A03 0%, var(--surface) 50%);
+    }
+
+    .bottom-sheet.alert-arrived {
+      background: linear-gradient(180deg, #ECFDF5 0%, var(--surface) 45%);
+      border-top: 4px solid #35B779;
+    }
+    body.dark-mode .bottom-sheet.alert-arrived {
+      background: linear-gradient(180deg, #064E3B 0%, var(--surface) 50%);
+    }
+
+    .stop-status-card {
+      background: var(--surface-alt);
+      border-radius: 18px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      border-left: 5px solid var(--secondary);
+    }
+
+    .stop-status-tag {
+      font-size: 0.72rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: var(--secondary);
+    }
+
+    .stop-status-name {
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: var(--text-main);
+      line-height: 1.2;
+    }
+
+    .eta-hero-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 2px;
+    }
+
+    .eta-big {
+      font-size: 2.3rem;
+      font-weight: 900;
+      letter-spacing: -1px;
+      color: var(--text-main);
+      line-height: 1;
+    }
+
+    .eta-sub-metrics {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .telemetry-drawer {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    .sheet-actions {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 10px;
+    }
+
+    .btn-finish {
+      background: #35B779;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 16px;
+      font-size: 1rem;
+      font-weight: 800;
+      min-height: 50px;
+      cursor: pointer;
+    }
+
+    .btn-cancel-sm {
+      background: rgba(239, 68, 68, 0.12);
+      color: #EF4444;
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      border-radius: 16px;
+      font-size: 0.9rem;
+      font-weight: 800;
+      min-height: 50px;
+      cursor: pointer;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(16, 42, 67, 0.7);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 2500;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
     .modal-overlay.active { opacity: 1; pointer-events: auto; }
-    .modal-content { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 28px; width: 100%; max-width: 440px; max-height: 85vh; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+    .modal-box {
+      background: var(--surface);
+      border-radius: 24px;
+      padding: 20px;
+      width: 100%;
+      max-width: 440px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: var(--shadow-lg);
+    }
 
-    .map-blue-bus-icon { background: var(--blue-bus); border: 2px solid #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 14px; box-shadow: 0 0 15px var(--accent); }
-    .map-stop-icon { filter: drop-shadow(0 0 5px rgba(255,255,255,0.5)); }
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: var(--surface);
+      border: 2px solid #35B779;
+      padding: 14px 22px;
+      border-radius: 18px;
+      box-shadow: var(--shadow-lg);
+      z-index: 3000;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s;
+      text-align: center;
+      width: 90%;
+      max-width: 380px;
+    }
+    .toast.active { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    footer { text-align: center; font-size: 0.7rem; color: var(--muted); opacity: 0.7; margin-top: auto; padding-top: 20px; }
+    footer {
+      text-align: center;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      padding: 18px 12px 10px 12px;
+      margin-top: auto;
+    }
+
     .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
-  <div class="app-container">
-    <div class="top-bar">
-      <button class="theme-toggle-btn" id="btnThemeToggle">☀️ Modo Claro</button>
-    </div>
-
-    <header>
-      <h1 id="headerGreeting">¡Bienvenido, Pasajero!</h1>
-      <p id="headerSub">Buscando señal GPS...</p>
+  <div class="shell-wrapper" id="mainShell">
+    <!-- CABECERA -->
+    <header class="app-header">
+      <div class="header-top">
+        <div class="brand-badge">🌊 Micro Litoral</div>
+        <div class="gps-pill">
+          <span class="gps-dot" id="headerGpsDot"></span>
+          <span id="headerGpsLabel">Buscando GPS</span>
+        </div>
+      </div>
+      <div class="header-greeting" id="headerGreeting">¡Hola, Pasajero!</div>
     </header>
 
-    <div id="viewFavorites" class="glass-card">
-      <div class="card-title">⭐ Rutas Frecuentes</div>
-      <div id="favoritesList" style="display:flex; flex-direction:column; gap:8px;"></div>
-    </div>
+    <!-- PESTAÑA 1: INICIO -->
+    <main id="tabInicio" class="tab-view">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span class="section-label">Planificar Viaje</span>
+          <select id="selectDirection" style="width:auto; padding:8px 12px; font-size:0.8rem;">
+            <option value="IDA">Hacia San Antonio</option>
+            <option value="VUELTA">Hacia El Yeco</option>
+          </select>
+        </div>
 
-    <div id="viewSetup" class="glass-card">
-      <div class="card-title">⚙️ Planificar Trayecto</div>
+        <div class="route-selector-box">
+          <div>
+            <label class="section-label" style="display:block; margin-bottom:4px;">Parada de Subida</label>
+            <select id="selectStartStop"></select>
+          </div>
+          <button type="button" class="swap-btn" id="btnSwapDirection" title="Invertir sentido">⇅</button>
+          <div>
+            <label class="section-label" style="display:block; margin-bottom:4px;">Parada de Bajada</label>
+            <select id="selectEndStop"></select>
+          </div>
+        </div>
 
-      <div id="permissionBanner" class="permission-box">
-        <div style="font-weight: 800; color: var(--accent);">🔔 Permisos del Sistema</div>
-        <p style="color:var(--text); font-size:0.75rem;">Para notificaciones con pantalla bloqueada, habilita la ubicación exacta.</p>
-        <button class="btn btn-secondary" id="btnGrantPermissions" style="font-size:0.75rem; padding:10px; border-radius: 12px;">Activar Permisos</button>
+        <div class="summary-strip">
+          <div>
+            <div class="summary-val" id="setupTripEta">--:--</div>
+            <div class="summary-lbl">Llegada Est.</div>
+          </div>
+          <div>
+            <div class="summary-val" id="setupTripStops">--</div>
+            <div class="summary-lbl">Paradas</div>
+          </div>
+          <div>
+            <div class="summary-val" id="setupTripKm">--</div>
+            <div class="summary-lbl">Km Aprox</div>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--surface-alt); padding:12px 14px; border-radius:14px;">
+          <div>
+            <div class="section-label">Próxima Salida</div>
+            <div id="setupServiceStatus" style="font-size:0.78rem; color:var(--text-muted); font-weight:600;">Calculando...</div>
+          </div>
+          <div id="setupNextDepartureMinutes" style="font-size:1.25rem; font-weight:900; color:var(--secondary);">-- min</div>
+        </div>
+
+        <button class="btn-primary" id="btnStartTrip">🚌 Iniciar Seguimiento</button>
       </div>
-      
-      <div>
-        <label>Tu Nombre</label>
-        <input type="text" id="inputName" placeholder="Ej: Jaime" style="margin-top: 6px;">
+
+      <div id="recentDestinationsContainer" class="card hidden">
+        <span class="section-label">Destinos Recientes</span>
+        <div id="recentDestinationsChips" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
       </div>
 
-      <div>
-        <label>Dirección del Viaje</label>
-        <select id="selectDirection" style="margin-top: 6px;">
-          <option value="IDA">Hacia Tejas Verdes (San Antonio)</option>
-          <option value="VUELTA">Hacia El Yeco (Algarrobo)</option>
-        </select>
+      <div class="card" style="padding:14px;">
+        <div class="compass-row" id="compassContainer">
+          <div id="compassArrow" style="font-size:1.8rem; color:var(--secondary); transition:transform 0.3s;">➔</div>
+          <div style="flex:1;">
+            <div id="compassTitle" style="font-weight:800; font-size:0.9rem;">Paradero de Origen</div>
+            <div id="compassDesc" style="font-size:0.78rem; color:var(--text-muted);">Calculando distancia a pie...</div>
+          </div>
+          <span style="font-size:1.2rem;">🗺️</span>
+        </div>
+      </div>
+    </main>
+
+    <!-- PESTAÑA 2: MI VIAJE (ESTADO EN ESPERA) -->
+    <section id="tabMiViaje" class="tab-view hidden">
+      <div class="card" style="text-align:center; padding:36px 20px;">
+        <div style="font-size:3rem;">🧭</div>
+        <h2 style="font-size:1.2rem; font-weight:900;">Sin recorrido activo</h2>
+        <p style="font-size:0.88rem; color:var(--text-muted); line-height:1.5;">
+          Selecciona tu parada de subida y destino en Inicio para activar el seguimiento GPS en tiempo real.
+        </p>
+        <button class="btn-primary" id="btnGoToPlanner">Ir a Planificar Viaje</button>
+      </div>
+    </section>
+
+    <!-- PESTAÑA 3: FAVORITOS -->
+    <section id="tabFavoritos" class="tab-view hidden">
+      <div class="card">
+        <span class="section-label">Guardar Trayecto Actual</span>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="favNameInput" placeholder="Ej: Casa a Trabajo">
+          <button class="btn-secondary" id="btnSaveFavorite" style="white-space:nowrap;">⭐ Guardar</button>
+        </div>
       </div>
 
-      <div id="recentDestinationsContainer" class="hidden">
-        <label>🎯 Destinos Recientes</label>
-        <div id="recentDestinationsChips" style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; margin-bottom: 8px;"></div>
+      <div class="card">
+        <span class="section-label">Mis Rutas Guardadas</span>
+        <div id="favoritesList" style="display:flex; flex-direction:column; gap:10px;"></div>
       </div>
+    </section>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+    <!-- PESTAÑA 4: CONFIGURACIÓN -->
+    <section id="tabConfig" class="tab-view hidden">
+      <div class="card">
+        <span class="section-label">Perfil y Apariencia</span>
         <div>
-          <label>Origen</label>
-          <select id="selectStartStop" style="margin-top: 6px;"></select>
+          <label class="section-label" style="display:block; margin-bottom:6px;">Tu Nombre</label>
+          <input type="text" id="inputName" placeholder="Ej: Jaime">
         </div>
-        <div>
-          <label>Destino</label>
-          <select id="selectEndStop" style="margin-top: 6px;"></select>
-        </div>
-      </div>
-
-      <div class="telemetry-grid" style="margin-top: 0;">
-        <div class="telemetry-card">
-          <div id="setupTripEta" class="telemetry-value" style="color: var(--success); font-size: 1.1rem;">--:--</div>
-          <div class="telemetry-label">Llegada</div>
-        </div>
-        <div class="telemetry-card">
-          <div id="setupTripStops" class="telemetry-value">--</div>
-          <div class="telemetry-label">Paradas</div>
-        </div>
-        <div class="telemetry-card">
-          <div id="setupTripKm" class="telemetry-value" style="color: var(--purple); font-size: 1.1rem;">--</div>
-          <div class="telemetry-label">Km</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding-top:4px;">
+          <span style="font-weight:700; font-size:0.9rem;">Tema Visual</span>
+          <button class="btn-secondary" id="btnThemeToggle">🌙 Cambiar Tema</button>
         </div>
       </div>
 
-      <div class="compass-box" id="compassContainer">
-        <div class="compass-arrow" id="compassArrow">➔</div>
-        <div style="flex: 1;">
-          <div style="font-size: 0.85rem; font-weight: 800;" id="compassTitle">Orientación</div>
-          <div style="font-size: 0.75rem; color: var(--muted);" id="compassDesc">Buscando dirección...</div>
-        </div>
-        <div style="font-size: 1.2rem;">🗺️</div>
+      <div class="card" id="permissionBanner">
+        <span class="section-label">Notificaciones y GPS</span>
+        <p style="font-size:0.82rem; color:var(--text-muted); line-height:1.4;">
+          Activa las alertas del sistema para recibir avisos sonoros y vibración cuando falten 2 paradas para bajar.
+        </p>
+        <button class="btn-secondary" id="btnGrantPermissions">🔔 Activar Permisos de Alerta</button>
       </div>
 
-      <div style="display: flex; gap: 8px;">
-        <input type="text" id="favNameInput" placeholder="Nombre (Ej: Trabajo)">
-        <button class="btn btn-secondary" id="btnSaveFavorite" style="width: auto; padding: 0 16px; font-size: 0.85rem; border-radius: 12px;">⭐</button>
+      <div class="card">
+        <span class="section-label">Información</span>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <button class="btn-secondary" id="btnHowItWorks">💡 Cómo funciona</button>
+          <button class="btn-secondary" id="btnFAQ">❓ Preguntas</button>
+        </div>
+        <p style="font-size:0.72rem; color:var(--text-muted); text-align:center; margin-top:4px;">
+          Aplicación independiente sin afiliación a Taxibuses San Antonio S.A.
+        </p>
       </div>
-
-      <div style="background: var(--input-bg); padding: 16px; border-radius: 16px; border: 1px solid var(--glass-border); text-align: center;">
-        <div style="font-size: 0.75rem; color: var(--muted); font-weight: 700; text-transform: uppercase;">Próximo Bus</div>
-        <div id="setupNextDepartureMinutes" style="font-size: 1.8rem; font-weight: 900; color: var(--accent); margin-top: 4px; line-height: 1;">En -- min</div>
-        <div id="setupServiceStatus" style="font-size: 0.75rem; color: var(--warning); margin-top: 8px;"></div>
-      </div>
-
-      <button class="btn" id="btnStartTrip">🚀 Iniciar Seguimiento</button>
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-        <button class="btn btn-secondary" id="btnHowItWorks" style="font-size: 0.75rem; padding: 12px; border-radius: 12px;">💡 Guía</button>
-        <button class="btn btn-secondary" id="btnFAQ" style="font-size: 0.75rem; padding: 12px; border-radius: 12px;">❓ FAQ</button>
-      </div>
-
-      <div class="disclaimer-box">Aplicación independiente sin afiliación a Taxibuses San Antonio S.A.</div>
-    </div>
-
-    <!-- VISTA EN VIAJE ACTIVO -->
-    <div id="viewActive" class="hidden" style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
-      <div class="glass-card" style="padding: 10px 0;">
-        <div class="metro-fixed-container" id="metroContainer">
-          <div id="metroBusMarker" class="metro-bus-marker">🚌</div>
-          <div id="metroSlidingTrack" class="metro-sliding-track">
-            <div class="metro-fixed-line-bg"></div>
-            <div id="metroFixedFill" class="metro-fixed-line-fill"></div>
-            <div id="metroFixedNodes"></div>
-          </div>
-        </div>
-      </div>
-
-      <div id="unifiedAlertPanel" class="alert-panel alert-normal">
-        <span id="alertIcon" style="font-size: 2rem;">🔔</span>
-        <div style="flex: 1;">
-          <div id="alertTitle" class="alert-title">Te notificaremos al aproximarte</div>
-          <div id="alertDesc" class="alert-desc">Faltan paradas para tu destino.</div>
-        </div>
-      </div>
-
-      <div class="glass-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <div id="gpsStatusPill" class="gps-status-pill">
-            <span id="gpsPulseDot" class="pulse-dot pulse-red"></span>
-            <span id="gpsStatusText" style="color: var(--danger);">GPS Offline</span>
-          </div>
-        </div>
-
-        <div style="background: var(--input-bg); border: 1px solid var(--glass-border); padding: 16px; border-radius: 16px; display: flex; flex-direction: column; gap: 6px;">
-          <div id="stopDynamicLabel" style="font-size: 0.75rem; color: var(--muted); font-weight: 800; text-transform: uppercase;">➡ Próxima Parada</div>
-          <div style="display: flex; justify-content: space-between; align-items: baseline;">
-            <div id="activeNextStopName" style="font-size: 1.3rem; font-weight: 900;">---</div>
-            <div id="activeNextStopDistance" style="font-size: 1rem; font-weight: 900; color: var(--accent);">+-- m</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="glass-card eta-box" style="padding: 24px 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <label style="color: var(--text);">🎯 Destino</label>
-          <select id="activeChangeEndStop" style="padding: 8px 12px; font-size: 0.8rem; width: auto; max-width: 220px; background: rgba(0,0,0,0.2);"></select>
-        </div>
-        
-        <div style="margin: 10px 0;">
-          <div style="text-align: center; font-size: 0.8rem; color: var(--muted); font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">Llegada Estimada</div>
-          <div id="etaBoxTime" class="eta-main-time">--:--</div>
-        </div>
-        
-        <div class="telemetry-grid">
-          <div class="telemetry-card">
-            <div id="etaStopsLeft" class="telemetry-value">--</div>
-            <div class="telemetry-label">Paradas</div>
-          </div>
-          <div class="telemetry-card">
-            <div id="etaKmLeft" class="telemetry-value">--</div>
-            <div class="telemetry-label">Km Rest.</div>
-          </div>
-          <div class="telemetry-card">
-            <div id="etaTimeLeft" class="telemetry-value" style="font-size: 1.1rem; padding-top: 4px;">--</div>
-            <div class="telemetry-label">Tiempo</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="glass-card">
-        <label style="margin-bottom: -4px;">🗺 Entorno en Vivo</label>
-        <div id="realMap"></div>
-      </div>
-
-      <div class="telemetry-grid" style="margin-top: 0;">
-        <div class="telemetry-card">
-          <div id="gpsCurrentSpeed" class="telemetry-value" style="color: var(--accent);">0</div>
-          <div class="telemetry-label">km/h Act.</div>
-        </div>
-        <div class="telemetry-card">
-          <div id="gpsAvgSpeed" class="telemetry-value" style="color: var(--purple);">0</div>
-          <div class="telemetry-label">km/h Prom.</div>
-        </div>
-        <div class="telemetry-card">
-          <div id="segmentTime" class="telemetry-value" style="color: var(--warning);">0</div>
-          <div class="telemetry-label">Min Viaje</div>
-        </div>
-      </div>
-    </div>
+    </section>
 
     <footer>
-      <strong>Micro Litoral PWA v4.6.3 (Modular)</strong><br>
+      <strong>Micro Litoral PWA v5.0.0</strong><br>
       Desarrollado por <strong>Jaime Bustamante L.</strong>
     </footer>
+
+    <!-- BARRA DE NAVEGACIÓN INFERIOR -->
+    <nav class="bottom-nav" id="bottomNav">
+      <button class="nav-item active" data-tab="tabInicio">
+        <span class="nav-icon">🏠</span>
+        <span>Inicio</span>
+      </button>
+      <button class="nav-item" data-tab="tabMiViaje">
+        <span class="nav-icon">🚌</span>
+        <span>Mi viaje</span>
+      </button>
+      <button class="nav-item" data-tab="tabFavoritos">
+        <span class="nav-icon">⭐</span>
+        <span>Favoritos</span>
+      </button>
+      <button class="nav-item" data-tab="tabConfig">
+        <span class="nav-icon">⚙️</span>
+        <span>Ajustes</span>
+      </button>
+    </nav>
   </div>
 
-  <div id="floatingActionBar" class="floating-action-bar hidden">
-    <button class="btn btn-danger" id="btnCancelTrip">❌ Cancelar</button>
-    <button class="btn" id="btnFinishTrip" style="background: var(--success);">🏁 Terminar</button>
+  <!-- PANTALLA ACTIVA DE SEGUIMIENTO GPS (MAPA INTERACTIVO + BOTTOM SHEET) -->
+  <div id="activeTripScreen" class="active-trip-screen hidden">
+    <div id="fullMap"></div>
+
+    <div class="map-top-overlay">
+      <div class="map-pill">
+        <span class="gps-dot" id="activeGpsDot"></span>
+        <span id="activeGpsSignalText">GPS Conectando...</span>
+      </div>
+      <div class="map-pill" id="activeStopsRemainingPill">
+        🎯 <span id="topStopsLeft">--</span> paradas
+      </div>
+    </div>
+
+    <button id="btnRecenterMap" class="btn-recenter hidden">🎯 Centrar micro</button>
+
+    <div class="bottom-sheet" id="tripBottomSheet">
+      <div class="sheet-handle"></div>
+
+      <!-- CUADRO DE PARADA ACTUAL / SIGUIENTE SEGÚN GEOCERCAS -->
+      <div class="stop-status-card" id="stopStatusCard">
+        <div class="stop-status-tag" id="stopDynamicLabel">➡ PRÓXIMA PARADA</div>
+        <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;">
+          <div class="stop-status-name" id="activeNextStopName">---</div>
+          <div id="activeNextStopDistance" style="font-size:0.95rem; font-weight:900; color:var(--secondary); white-space:nowrap;">-- m</div>
+        </div>
+      </div>
+
+      <!-- LLEGADA ESTIMADA DESTACADA -->
+      <div class="eta-hero-row">
+        <div>
+          <div class="section-label">Llegada Estimada</div>
+          <div class="eta-big" id="etaBoxTime">--:--</div>
+        </div>
+        <div class="eta-sub-metrics">
+          <div style="font-size:1rem; font-weight:900; color:var(--secondary);" id="etaTimeLeft">-- min</div>
+          <div style="font-size:0.8rem; font-weight:700; color:var(--text-muted);"><span id="etaKmLeft">--</span> km restantes</div>
+        </div>
+      </div>
+
+      <!-- PANEL DESPLEGABLE DE TELEMETRÍA -->
+      <div id="telemetryDrawer" class="telemetry-drawer hidden">
+        <div class="summary-strip">
+          <div>
+            <div class="summary-val" id="gpsCurrentSpeed">0</div>
+            <div class="summary-lbl">km/h Act.</div>
+          </div>
+          <div>
+            <div class="summary-val" id="gpsAvgSpeed">0</div>
+            <div class="summary-lbl">km/h Prom.</div>
+          </div>
+          <div>
+            <div class="summary-val" id="segmentTime">0</div>
+            <div class="summary-lbl">Min Viaje</div>
+          </div>
+        </div>
+
+        <div>
+          <label class="section-label" style="display:block; margin-bottom:4px;">Cambiar parada de bajada</label>
+          <select id="activeChangeEndStop"></select>
+        </div>
+
+        <button class="btn-cancel-sm" id="btnCancelTrip" style="width:100%;">❌ Cancelar Seguimiento</button>
+      </div>
+
+      <div class="sheet-actions">
+        <button class="btn-secondary" id="btnToggleTelemetry">📊 Detalles</button>
+        <button class="btn-finish" id="btnFinishTrip">🏁 Terminar Viaje</button>
+      </div>
+    </div>
   </div>
 
+  <!-- MODAL CAMINO AL PARADERO -->
   <div id="pedestrianModal" class="modal-overlay">
-    <div class="modal-content">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <div style="font-weight: 800; color: var(--accent); font-size: 1.1rem;">🚶‍♂️ Camino al Paradero</div>
-        <button id="btnClosePedestrianModal" class="btn btn-secondary" style="padding: 6px 12px; width: auto; font-size: 0.8rem; border-radius: 12px;">✕ Cerrar</button>
+    <div class="modal-box">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <strong style="font-size:1.05rem;">🚶‍♂️ Camino al Paradero</strong>
+        <button class="btn-secondary" id="btnClosePedestrianModal" style="padding:6px 12px; min-height:36px;">✕</button>
       </div>
-      <div id="pedestrianMap"></div>
+      <div id="pedestrianMap" style="width:100%; height:300px; border-radius:16px;"></div>
     </div>
   </div>
 
+  <!-- MODAL GUÍA -->
   <div id="howItWorksModal" class="modal-overlay">
-    <div class="modal-content">
-      <div style="font-weight: 900; color: var(--accent); font-size: 1.2rem;">💡 Guía Rápida v4.6</div>
-      <div style="font-size: 0.85rem; line-height: 1.5; display: flex; flex-direction: column; gap: 12px;">
-        <div><strong>⚡ 1. Arquitectura Modular:</strong> Código limpio y separado por responsabilidades.</div>
-        <div><strong>🛡️ 2. Cercas Estables:</strong> Cero parpadeo al llegar a los paraderos.</div>
-        <div><strong>⏱️ 3. ETA Confiable:</strong> Basado en minutos estándar estables.</div>
-      </div>
-      <button id="btnCloseHowItWorks" class="btn btn-secondary" style="font-weight: 800;">Entendido</button>
+    <div class="modal-box">
+      <strong style="font-size:1.1rem;">💡 Cómo funciona Micro Litoral</strong>
+      <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.5;">
+        1. Selecciona tu paradero de subida y bajada en Inicio.<br>
+        2. Toca <strong>Iniciar Seguimiento</strong> al subir a la micro.<br>
+        3. Explora el mapa libremente o déjalo centrado; te avisaremos con sonido y vibración 2 paradas antes de tu bajada.
+      </p>
+      <button class="btn-primary" id="btnCloseHowItWorks">Entendido</button>
     </div>
   </div>
 
+  <!-- MODAL FAQ -->
   <div id="faqModal" class="modal-overlay">
-    <div class="modal-content">
-      <div style="font-weight: 900; color: var(--accent); font-size: 1.2rem;">❓ FAQ</div>
-      <div style="font-size: 0.85rem; line-height: 1.5;">
-        <div><strong>Oficial:</strong> App independiente sin vínculo con Taxibuses San Antonio S.A.</div>
-      </div>
-      <button id="btnCloseFAQ" class="btn btn-secondary" style="font-weight: 800;">Cerrar</button>
+    <div class="modal-box">
+      <strong style="font-size:1.1rem;">❓ Preguntas Frecuentes</strong>
+      <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.5;">
+        <strong>¿Funciona sin internet?</strong><br>
+        Sí, una vez cargada la aplicación, el GPS y las alertas de cercas funcionan incluso en zonas costeras con baja cobertura móvil.
+      </p>
+      <button class="btn-primary" id="btnCloseFAQ">Cerrar</button>
     </div>
   </div>
 
-  <div id="toastNotification" class="toast-notification">
-    <div style="font-size: 1.2rem; font-weight: 900; color: var(--success);">🎉 ¡Viaje Finalizado!</div>
-    <div id="toastMessage" style="font-size: 0.85rem; margin-top: 4px;">Te bajaste en: ---</div>
+  <!-- TOAST FINALIZACIÓN -->
+  <div id="toastNotification" class="toast">
+    <div style="font-weight:900; color:#35B779; font-size:1rem;">🎉 ¡Llegaste a destino!</div>
+    <div id="toastMessage" style="font-size:0.82rem; color:var(--text-muted); margin-top:4px;">---</div>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
