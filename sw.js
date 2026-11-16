@@ -1,4 +1,4 @@
-const CACHE_NAME = 'micro-litoral-v4.6.3';
+const CACHE_NAME = 'micro-litoral-v5.0.0';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -54,7 +54,7 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('push', (event) => {
-  let data = { title: 'Micro Litoral GPS', body: '¡Atención! Tu parada está cerca.' };
+  let data = { title: 'Micro Litoral', body: '¡Atención! Tu parada está cerca.' };
   if (event.data) {
     try { data = event.data.json(); } catch (e) { data.body = event.data.text(); }
   }
