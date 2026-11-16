@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Micro Litoral GPS v4.6.1</title>
+  <title>Micro Litoral GPS v4.6.3</title>
   <meta name="theme-color" content="#020617">
   <link rel="manifest" href="./manifest.json">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -72,19 +72,123 @@
     .compass-box { background: var(--input-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 16px; display: flex; align-items: center; gap: 16px; cursor: pointer; }
     .compass-arrow { font-size: 2rem; transition: transform 0.3s ease; display: inline-block; text-shadow: 0 0 10px var(--accent); }
 
-    .metro-fixed-container { position: relative; width: 100%; overflow: hidden; padding: 30px 5px 40px 5px; }
-    .metro-fixed-track { position: relative; width: 100%; }
-    .metro-fixed-line-bg { position: absolute; top: 10px; left: 15px; right: 15px; height: 4px; background: rgba(255,255,255,0.15); border-radius: 2px; }
-    .metro-fixed-line-fill { position: absolute; top: 10px; left: 15px; height: 4px; background: linear-gradient(90deg, var(--accent), var(--purple)); border-radius: 2px; transition: width 0.3s ease; box-shadow: 0 0 12px var(--accent); }
-    .metro-fixed-stations { display: flex; justify-content: space-between; position: relative; z-index: 3; }
-    .metro-fixed-node { display: flex; flex-direction: column; align-items: center; position: relative; width: 14%; }
-    .metro-fixed-circle { width: 12px; height: 12px; border-radius: 50%; background: var(--input-bg); border: 2px solid var(--muted); transition: all 0.3s; }
-    .metro-fixed-node.visited .metro-fixed-circle { border-color: var(--accent); background: var(--accent); box-shadow: 0 0 8px var(--accent); }
-    .metro-fixed-node.current .metro-fixed-circle { border-color: #fff; background: var(--blue-bus); box-shadow: 0 0 15px var(--accent); transform: scale(1.6); display: flex; align-items: center; justify-content: center; font-size: 8px; }
-    .metro-fixed-node.destination .metro-fixed-circle { border-color: #fff; background: var(--warning); box-shadow: 0 0 15px var(--warning); transform: scale(1.4); }
-    .metro-fixed-label { position: absolute; top: 22px; left: 50%; transform: translateX(-20%) rotate(35deg); transform-origin: left top; font-size: 0.6rem; color: var(--muted); white-space: nowrap; font-weight: 700; width: 75px; text-align: left; overflow: hidden; text-overflow: ellipsis; opacity: 0.7; }
-    .metro-fixed-node.current .metro-fixed-label { color: var(--text); font-weight: 900; opacity: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-    .metro-fixed-node.destination .metro-fixed-label { color: var(--warning) !important; opacity: 1; }
+    /* MINIMAPA CON MICRO ANCLADA AL CENTRO Y VÍA DESLIZANTE */
+    .metro-fixed-container { position: relative; width: 100%; height: 98px; overflow: hidden; }
+    
+    .metro-bus-marker {
+      position: absolute;
+      top: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 26px;
+      height: 26px;
+      background: var(--blue-bus);
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      box-shadow: 0 0 15px var(--accent), 0 4px 10px rgba(0,0,0,0.5);
+      z-index: 20;
+    }
+    .metro-bus-marker::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 5px 4px 0;
+      border-style: solid;
+      border-color: #ffffff transparent transparent transparent;
+    }
+
+    .metro-sliding-track {
+      position: absolute;
+      top: 38px;
+      left: 0;
+      height: 55px;
+      transition: transform 0.55s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    .metro-fixed-line-bg {
+      position: absolute;
+      top: 4px;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 2px;
+    }
+    .metro-fixed-line-fill {
+      position: absolute;
+      top: 4px;
+      left: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent), var(--purple));
+      border-radius: 2px;
+      transition: width 0.55s cubic-bezier(0.25, 1, 0.5, 1);
+      box-shadow: 0 0 12px var(--accent);
+    }
+
+    .metro-fixed-node {
+      position: absolute;
+      top: 0;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .metro-fixed-circle {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--input-bg);
+      border: 2px solid var(--muted);
+      transition: all 0.3s;
+    }
+    .metro-fixed-node.visited .metro-fixed-circle {
+      border-color: var(--accent);
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+    .metro-fixed-node.current .metro-fixed-circle {
+      border-color: #fff;
+      background: var(--accent);
+      box-shadow: 0 0 15px var(--accent);
+      transform: scale(1.4);
+    }
+    .metro-fixed-node.destination .metro-fixed-circle {
+      border-color: #fff;
+      background: var(--warning);
+      box-shadow: 0 0 15px var(--warning);
+      transform: scale(1.4);
+    }
+    .metro-fixed-label {
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-15%) rotate(32deg);
+      transform-origin: left top;
+      font-size: 0.62rem;
+      color: var(--muted);
+      white-space: nowrap;
+      font-weight: 700;
+      width: 85px;
+      text-align: left;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      opacity: 0.75;
+    }
+    .metro-fixed-node.current .metro-fixed-label {
+      color: var(--text);
+      font-weight: 900;
+      opacity: 1;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+    .metro-fixed-node.destination .metro-fixed-label {
+      color: var(--warning) !important;
+      opacity: 1;
+    }
 
     .alert-panel { display: flex; align-items: center; gap: 16px; padding: 18px; border-radius: 22px; backdrop-filter: blur(16px); }
     .alert-normal { background: var(--glass-bg); border: 1px solid var(--glass-border); }
@@ -239,12 +343,13 @@
 
     <!-- VISTA EN VIAJE ACTIVO -->
     <div id="viewActive" class="hidden" style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
-      <div class="glass-card" style="padding: 10px;">
-        <div class="metro-fixed-container">
-          <div class="metro-fixed-track">
+      <div class="glass-card" style="padding: 10px 0;">
+        <div class="metro-fixed-container" id="metroContainer">
+          <div id="metroBusMarker" class="metro-bus-marker">🚌</div>
+          <div id="metroSlidingTrack" class="metro-sliding-track">
             <div class="metro-fixed-line-bg"></div>
             <div id="metroFixedFill" class="metro-fixed-line-fill"></div>
-            <div id="metroFixedNodes" class="metro-fixed-stations"></div>
+            <div id="metroFixedNodes"></div>
           </div>
         </div>
       </div>
@@ -323,7 +428,7 @@
     </div>
 
     <footer>
-      <strong>Micro Litoral PWA v4.6.1 (Modular)</strong><br>
+      <strong>Micro Litoral PWA v4.6.3 (Modular)</strong><br>
       Desarrollado por <strong>Jaime Bustamante L.</strong>
     </footer>
   </div>
