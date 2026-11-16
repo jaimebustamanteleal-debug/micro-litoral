@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Micro Litoral v5.0.0</title>
+  <title>Micro Litoral v5.1.1</title>
   <meta name="theme-color" content="#102A43">
   <link rel="manifest" href="./manifest.json">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -60,7 +60,6 @@
       padding-bottom: 86px;
     }
 
-    /* CABECERA LITORAL */
     .app-header {
       background: linear-gradient(135deg, #102A43 0%, #087E8B 100%);
       color: #FFFFFF;
@@ -115,7 +114,6 @@
       font-weight: 600;
     }
 
-    /* CONTENEDOR DE PESTAÑAS */
     .tab-view {
       padding: 18px 16px;
       display: flex;
@@ -157,7 +155,6 @@
       outline: none;
     }
 
-    /* PLANIFICADOR CON SWAP */
     .route-selector-box {
       position: relative;
       display: flex;
@@ -239,7 +236,6 @@
       cursor: pointer;
     }
 
-    /* NAVEGACIÓN INFERIOR 4 PESTAÑAS */
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -278,7 +274,6 @@
 
     .nav-icon { font-size: 1.35rem; }
 
-    /* VISTA SEGUIMIENTO FULLSCREEN + BOTTOM SHEET */
     .active-trip-screen {
       position: fixed;
       inset: 0;
@@ -332,7 +327,7 @@
     .btn-recenter {
       position: absolute;
       right: 16px;
-      bottom: 295px;
+      bottom: 305px;
       z-index: 15;
       background: var(--surface);
       color: var(--text-main);
@@ -348,7 +343,6 @@
       gap: 6px;
     }
 
-    /* BOTTOM SHEET */
     .bottom-sheet {
       position: absolute;
       bottom: 0;
@@ -376,7 +370,6 @@
       margin: 0 auto 2px auto;
     }
 
-    /* MODO ALERTA DE BAJADA */
     .bottom-sheet.alert-approaching {
       background: linear-gradient(180deg, #FFFBEB 0%, var(--surface) 45%);
       border-top: 4px solid #F5A623;
@@ -433,6 +426,24 @@
       line-height: 1;
     }
 
+    .punctuality-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 99px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      margin-top: 6px;
+    }
+    .punctuality-early { background: rgba(53, 183, 121, 0.16); color: #16A34A; }
+    .punctuality-ontime { background: rgba(8, 126, 139, 0.15); color: #087E8B; }
+    .punctuality-delayed { background: rgba(245, 166, 35, 0.18); color: #D97706; }
+
+    body.dark-mode .punctuality-early { color: #4ADE80; }
+    body.dark-mode .punctuality-ontime { color: #38BDF8; }
+    body.dark-mode .punctuality-delayed { color: #FBBF24; }
+
     .eta-sub-metrics {
       text-align: right;
       display: flex;
@@ -474,6 +485,16 @@
       font-weight: 800;
       min-height: 50px;
       cursor: pointer;
+    }
+
+    .history-card {
+      background: var(--surface-alt);
+      border-radius: 16px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border: 1px solid var(--border);
     }
 
     .modal-overlay {
@@ -537,7 +558,6 @@
 <body>
 
   <div class="shell-wrapper" id="mainShell">
-    <!-- CABECERA -->
     <header class="app-header">
       <div class="header-top">
         <div class="brand-badge">🌊 Micro Litoral</div>
@@ -553,7 +573,7 @@
     <main id="tabInicio" class="tab-view">
       <div class="card">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span class="section-label">Planificar Viaje</span>
+          <span class="section-label" data-i18n="planTrip">Planificar Viaje</span>
           <select id="selectDirection" style="width:auto; padding:8px 12px; font-size:0.8rem;">
             <option value="IDA">Hacia San Antonio</option>
             <option value="VUELTA">Hacia El Yeco</option>
@@ -562,12 +582,12 @@
 
         <div class="route-selector-box">
           <div>
-            <label class="section-label" style="display:block; margin-bottom:4px;">Parada de Subida</label>
+            <label class="section-label" style="display:block; margin-bottom:4px;" data-i18n="boardingStop">Parada de Subida</label>
             <select id="selectStartStop"></select>
           </div>
           <button type="button" class="swap-btn" id="btnSwapDirection" title="Invertir sentido">⇅</button>
           <div>
-            <label class="section-label" style="display:block; margin-bottom:4px;">Parada de Bajada</label>
+            <label class="section-label" style="display:block; margin-bottom:4px;" data-i18n="alightingStop">Parada de Bajada</label>
             <select id="selectEndStop"></select>
           </div>
         </div>
@@ -575,32 +595,27 @@
         <div class="summary-strip">
           <div>
             <div class="summary-val" id="setupTripEta">--:--</div>
-            <div class="summary-lbl">Llegada Est.</div>
+            <div class="summary-lbl" data-i18n="estArrival">Llegada Est.</div>
           </div>
           <div>
             <div class="summary-val" id="setupTripStops">--</div>
-            <div class="summary-lbl">Paradas</div>
+            <div class="summary-lbl" data-i18n="stops">Paradas</div>
           </div>
           <div>
-            <div class="summary-val" id="setupTripKm">--</div>
-            <div class="summary-lbl">Km Aprox</div>
+            <div class="summary-val" id="setupTripDist">--</div>
+            <div class="summary-lbl" id="setupDistUnitLabel">Km Aprox</div>
           </div>
         </div>
 
         <div style="display:flex; justify-content:space-between; align-items:center; background:var(--surface-alt); padding:12px 14px; border-radius:14px;">
           <div>
-            <div class="section-label">Próxima Salida</div>
+            <div class="section-label" data-i18n="nextDeparture">Próxima Salida</div>
             <div id="setupServiceStatus" style="font-size:0.78rem; color:var(--text-muted); font-weight:600;">Calculando...</div>
           </div>
           <div id="setupNextDepartureMinutes" style="font-size:1.25rem; font-weight:900; color:var(--secondary);">-- min</div>
         </div>
 
-        <button class="btn-primary" id="btnStartTrip">🚌 Iniciar Seguimiento</button>
-      </div>
-
-      <div id="recentDestinationsContainer" class="card hidden">
-        <span class="section-label">Destinos Recientes</span>
-        <div id="recentDestinationsChips" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
+        <button class="btn-primary" id="btnStartTrip" data-i18n="startTracking">🚌 Iniciar Seguimiento</button>
       </div>
 
       <div class="card" style="padding:14px;">
@@ -615,22 +630,26 @@
       </div>
     </main>
 
-    <!-- PESTAÑA 2: MI VIAJE (ESTADO EN ESPERA) -->
-    <section id="tabMiViaje" class="tab-view hidden">
-      <div class="card" style="text-align:center; padding:36px 20px;">
-        <div style="font-size:3rem;">🧭</div>
-        <h2 style="font-size:1.2rem; font-weight:900;">Sin recorrido activo</h2>
-        <p style="font-size:0.88rem; color:var(--text-muted); line-height:1.5;">
-          Selecciona tu parada de subida y destino en Inicio para activar el seguimiento GPS en tiempo real.
-        </p>
-        <button class="btn-primary" id="btnGoToPlanner">Ir a Planificar Viaje</button>
+    <!-- PESTAÑA 2: MIS VIAJES (HISTORIAL DE ÚLTIMOS 10) -->
+    <section id="tabMisViajes" class="tab-view hidden">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span class="section-label" data-i18n="myTripsTitle">Últimos 10 Viajes</span>
+          <button class="btn-secondary" id="btnClearHistory" style="padding:6px 12px; min-height:32px; font-size:0.75rem;">Limpiar</button>
+        </div>
+        <div id="tripHistoryList" style="display:flex; flex-direction:column; gap:10px;"></div>
       </div>
     </section>
 
-    <!-- PESTAÑA 3: FAVORITOS -->
+    <!-- PESTAÑA 3: FAVORITOS (INCLUYE DESTINOS RECIENTES) -->
     <section id="tabFavoritos" class="tab-view hidden">
+      <div id="recentDestinationsContainer" class="card hidden">
+        <span class="section-label" data-i18n="recentDestinations">Destinos Recientes</span>
+        <div id="recentDestinationsChips" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
+      </div>
+
       <div class="card">
-        <span class="section-label">Guardar Trayecto Actual</span>
+        <span class="section-label" data-i18n="saveCurrentRoute">Guardar Trayecto Actual</span>
         <div style="display:flex; gap:8px;">
           <input type="text" id="favNameInput" placeholder="Ej: Casa a Trabajo">
           <button class="btn-secondary" id="btnSaveFavorite" style="white-space:nowrap;">⭐ Guardar</button>
@@ -638,7 +657,7 @@
       </div>
 
       <div class="card">
-        <span class="section-label">Mis Rutas Guardadas</span>
+        <span class="section-label" data-i18n="savedRoutes">Mis Rutas Guardadas</span>
         <div id="favoritesList" style="display:flex; flex-direction:column; gap:10px;"></div>
       </div>
     </section>
@@ -646,19 +665,37 @@
     <!-- PESTAÑA 4: CONFIGURACIÓN -->
     <section id="tabConfig" class="tab-view hidden">
       <div class="card">
-        <span class="section-label">Perfil y Apariencia</span>
+        <span class="section-label" data-i18n="profileAndPrefs">Perfil y Preferencias</span>
         <div>
-          <label class="section-label" style="display:block; margin-bottom:6px;">Tu Nombre</label>
+          <label class="section-label" style="display:block; margin-bottom:6px;" data-i18n="yourName">Tu Nombre</label>
           <input type="text" id="inputName" placeholder="Ej: Jaime">
         </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div>
+            <label class="section-label" style="display:block; margin-bottom:6px;" data-i18n="speedUnit">Unidad</label>
+            <select id="selectSpeedUnit">
+              <option value="kmh">km/h · km</option>
+              <option value="mph">mph · mi</option>
+            </select>
+          </div>
+          <div>
+            <label class="section-label" style="display:block; margin-bottom:6px;" data-i18n="language">Idioma</label>
+            <select id="selectLanguage">
+              <option value="es">Español</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+        </div>
+
         <div style="display:flex; justify-content:space-between; align-items:center; padding-top:4px;">
-          <span style="font-weight:700; font-size:0.9rem;">Tema Visual</span>
+          <span style="font-weight:700; font-size:0.9rem;" data-i18n="visualTheme">Tema Visual</span>
           <button class="btn-secondary" id="btnThemeToggle">🌙 Cambiar Tema</button>
         </div>
       </div>
 
       <div class="card" id="permissionBanner">
-        <span class="section-label">Notificaciones y GPS</span>
+        <span class="section-label" data-i18n="notificationsGps">Notificaciones y GPS</span>
         <p style="font-size:0.82rem; color:var(--text-muted); line-height:1.4;">
           Activa las alertas del sistema para recibir avisos sonoros y vibración cuando falten 2 paradas para bajar.
         </p>
@@ -666,7 +703,7 @@
       </div>
 
       <div class="card">
-        <span class="section-label">Información</span>
+        <span class="section-label" data-i18n="info">Información</span>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
           <button class="btn-secondary" id="btnHowItWorks">💡 Cómo funciona</button>
           <button class="btn-secondary" id="btnFAQ">❓ Preguntas</button>
@@ -678,7 +715,7 @@
     </section>
 
     <footer>
-      <strong>Micro Litoral PWA v5.0.0</strong><br>
+      <strong>Micro Litoral PWA v5.1.0</strong><br>
       Desarrollado por <strong>Jaime Bustamante L.</strong>
     </footer>
 
@@ -686,24 +723,24 @@
     <nav class="bottom-nav" id="bottomNav">
       <button class="nav-item active" data-tab="tabInicio">
         <span class="nav-icon">🏠</span>
-        <span>Inicio</span>
+        <span data-i18n="navHome">Inicio</span>
       </button>
-      <button class="nav-item" data-tab="tabMiViaje">
-        <span class="nav-icon">🚌</span>
-        <span>Mi viaje</span>
+      <button class="nav-item" data-tab="tabMisViajes">
+        <span class="nav-icon">🕘</span>
+        <span data-i18n="navTrips">Mis viajes</span>
       </button>
       <button class="nav-item" data-tab="tabFavoritos">
         <span class="nav-icon">⭐</span>
-        <span>Favoritos</span>
+        <span data-i18n="navFavs">Favoritos</span>
       </button>
       <button class="nav-item" data-tab="tabConfig">
         <span class="nav-icon">⚙️</span>
-        <span>Ajustes</span>
+        <span data-i18n="navSettings">Ajustes</span>
       </button>
     </nav>
   </div>
 
-  <!-- PANTALLA ACTIVA DE SEGUIMIENTO GPS (MAPA INTERACTIVO + BOTTOM SHEET) -->
+  <!-- PANTALLA ACTIVA DE SEGUIMIENTO GPS -->
   <div id="activeTripScreen" class="active-trip-screen hidden">
     <div id="fullMap"></div>
 
@@ -713,64 +750,62 @@
         <span id="activeGpsSignalText">GPS Conectando...</span>
       </div>
       <div class="map-pill" id="activeStopsRemainingPill">
-        🎯 <span id="topStopsLeft">--</span> paradas
+        🎯 <span id="topStopsLeft">--</span> <span data-i18n="stopsLower">paradas</span>
       </div>
     </div>
 
-    <button id="btnRecenterMap" class="btn-recenter hidden">🎯 Centrar micro</button>
+    <button id="btnRecenterMap" class="btn-recenter hidden">🎯 <span data-i18n="recenter">Centrar micro</span></button>
 
     <div class="bottom-sheet" id="tripBottomSheet">
       <div class="sheet-handle"></div>
 
-      <!-- CUADRO DE PARADA ACTUAL / SIGUIENTE SEGÚN GEOCERCAS -->
       <div class="stop-status-card" id="stopStatusCard">
-        <div class="stop-status-tag" id="stopDynamicLabel">➡ PRÓXIMA PARADA</div>
+        <div class="stop-status-tag" id="stopDynamicLabel">➡ PARADA SIGUIENTE</div>
         <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;">
           <div class="stop-status-name" id="activeNextStopName">---</div>
           <div id="activeNextStopDistance" style="font-size:0.95rem; font-weight:900; color:var(--secondary); white-space:nowrap;">-- m</div>
         </div>
       </div>
 
-      <!-- LLEGADA ESTIMADA DESTACADA -->
       <div class="eta-hero-row">
         <div>
-          <div class="section-label">Llegada Estimada</div>
+          <div class="section-label" data-i18n="estArrival">Llegada Estimada</div>
           <div class="eta-big" id="etaBoxTime">--:--</div>
+          <div id="punctualityBadge" class="punctuality-badge punctuality-ontime">🟢 A tiempo</div>
         </div>
         <div class="eta-sub-metrics">
-          <div style="font-size:1rem; font-weight:900; color:var(--secondary);" id="etaTimeLeft">-- min</div>
-          <div style="font-size:0.8rem; font-weight:700; color:var(--text-muted);"><span id="etaKmLeft">--</span> km restantes</div>
+          <div style="font-size:1.1rem; font-weight:900; color:var(--secondary);" id="etaTimeLeft">-- min</div>
+          <div style="font-size:0.82rem; font-weight:700; color:var(--text-muted);" id="etaDistRemainingText">-- km restantes</div>
         </div>
       </div>
 
-      <!-- PANEL DESPLEGABLE DE TELEMETRÍA -->
       <div id="telemetryDrawer" class="telemetry-drawer hidden">
         <div class="summary-strip">
           <div>
             <div class="summary-val" id="gpsCurrentSpeed">0</div>
-            <div class="summary-lbl">km/h Act.</div>
+            <div class="summary-lbl" id="lblCurrentSpeedUnit">km/h Act.</div>
           </div>
           <div>
             <div class="summary-val" id="gpsAvgSpeed">0</div>
-            <div class="summary-lbl">km/h Prom.</div>
+            <div class="summary-lbl" id="lblAvgSpeedUnit">km/h Prom.</div>
           </div>
           <div>
             <div class="summary-val" id="segmentTime">0</div>
-            <div class="summary-lbl">Min Viaje</div>
+            <div class="summary-lbl" data-i18n="tripMins">Min Viaje</div>
           </div>
         </div>
 
         <div>
-          <label class="section-label" style="display:block; margin-bottom:4px;">Cambiar parada de bajada</label>
+          <label class="section-label" style="display:block; margin-bottom:4px;" data-i18n="changeStop">Cambiar parada de bajada</label>
           <select id="activeChangeEndStop"></select>
         </div>
 
-        <button class="btn-cancel-sm" id="btnCancelTrip" style="width:100%;">❌ Cancelar Seguimiento</button>
+        <button class="btn-cancel-sm" id="btnCancelTrip" style="width:100%;" data-i18n="cancelTracking">❌ Cancelar Seguimiento</button>
       </div>
 
       <div class="sheet-actions">
-        <button class="btn-secondary" id="btnToggleTelemetry">📊 Detalles</button>
-        <button class="btn-finish" id="btnFinishTrip">🏁 Terminar Viaje</button>
+        <button class="btn-secondary" id="btnToggleTelemetry" data-i18n="details">📊 Detalles</button>
+        <button class="btn-finish" id="btnFinishTrip" data-i18n="finishTrip">🏁 Terminar Viaje</button>
       </div>
     </div>
   </div>
@@ -793,7 +828,7 @@
       <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.5;">
         1. Selecciona tu paradero de subida y bajada en Inicio.<br>
         2. Toca <strong>Iniciar Seguimiento</strong> al subir a la micro.<br>
-        3. Explora el mapa libremente o déjalo centrado; te avisaremos con sonido y vibración 2 paradas antes de tu bajada.
+        3. El tiempo estimado se ajusta dinámicamente según el ritmo real del bus en tu viaje actual y te avisa 2 paradas antes de bajar.
       </p>
       <button class="btn-primary" id="btnCloseHowItWorks">Entendido</button>
     </div>
