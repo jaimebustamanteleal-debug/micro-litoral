@@ -3,6 +3,21 @@ import { calculateEta } from './eta.js';
 import { playAlertBeep, triggerSystemNotification } from './notifications.js';
 import { requestWakeLock, releaseWakeLock, calculateDistanceKm } from './gps.js';
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').then((reg) => {
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            window.location.reload();
+          }
+        });
+      });
+    }).catch(err => console.log('SW error:', err));
+  });
+}
+
 let ROUTE_STOPS = STOPS_IDA;
 let state = {
   userName: localStorage.getItem("userName") || "Pasajero",
@@ -650,7 +665,6 @@ function updateClockAndETA() {
   let stopsRemaining = Math.max(0, endIndex - state.currentBaseIndex);
   let kmLeft = currObj && endObj ? Math.max(0.1, calculateDistanceKm(currObj.lat, currObj.lng, endObj.lat, endObj.lng) * 1.25) : 0;
 
-  // ETA ESTABLE BASADO ESTRICTAMENTE EN MINUTOS ESTÁNDAR (STDMIN)
   let stableMins = calculateEta(currObj, endObj);
 
   const etaTime = new Date(new Date().getTime() + stableMins * 60000);
@@ -678,7 +692,9 @@ function renderFixedMetroMap() {
     if (globalIdx < displayIndex) node.classList.add("visited");
     if (globalIdx === displayIndex) node.classList.add("current");
     if (s.id === state.endStopId) node.classList.add("destination");
-    node.innerHTML = `<div class="metro-fixed-circle"></div><div class="metro-fixed-label">${s.name}</div>`;
+
+    const iconContent = (globalIdx === displayIndex) ? '🚌' : '';
+    node.innerHTML = `<div class="metro-fixed-circle">${iconContent}</div><div class="metro-fixed-label">${s.name}</div>`;
     container.appendChild(node);
   });
   fill.style.width = `${Math.min(100, Math.max(0, (ROUTE_STOPS.slice(startIndex, endIndex + 1).findIndex(s => s.id === ROUTE_STOPS[displayIndex].id) / (endIndex - startIndex)) * 100))}%`;
