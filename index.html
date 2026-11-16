@@ -75,39 +75,26 @@
     .metro-fixed-container { position: relative; width: 100%; overflow: hidden; padding: 30px 5px 40px 5px; }
     .metro-fixed-track { position: relative; width: 100%; }
     .metro-fixed-line-bg { position: absolute; top: 10px; left: 15px; right: 15px; height: 4px; background: rgba(255,255,255,0.15); border-radius: 2px; }
-    
-    /* BRILLO DE NEÓN RESTAURADO EN LA LÍNEA */
-    .metro-fixed-line-fill { 
-      position: absolute; top: 10px; left: 15px; height: 4px; 
-      background: linear-gradient(90deg, var(--accent), var(--purple)); 
-      border-radius: 2px; transition: width 0.3s ease; 
-      box-shadow: 0 0 12px var(--accent); 
-    }
-
+    .metro-fixed-line-fill { position: absolute; top: 10px; left: 15px; height: 4px; background: linear-gradient(90deg, var(--accent), var(--purple)); border-radius: 2px; transition: width 0.3s ease; box-shadow: 0 0 12px var(--accent); }
     .metro-fixed-stations { display: flex; justify-content: space-between; position: relative; z-index: 3; }
     .metro-fixed-node { display: flex; flex-direction: column; align-items: center; position: relative; width: 14%; }
-    .metro-fixed-circle { width: 12px; height: 12px; border-radius: 50%; background: var(--input-bg); border: 2px solid var(--muted); }
-    .metro-fixed-node.visited .metro-fixed-circle { border-color: var(--accent); background: var(--accent); }
-    
-    /* ESTILO PARA EL BUS CELESTE EN LA ESTACIÓN ACTUAL */
-    .metro-fixed-node.current .metro-fixed-circle { 
-      border-color: #fff; 
-      background: var(--blue-bus); 
-      box-shadow: 0 0 15px var(--accent); 
-      transform: scale(1.6); 
-      display: flex; align-items: center; justify-content: center;
-      font-size: 8px;
-    }
-
-    .metro-fixed-node.destination .metro-fixed-circle { border-color: #fff; background: var(--warning); transform: scale(1.4); }
+    .metro-fixed-circle { width: 12px; height: 12px; border-radius: 50%; background: var(--input-bg); border: 2px solid var(--muted); transition: all 0.3s; }
+    .metro-fixed-node.visited .metro-fixed-circle { border-color: var(--accent); background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+    .metro-fixed-node.current .metro-fixed-circle { border-color: #fff; background: var(--blue-bus); box-shadow: 0 0 15px var(--accent); transform: scale(1.6); display: flex; align-items: center; justify-content: center; font-size: 8px; }
+    .metro-fixed-node.destination .metro-fixed-circle { border-color: #fff; background: var(--warning); box-shadow: 0 0 15px var(--warning); transform: scale(1.4); }
     .metro-fixed-label { position: absolute; top: 22px; left: 50%; transform: translateX(-20%) rotate(35deg); transform-origin: left top; font-size: 0.6rem; color: var(--muted); white-space: nowrap; font-weight: 700; width: 75px; text-align: left; overflow: hidden; text-overflow: ellipsis; opacity: 0.7; }
+    .metro-fixed-node.current .metro-fixed-label { color: var(--text); font-weight: 900; opacity: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+    .metro-fixed-node.destination .metro-fixed-label { color: var(--warning) !important; opacity: 1; }
 
     .alert-panel { display: flex; align-items: center; gap: 16px; padding: 18px; border-radius: 22px; backdrop-filter: blur(16px); }
     .alert-normal { background: var(--glass-bg); border: 1px solid var(--glass-border); }
+    .alert-speed { background: linear-gradient(135deg, rgba(220,38,38,0.85), rgba(153,27,27,0.95)); box-shadow: 0 10px 30px rgba(220,38,38,0.4); border: 1px solid rgba(255,255,255,0.2); }
     .alert-stop { background: linear-gradient(135deg, rgba(217,119,6,0.85), rgba(180,83,9,0.95)); border: 1px solid rgba(255,255,255,0.2); }
     .alert-drop { background: linear-gradient(135deg, rgba(16,185,129,0.85), rgba(4,120,87,0.95)); border: 1px solid rgba(255,255,255,0.2); }
     .alert-title { font-size: 0.95rem; font-weight: 900; color: #fff; }
     .alert-desc { font-size: 0.8rem; color: rgba(255,255,255,0.85); margin-top: 2px; }
+    .alert-normal .alert-title { color: var(--accent); }
+    .alert-normal .alert-desc { color: var(--text); }
 
     .eta-box { padding: 0; background: transparent; border: none; display: flex; flex-direction: column; gap: 12px; }
     .eta-main-time { font-size: 3.2rem; font-weight: 900; text-align: center; line-height: 1; letter-spacing: -1px; }
@@ -133,6 +120,8 @@
     .pulse-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
     .pulse-green { background: var(--success); box-shadow: 0 0 10px var(--success); animation: pulse 1.5s infinite; }
     .pulse-red { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
+
+    @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
 
     .toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--success); border-radius: 20px; padding: 16px 24px; text-align: center; z-index: 2000; opacity: 0; pointer-events: none; transition: all 0.4s; width: 90%; max-width: 400px; }
     .toast-notification.active { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
@@ -356,7 +345,7 @@
 
   <div id="howItWorksModal" class="modal-overlay">
     <div class="modal-content">
-      <div style="font-weight: 900; color: var(--accent); font-size: 1.2rem;">💡 Guía Rápida v4.6.1</div>
+      <div style="font-weight: 900; color: var(--accent); font-size: 1.2rem;">💡 Guía Rápida v4.6</div>
       <div style="font-size: 0.85rem; line-height: 1.5; display: flex; flex-direction: column; gap: 12px;">
         <div><strong>⚡ 1. Arquitectura Modular:</strong> Código limpio y separado por responsabilidades.</div>
         <div><strong>🛡️ 2. Cercas Estables:</strong> Cero parpadeo al llegar a los paraderos.</div>
