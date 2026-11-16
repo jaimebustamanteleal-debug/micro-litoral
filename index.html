@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Micro Litoral GPS v4.6.0</title>
+  <title>Micro Litoral GPS v4.6.1</title>
   <meta name="theme-color" content="#020617">
   <link rel="manifest" href="./manifest.json">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -75,23 +75,30 @@
     .metro-fixed-container { position: relative; width: 100%; overflow: hidden; padding: 30px 5px 40px 5px; }
     .metro-fixed-track { position: relative; width: 100%; }
     .metro-fixed-line-bg { position: absolute; top: 10px; left: 15px; right: 15px; height: 4px; background: rgba(255,255,255,0.15); border-radius: 2px; }
+    
+    /* BRILLO DE NEÓN RESTAURADO EN LA LÍNEA */
     .metro-fixed-line-fill { 
-  position: absolute; top: 10px; left: 15px; height: 4px; 
-  background: linear-gradient(90deg, var(--accent), var(--purple)); 
-  border-radius: 2px; transition: width 0.3s ease; 
-  box-shadow: 0 0 12px var(--accent); /* <-- Restaura el brillo de la línea */
-}
+      position: absolute; top: 10px; left: 15px; height: 4px; 
+      background: linear-gradient(90deg, var(--accent), var(--purple)); 
+      border-radius: 2px; transition: width 0.3s ease; 
+      box-shadow: 0 0 12px var(--accent); 
+    }
+
+    .metro-fixed-stations { display: flex; justify-content: space-between; position: relative; z-index: 3; }
     .metro-fixed-node { display: flex; flex-direction: column; align-items: center; position: relative; width: 14%; }
     .metro-fixed-circle { width: 12px; height: 12px; border-radius: 50%; background: var(--input-bg); border: 2px solid var(--muted); }
     .metro-fixed-node.visited .metro-fixed-circle { border-color: var(--accent); background: var(--accent); }
-   .metro-fixed-node.current .metro-fixed-circle { 
-  border-color: #fff; 
-  background: var(--blue-bus); /* <-- Color de micro celeste/azul */
-  box-shadow: 0 0 15px var(--accent); 
-  transform: scale(1.6); 
-  display: flex; align-items: center; justify-content: center;
-  font-size: 8px;
-}
+    
+    /* ESTILO PARA EL BUS CELESTE EN LA ESTACIÓN ACTUAL */
+    .metro-fixed-node.current .metro-fixed-circle { 
+      border-color: #fff; 
+      background: var(--blue-bus); 
+      box-shadow: 0 0 15px var(--accent); 
+      transform: scale(1.6); 
+      display: flex; align-items: center; justify-content: center;
+      font-size: 8px;
+    }
+
     .metro-fixed-node.destination .metro-fixed-circle { border-color: #fff; background: var(--warning); transform: scale(1.4); }
     .metro-fixed-label { position: absolute; top: 22px; left: 50%; transform: translateX(-20%) rotate(35deg); transform-origin: left top; font-size: 0.6rem; color: var(--muted); white-space: nowrap; font-weight: 700; width: 75px; text-align: left; overflow: hidden; text-overflow: ellipsis; opacity: 0.7; }
 
@@ -327,7 +334,7 @@
     </div>
 
     <footer>
-      <strong>Micro Litoral PWA v4.6.0 (Modular)</strong><br>
+      <strong>Micro Litoral PWA v4.6.1 (Modular)</strong><br>
       Desarrollado por <strong>Jaime Bustamante L.</strong>
     </footer>
   </div>
@@ -349,7 +356,7 @@
 
   <div id="howItWorksModal" class="modal-overlay">
     <div class="modal-content">
-      <div style="font-weight: 900; color: var(--accent); font-size: 1.2rem;">💡 Guía Rápida v4.6</div>
+      <div style="font-weight: 900; color: var(--accent); font-size: 1.2rem;">💡 Guía Rápida v4.6.1</div>
       <div style="font-size: 0.85rem; line-height: 1.5; display: flex; flex-direction: column; gap: 12px;">
         <div><strong>⚡ 1. Arquitectura Modular:</strong> Código limpio y separado por responsabilidades.</div>
         <div><strong>🛡️ 2. Cercas Estables:</strong> Cero parpadeo al llegar a los paraderos.</div>
