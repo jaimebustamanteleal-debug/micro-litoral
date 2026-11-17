@@ -1,4 +1,4 @@
-const CACHE_NAME = 'micro-litoral-v5.1.1';
+const CACHE_NAME = 'micro-litoral-v5.1.2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -62,9 +62,10 @@ self.addEventListener('push', (event) => {
     body: data.body,
     icon: 'icon-192.png',
     badge: 'icon-192.png',
-    vibrate: [200, 100, 200, 100, 200],
+    vibrate: [300, 150, 300, 150, 400],
     tag: 'micro-litoral-alert',
-    renotify: true
+    renotify: true,
+    requireInteraction: true
   };
   event.waitUntil(self.registration.showNotification(data.title, options));
 });
