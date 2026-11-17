@@ -70,7 +70,7 @@ export async function fetchStreetRouteCoordinates(waypoints) {
     const coordsStr = waypoints.map(p => `${p[1]},${p[0]}`).join(';');
     const url = `https://router.project-osrm.org/route/v1/driving/${coordsStr}?overview=full&geometries=geojson`;
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 4500);
+    const timer = setTimeout(() => controller.abort(), 5000);
     const res = await fetch(url, { signal: controller.signal });
     clearTimeout(timer);
     if (!res.ok) return waypoints;
@@ -80,4 +80,62 @@ export async function fetchStreetRouteCoordinates(waypoints) {
     }
   } catch (e) {}
   return waypoints;
+}
+
+// Proyecta el punto GPS sobre el segmento más cercano de la ruta para evitar saltos por cuadras vecinas
+export function snapPointToPolyline(lat, lng, polylineCoords, maxSnapDistanceMeters = 140) {
+  if (!polylineCoords || polylineCoords.length < 2) {
+    return { lat, lng, index: 0, snapped: false };
+  }
+
+  let bestLat = lat;
+  let bestLng = lng;
+  let bestIndex = 0;
+  let minDistSq = Infinity;
+
+  const cosLat = Math.cos(lat * Math.PI / 180);
+
+  for (let i = 0; i < polylineCoords.length - 1; i++) {
+    const aLat = polylineCoords[i][0];
+    const aLng = polylineCoords[i][1];
+    const bLat = polylineCoords[i + 1][0];
+    const bLng = polylineCoords[i + 1][1];
+
+    const ax = aLng * cosLat;
+    const ay = aLat;
+    const bx = bLng * cosLat;
+    const by = bLat;
+    const px = lng * cosLat;
+    const py = lat;
+
+    const abx = bx - ax;
+    const aby = by - ay;
+    const abLenSq = abx * abx + aby * aby;
+
+    let t = 0;
+    if (abLenSq > 0) {
+      t = ((px - ax) * abx + (py - ay) * aby) / abLenSq;
+      t = Math.max(0, Math.min(1, t));
+    }
+
+    const projLat = aLat + t * (bLat - aLat);
+    const projLng = aLng + t * (bLng - aLng);
+
+    const dx = (px - (ax + t * abx));
+    const dy = (py - (ay + t * aby));
+    const distSq = dx * dx + dy * dy;
+
+    if (distSq < minDistSq) {
+      minDistSq = distSq;
+      bestLat = projLat;
+      bestLng = projLng;
+      bestIndex = i;
+    }
+  }
+
+  const distMeters = calculateDistanceKm(lat, lng, bestLat, bestLng) * 1000;
+  if (distMeters <= maxSnapDistanceMeters) {
+    return { lat: bestLat, lng: bestLng, index: bestIndex, snapped: true };
+  }
+  return { lat, lng, index: bestIndex, snapped: false };
 }
