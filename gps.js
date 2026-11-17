@@ -28,6 +28,12 @@ export function evaluateGpsSignal(accuracyMeters, isOnline, lang = 'es') {
       weak: 'Señal GPS Débil',
       approx: 'Ubicación Aproximada'
     },
+    pt: {
+      bad: 'Sem sinal GPS (Aprox.)',
+      good: 'Sinal GPS Ótimo',
+      weak: 'Sinal GPS Fraco',
+      approx: 'Localização Aproximada'
+    },
     en: {
       bad: 'No GPS Signal (Approx.)',
       good: 'Optimal GPS Signal',
@@ -82,7 +88,6 @@ export async function fetchStreetRouteCoordinates(waypoints) {
   return waypoints;
 }
 
-// Proyecta el punto GPS sobre el segmento más cercano de la ruta para evitar saltos por cuadras vecinas
 export function snapPointToPolyline(lat, lng, polylineCoords, maxSnapDistanceMeters = 140) {
   if (!polylineCoords || polylineCoords.length < 2) {
     return { lat, lng, index: 0, snapped: false };
