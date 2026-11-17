@@ -46,7 +46,11 @@ const I18N = {
     language: 'Idioma',
     visualTheme: 'Tema Visual',
     notificationsGps: 'Notificaciones y Push',
+    pushDesc: 'Activa las notificaciones push y alertas de sistema para recibir avisos con vibración en segundo plano y Google Play.',
+    activatePushBtn: '🔔 Activar Notificaciones Push',
     info: 'Información',
+    howItWorksBtn: '💡 Cómo funciona',
+    faqBtn: '❓ Preguntas',
     navHome: 'Inicio',
     navTrips: 'Mis viajes',
     navFavs: 'Favoritos',
@@ -60,11 +64,78 @@ const I18N = {
     finishTrip: '🏁 Terminar Viaje',
     repeatTrip: '🔄 Repetir viaje',
     clearBtn: 'Limpiar',
+    saveBtn: '⭐ Guardar',
+    useBtn: 'Usar',
     noTripsYet: 'Aún no has registrado viajes completados.',
     noFavsYet: 'Aún no tienes rutas favoritas guardadas.',
     early: '🟢 Adelantado',
     ontime: '🔵 A tiempo',
-    delayed: '🟠 Con retraso'
+    delayed: '🟠 Con retraso',
+    remainingWord: 'restantes',
+    atStopText: 'En paradero',
+    currentStopTag: '🛑 PARADA ACTUAL',
+    approachingStopTag: '⚠️ LLEGANDO A PARADA',
+    nextStopTag: '➡ PARADA SIGUIENTE',
+    getOffHereTag: '📍 ¡BAJA AQUÍ! DESTINO ALCANZADO',
+    prepNextTag: '🔔 ¡PREPÁRATE PARA BAJAR! (Siguiente parada)',
+    prep2StopsTag: '🔔 ¡PREPÁRATE PARA BAJAR! (Faltan 2 paradas)',
+    dirIda: 'Hacia San Antonio',
+    dirVuelta: 'Hacia El Yeco'
+  },
+  pt: {
+    planTrip: 'Planejar Viagem',
+    boardingStop: 'Ponto de Embarque',
+    alightingStop: 'Ponto de Desembarque',
+    estArrival: 'Chegada Estimada',
+    stops: 'Paradas',
+    stopsLower: 'paradas',
+    nextDeparture: 'Próxima Saída',
+    startTracking: '🚌 Iniciar Rastreamento',
+    myTripsTitle: 'Últimas 10 Viagens',
+    recentDestinations: 'Destinos Recentes',
+    saveCurrentRoute: 'Salvar Trajeto Atual',
+    savedRoutes: 'Minhas Rotas Salvas',
+    profileAndPrefs: 'Perfil e Preferências',
+    yourName: 'Seu Nome',
+    speedUnit: 'Unidade',
+    language: 'Idioma',
+    visualTheme: 'Tema Visual',
+    notificationsGps: 'Notificações e Push',
+    pushDesc: 'Ative as notificações push e alertas do sistema para receber avisos com vibração em segundo plano e no Google Play.',
+    activatePushBtn: '🔔 Ativar Notificações Push',
+    info: 'Informação',
+    howItWorksBtn: '💡 Como funciona',
+    faqBtn: '❓ Perguntas',
+    navHome: 'Início',
+    navTrips: 'Viagens',
+    navFavs: 'Favoritos',
+    navSettings: 'Ajustes',
+    recenter: 'Centralizar ônibus',
+    tripMins: 'Min Viagem',
+    changeStop: 'Alterar ponto de desembarque',
+    cancelTracking: '❌ Cancelar Rastreamento',
+    details: '📊 Detalhes',
+    hide: '🔽 Ocultar',
+    finishTrip: '🏁 Encerrar Viagem',
+    repeatTrip: '🔄 Repetir viagem',
+    clearBtn: 'Limpar',
+    saveBtn: '⭐ Salvar',
+    useBtn: 'Usar',
+    noTripsYet: 'Você ainda não registrou viagens concluídas.',
+    noFavsYet: 'Você ainda não tem rotas favoritas salvas.',
+    early: '🟢 Adiantado',
+    ontime: '🔵 No horário',
+    delayed: '🟠 Com atraso',
+    remainingWord: 'restantes',
+    atStopText: 'No ponto',
+    currentStopTag: '🛑 PARADA ATUAL',
+    approachingStopTag: '⚠️ CHEGANDO AO PONTO',
+    nextStopTag: '➡ PRÓXIMA PARADA',
+    getOffHereTag: '📍 DESÇA AQUI! DESTINO ALCANÇADO',
+    prepNextTag: '🔔 PREPARE-SE PARA DESCER! (Próxima parada)',
+    prep2StopsTag: '🔔 PREPARE-SE PARA DESCER! (Faltam 2 paradas)',
+    dirIda: 'Para San Antonio',
+    dirVuelta: 'Para El Yeco'
   },
   en: {
     planTrip: 'Plan Trip',
@@ -85,7 +156,11 @@ const I18N = {
     language: 'Language',
     visualTheme: 'Visual Theme',
     notificationsGps: 'Notifications & Push',
+    pushDesc: 'Enable push notifications and system alerts to receive background vibration alerts and Google Play updates.',
+    activatePushBtn: '🔔 Enable Push Notifications',
     info: 'Information',
+    howItWorksBtn: '💡 How it works',
+    faqBtn: '❓ FAQ',
     navHome: 'Home',
     navTrips: 'My Trips',
     navFavs: 'Favorites',
@@ -99,11 +174,23 @@ const I18N = {
     finishTrip: '🏁 Finish Trip',
     repeatTrip: '🔄 Repeat trip',
     clearBtn: 'Clear',
+    saveBtn: '⭐ Save',
+    useBtn: 'Use',
     noTripsYet: 'No completed trips recorded yet.',
     noFavsYet: 'No saved favorite routes yet.',
     early: '🟢 Ahead of schedule',
     ontime: '🔵 On time',
-    delayed: '🟠 Delayed'
+    delayed: '🟠 Delayed',
+    remainingWord: 'remaining',
+    atStopText: 'At stop',
+    currentStopTag: '🛑 CURRENT STOP',
+    approachingStopTag: '⚠️ APPROACHING STOP',
+    nextStopTag: '➡ NEXT STOP',
+    getOffHereTag: '📍 GET OFF HERE! DESTINATION REACHED',
+    prepNextTag: '🔔 GET READY TO ALIGHT! (Next stop)',
+    prep2StopsTag: '🔔 GET READY TO ALIGHT! (2 stops away)',
+    dirIda: 'To San Antonio',
+    dirVuelta: 'To El Yeco'
   }
 };
 
@@ -182,6 +269,14 @@ function applyLanguage(lang) {
     const key = el.dataset.i18n;
     if (t(key)) el.innerText = t(key);
   });
+
+  const dirSel = document.getElementById("selectDirection");
+  if (dirSel && dirSel.options.length >= 2) {
+    dirSel.options[0].text = t("dirIda");
+    dirSel.options[1].text = t("dirVuelta");
+  }
+
+  updateHeaderGreeting(null);
   updateUnitLabels();
   updateBusMarkerSignalVisual();
   updateSetupSummary();
@@ -255,12 +350,12 @@ function applyTheme(theme) {
   state.theme = theme;
   localStorage.setItem("appTheme", theme);
   const btn = document.getElementById("btnThemeToggle");
-  if (theme === "light") {
-    document.body.classList.add("light-mode");
-    if (btn) btn.innerText = "🌙 Modo Oscuro";
-  } else {
-    document.body.classList.remove("light-mode");
+  if (theme === "dark") {
+    document.body.classList.add("dark-mode");
     if (btn) btn.innerText = "☀️ Modo Claro";
+  } else {
+    document.body.classList.remove("dark-mode");
+    if (btn) btn.innerText = "🌙 Modo Oscuro";
   }
 }
 
@@ -299,20 +394,20 @@ async function requestSystemPermissions() {
 
 function expandSheetAndRecenter() {
   state.autoFollowMap = true;
-  document.getElementById("btnRecenterMap").classList.add("hidden");
+  document.getElementById("btnRecenterMap").classList.add("hidden-animated");
   document.getElementById("tripBottomSheet").classList.remove("minimized");
   focusMapOnBusAndNextStop();
 }
 
 function minimizeSheetOnMapExplore() {
   state.autoFollowMap = false;
-  document.getElementById("btnRecenterMap").classList.remove("hidden");
+  document.getElementById("btnRecenterMap").classList.remove("hidden-animated");
   document.getElementById("tripBottomSheet").classList.add("minimized");
 }
 
 function initUI() {
   document.getElementById("btnThemeToggle").addEventListener("click", () => {
-    applyTheme(document.body.classList.contains("light-mode") ? "dark" : "light");
+    applyTheme(document.body.classList.contains("dark-mode") ? "light" : "dark");
   });
 
   document.getElementById("selectSpeedUnit").value = state.speedUnit;
@@ -392,6 +487,12 @@ function initUI() {
   document.getElementById("btnFinishTrip").addEventListener("click", finishTrip);
   document.getElementById("btnSaveFavorite").addEventListener("click", saveFavoriteRoute);
 
+  document.getElementById("btnClearRecentDestinations").addEventListener("click", () => {
+    state.recentDestinations = [];
+    localStorage.setItem("recentDestinations", JSON.stringify([]));
+    renderRecentDestinations();
+  });
+
   document.getElementById("btnClearFavorites").addEventListener("click", () => {
     state.favorites = [];
     localStorage.setItem("favorites", JSON.stringify([]));
@@ -411,11 +512,12 @@ function initUI() {
     btn.innerText = isHidden ? t("details") : t("hide");
   });
 
-  // Al tocar el borde superior del panel minimizado o el botón Centrar micro, sube y centra
   document.getElementById("sheetTopBar").addEventListener("click", () => {
     const sheet = document.getElementById("tripBottomSheet");
     if (sheet.classList.contains("minimized")) {
       expandSheetAndRecenter();
+    } else {
+      minimizeSheetOnMapExplore();
     }
   });
 
@@ -470,7 +572,6 @@ function initFullInteractiveMap() {
 
   busMarker = L.marker([startObj.lat, startObj.lng], { icon: busIcon, zIndexOffset: 1000 }).addTo(fullMap);
 
-  // Al mover o hacer zoom en el mapa, minimiza el panel inferior y pausa seguimiento
   fullMap.on('dragstart zoomstart', () => {
     minimizeSheetOnMapExplore();
   });
@@ -504,7 +605,6 @@ function updateBusMarkerSignalVisual() {
   }
 }
 
-// Construye una ruta fija por calles usando EXCLUSIVAMENTE las paradas oficiales (sin coordenadas crudas GPS)
 async function buildStaticStreetRoute() {
   if (!fullMap || !stopsLayerGroup) return;
 
@@ -569,7 +669,7 @@ function renderStopMarkersOnMap() {
     });
 
     const m = L.marker([stop.lat, stop.lng], { icon }).addTo(stopsLayerGroup);
-    const prefix = isFinal ? '🏁 Destino: ' : (isNext ? '📍 Parada: ' : '🚏 Paradero: ');
+    const prefix = isFinal ? '🏁 ' : (isNext ? '📍 ' : '🚏 ');
     m.bindPopup(`<strong>${prefix}${stop.name}</strong>`);
   });
 }
@@ -599,11 +699,13 @@ function updateHeaderGreeting(nearestStop) {
   const greeting = document.getElementById("headerGreeting");
   if (!greeting) return;
   if (nearestStop) {
-    greeting.innerText = state.lang === "en"
-      ? `Hi ${state.userName} · Near ${nearestStop.name}`
-      : `Hola ${state.userName} · Cerca de ${nearestStop.name}`;
+    if (state.lang === "en") greeting.innerText = `Hi ${state.userName} · Near ${nearestStop.name}`;
+    else if (state.lang === "pt") greeting.innerText = `Olá ${state.userName} · Perto de ${nearestStop.name}`;
+    else greeting.innerText = `Hola ${state.userName} · Cerca de ${nearestStop.name}`;
   } else {
-    greeting.innerText = state.lang === "en" ? `Hi, ${state.userName}!` : `¡Hola, ${state.userName}!`;
+    if (state.lang === "en") greeting.innerText = `Hi, ${state.userName}!`;
+    else if (state.lang === "pt") greeting.innerText = `Olá, ${state.userName}!`;
+    else greeting.innerText = `¡Hola, ${state.userName}!`;
   }
 }
 
@@ -720,9 +822,9 @@ function renderFavorites() {
     item.innerHTML = `
       <div>
         <div style="font-size:0.95rem; font-weight:800;">${fav.name}</div>
-        <div style="font-size:0.75rem; color:var(--secondary); font-weight:700;">${fav.direction === 'IDA' ? 'Hacia San Antonio' : 'Hacia El Yeco'}</div>
+        <div style="font-size:0.75rem; color:var(--secondary); font-weight:700;">${fav.direction === 'IDA' ? t('dirIda') : t('dirVuelta')}</div>
       </div>
-      <button class="btn-secondary" style="padding:8px 14px; min-height:38px;">Usar</button>
+      <button class="btn-secondary" style="padding:8px 14px; min-height:38px;">${t('useBtn')}</button>
     `;
     item.querySelector("button").addEventListener("click", () => {
       state.direction = fav.direction;
@@ -842,6 +944,7 @@ function enterActiveTripMode() {
   document.getElementById("mainShell").classList.add("hidden");
   document.getElementById("activeTripScreen").classList.remove("hidden");
   document.getElementById("tripBottomSheet").classList.remove("minimized");
+  document.getElementById("btnRecenterMap").classList.add("hidden-animated");
   requestWakeLock();
   populateActiveChangeEndDropdown();
   initFullInteractiveMap();
@@ -888,7 +991,7 @@ function updateDepartureSchedule() {
 
   if (currentMinOfDay < startMinBus + offsetMinsToStop) {
     const nextPassMin = startMinBus + offsetMinsToStop;
-    document.getElementById("setupServiceStatus").innerText = `Primer bus pasa a las ${Math.floor(nextPassMin/60)}:${String(Math.round(nextPassMin%60)).padStart(2,'0')} hrs`;
+    document.getElementById("setupServiceStatus").innerText = `Primer bus: ${Math.floor(nextPassMin/60)}:${String(Math.round(nextPassMin%60)).padStart(2,'0')} hrs`;
     document.getElementById("setupNextDepartureMinutes").innerText = `En ${Math.round(nextPassMin - currentMinOfDay)} min`;
   } else if (currentMinOfDay > lastMinBus + offsetMinsToStop) {
     document.getElementById("setupServiceStatus").innerText = "Fuera de horario habitual";
@@ -898,7 +1001,7 @@ function updateDepartureSchedule() {
     while ((nextDep + offsetMinsToStop) <= currentMinOfDay && nextDep <= lastMinBus) { nextDep += 15; }
     const nextPassMin = nextDep + offsetMinsToStop;
     document.getElementById("setupNextDepartureMinutes").innerText = `En ${Math.max(1, Math.round(nextPassMin - currentMinOfDay))} min`;
-    document.getElementById("setupServiceStatus").innerText = `Frecuencia estimada cada 15 min`;
+    document.getElementById("setupServiceStatus").innerText = `~15 min`;
   }
 }
 
@@ -915,7 +1018,7 @@ function updateCompass(userLat, userLng) {
   const distMeters = Math.round(calculateDistanceKm(userLat, userLng, startObj.lat, startObj.lng) * 1000);
   document.getElementById("compassArrow").style.transform = `rotate(${calculateBearing(userLat, userLng, startObj.lat, startObj.lng)}deg)`;
   document.getElementById("compassTitle").innerText = `${startObj.name}`;
-  document.getElementById("compassDesc").innerText = `A ${distMeters} m · Toca para ver mapa peatonal`;
+  document.getElementById("compassDesc").innerText = `${distMeters} m`;
 }
 
 function openPedestrianModal() {
@@ -1018,7 +1121,6 @@ function initGPS() {
         document.getElementById("gpsAvgSpeed").innerText = `${formatSpeed(state.avgSpeedKmh)}`;
       }
 
-      // Snap-to-route: proyectar el pin de la micro sobre la línea de la calle para que no salte por cuadras vecinas
       const snapped = snapPointToPolyline(state.lastLat, state.lastLng, staticStreetCoords, 140);
       state.snappedLat = snapped.lat;
       state.snappedLng = snapped.lng;
@@ -1027,13 +1129,11 @@ function initGPS() {
         busMarker.setLatLng([state.snappedLat, state.snappedLng]);
       }
 
-      // Recortar visualmente la polilínea recorrida para que solo muestre lo que falta hacia adelante
       if (routePolyline && snapped.snapped && staticStreetCoords.length > 2) {
         const remainingPoly = [[state.snappedLat, state.snappedLng], ...staticStreetCoords.slice(snapped.index + 1)];
         routePolyline.setLatLngs(remainingPoly);
       }
 
-      // Reorientación por salto brusco (ej. salida de túnel o reconexión)
       let closestIdx = state.currentBaseIndex;
       let minDistance = Infinity;
       for (let i = state.currentBaseIndex; i < ROUTE_STOPS.length; i++) {
@@ -1052,9 +1152,6 @@ function initGPS() {
       if (!targetStop) return;
       let distToTarget = Math.round(calculateDistanceKm(state.lastLat, state.lastLng, targetStop.lat, targetStop.lng) * 1000);
 
-      // GEOCERCAS CORREGIDAS:
-      // 1) Al entrar a <= 50m: atStop = true, pero NO incrementa el índice (muestra la parada donde estás bajando).
-      // 2) Al salir a > 75m: atStop = false y AHORA sí avanza el índice a la siguiente parada.
       let stopIndexChanged = false;
       if (state.atStop) {
         if (distToTarget > 75) {
@@ -1084,53 +1181,52 @@ function initGPS() {
       document.getElementById("miniStopPreview").innerText = `${state.atStop ? '🛑' : '➡'} ${targetStop.name}`;
 
       if (state.atStop) {
-        dynamicLabel.innerText = "🛑 PARADA ACTUAL";
+        dynamicLabel.innerText = t("currentStopTag");
         dynamicLabel.style.color = "#35B779";
         statusCard.style.borderLeftColor = "#35B779";
-        distanceContainer.innerText = "En paradero";
+        distanceContainer.innerText = t("atStopText");
       } else if (distToTarget <= 150) {
-        dynamicLabel.innerText = "⚠️ LLEGANDO A PARADA";
+        dynamicLabel.innerText = t("approachingStopTag");
         dynamicLabel.style.color = "#F5A623";
         statusCard.style.borderLeftColor = "#F5A623";
         distanceContainer.innerText = `${distToTarget} m`;
       } else {
-        dynamicLabel.innerText = "➡ PARADA SIGUIENTE";
+        dynamicLabel.innerText = t("nextStopTag");
         dynamicLabel.style.color = "#087E8B";
         statusCard.style.borderLeftColor = "#087E8B";
         distanceContainer.innerText = `${distToTarget} m`;
       }
 
-      // Cálculo exacto de paradas restantes (sin adelanto)
       const endIndex = ROUTE_STOPS.findIndex(s => s.id === state.endStopId);
       const stopsRemaining = Math.max(0, endIndex - state.currentBaseIndex);
-      const destStopName = ROUTE_STOPS[endIndex] ? ROUTE_STOPS[endIndex].name : "tu destino";
+      const destStopName = ROUTE_STOPS[endIndex] ? ROUTE_STOPS[endIndex].name : "";
       const sheet = document.getElementById("tripBottomSheet");
 
       sheet.classList.remove("alert-approaching", "alert-arrived");
 
       if (stopsRemaining === 0 && state.atStop) {
         sheet.classList.add("alert-arrived");
-        dynamicLabel.innerText = "📍 ¡BAJA AQUÍ! DESTINO ALCANZADO";
+        dynamicLabel.innerText = t("getOffHereTag");
         if (!state.alertArrivedTriggered) {
           state.alertArrivedTriggered = true;
           playAlertBeep(880, 0.8);
-          triggerSystemNotification("📍 ¡LLEGASTE A TU DESTINO!", `¡Bájate aquí en: ${destStopName}!`, [500, 200, 500, 200, 500]);
+          triggerSystemNotification(t("getOffHereTag"), destStopName, [500, 200, 500, 200, 500]);
         }
       } else if (stopsRemaining === 1 && !state.atStop) {
         sheet.classList.add("alert-approaching");
-        dynamicLabel.innerText = "🔔 ¡PREPÁRATE PARA BAJAR! (Siguiente parada)";
+        dynamicLabel.innerText = t("prepNextTag");
         if (!state.alert1StopTriggered) {
           state.alert1StopTriggered = true;
           playAlertBeep(660, 0.5);
-          triggerSystemNotification("⚠️ ¡ATENCIÓN! PRÓXIMA PARADA", `Te bajas en la siguiente parada: ${destStopName}`, [400, 150, 400]);
+          triggerSystemNotification(t("prepNextTag"), destStopName, [400, 150, 400]);
         }
       } else if (stopsRemaining === 2 && !state.atStop) {
         sheet.classList.add("alert-approaching");
-        dynamicLabel.innerText = "🔔 ¡PREPÁRATE PARA BAJAR! (Faltan 2 paradas)";
+        dynamicLabel.innerText = t("prep2StopsTag");
         if (!state.alert2StopsTriggered) {
           state.alert2StopsTriggered = true;
           playAlertBeep(440, 0.3);
-          triggerSystemNotification("🔔 ¡PREPÁRATE PARA BAJAR!", `Faltan 2 paradas para: ${destStopName}`, [200, 100, 200]);
+          triggerSystemNotification(t("prep2StopsTag"), destStopName, [200, 100, 200]);
         }
       }
 
@@ -1162,12 +1258,11 @@ function updateClockAndETA() {
   const formattedEta = etaTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
 
   document.getElementById("etaBoxTime").innerText = formattedEta;
-  document.getElementById("miniEtaPreview").innerText = `${formattedEta} · ▲`;
+  document.getElementById("miniEtaPreview").innerText = formattedEta;
   document.getElementById("topStopsLeft").innerText = stopsRemaining;
 
   const unitStr = state.speedUnit === "mph" ? "mi" : "km";
-  const remWord = state.lang === "en" ? "remaining" : "restantes";
-  document.getElementById("etaDistRemainingText").innerText = `${formatDistanceValue(kmLeft)} ${unitStr} ${remWord}`;
+  document.getElementById("etaDistRemainingText").innerText = `${formatDistanceValue(kmLeft)} ${unitStr} ${t("remainingWord")}`;
 
   document.getElementById("etaTimeLeft").innerText = etaResult.minutes >= 60
     ? `${Math.floor(etaResult.minutes / 60)}h ${etaResult.minutes % 60}m`
@@ -1204,7 +1299,7 @@ function finishTrip() {
   recordCompletedTrip(endObj);
 
   const toast = document.getElementById("toastNotification");
-  document.getElementById("toastMessage").innerText = `Te bajaste en: ${endObj ? endObj.name : 'tu destino'}.`;
+  document.getElementById("toastMessage").innerText = `${endObj ? endObj.name : ''}`;
   toast.classList.add("active");
   setTimeout(() => { toast.classList.remove("active"); }, 4000);
 
