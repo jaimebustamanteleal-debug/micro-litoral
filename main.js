@@ -1,7 +1,15 @@
 import { STOPS_IDA, STOPS_VUELTA } from './stops.js';
 import { calculateEta } from './eta.js';
 import { playAlertBeep, triggerSystemNotification } from './notifications.js';
-import { requestWakeLock, releaseWakeLock, calculateDistanceKm, evaluateGpsSignal, createBusPinSvg, fetchStreetRouteCoordinates } from './gps.js';
+import {
+  requestWakeLock,
+  releaseWakeLock,
+  calculateDistanceKm,
+  evaluateGpsSignal,
+  createBusPinSvg,
+  fetchStreetRouteCoordinates,
+  snapPointToPolyline
+} from './gps.js';
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -37,7 +45,7 @@ const I18N = {
     speedUnit: 'Unidad',
     language: 'Idioma',
     visualTheme: 'Tema Visual',
-    notificationsGps: 'Notificaciones y GPS',
+    notificationsGps: 'Notificaciones y Push',
     info: 'Información',
     navHome: 'Inicio',
     navTrips: 'Mis viajes',
@@ -51,7 +59,9 @@ const I18N = {
     hide: '🔽 Ocultar',
     finishTrip: '🏁 Terminar Viaje',
     repeatTrip: '🔄 Repetir viaje',
+    clearBtn: 'Limpiar',
     noTripsYet: 'Aún no has registrado viajes completados.',
+    noFavsYet: 'Aún no tienes rutas favoritas guardadas.',
     early: '🟢 Adelantado',
     ontime: '🔵 A tiempo',
     delayed: '🟠 Con retraso'
@@ -74,7 +84,7 @@ const I18N = {
     speedUnit: 'Unit',
     language: 'Language',
     visualTheme: 'Visual Theme',
-    notificationsGps: 'Notifications & GPS',
+    notificationsGps: 'Notifications & Push',
     info: 'Information',
     navHome: 'Home',
     navTrips: 'My Trips',
@@ -88,7 +98,9 @@ const I18N = {
     hide: '🔽 Hide',
     finishTrip: '🏁 Finish Trip',
     repeatTrip: '🔄 Repeat trip',
+    clearBtn: 'Clear',
     noTripsYet: 'No completed trips recorded yet.',
+    noFavsYet: 'No saved favorite routes yet.',
     early: '🟢 Ahead of schedule',
     ontime: '🔵 On time',
     delayed: '🟠 Delayed'
@@ -120,6 +132,8 @@ let state = {
   sumSpeedReadings: 0,
   lastLat: null,
   lastLng: null,
+  snappedLat: null,
+  snappedLng: null,
   alert2StopsTriggered: false,
   alert1StopTriggered: false,
   alertArrivedTriggered: false,
@@ -131,6 +145,7 @@ let state = {
 let fullMap = null;
 let busMarker = null;
 let routePolyline = null;
+let staticStreetCoords = [];
 let stopsLayerGroup = null;
 let pedestrianMap = null;
 let pedestrianPersonMarker = null;
@@ -170,6 +185,7 @@ function applyLanguage(lang) {
   updateUnitLabels();
   updateBusMarkerSignalVisual();
   updateSetupSummary();
+  renderFavorites();
   renderTripHistory();
 }
 
@@ -195,6 +211,14 @@ function formatSpeed(kmh) {
 function formatDistanceValue(km) {
   if (state.speedUnit === "mph") return (km * 0.621371).toFixed(1);
   return km.toFixed(1);
+}
+
+function formatDurationHMS(ms) {
+  const totalSec = Math.max(1, Math.floor(ms / 1000));
+  const hrs = Math.floor(totalSec / 3600);
+  const mins = Math.floor((totalSec % 3600) / 60);
+  const secs = totalSec % 60;
+  return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }
 
 function initNavigation() {
@@ -264,7 +288,26 @@ async function requestSystemPermissions() {
   if ("Notification" in window && Notification.permission !== "granted") {
     await Notification.requestPermission();
   }
+  if ("serviceWorker" in navigator && "PushManager" in window) {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      await reg.pushManager.getSubscription();
+    } catch (e) {}
+  }
   checkPermissionsStatus();
+}
+
+function expandSheetAndRecenter() {
+  state.autoFollowMap = true;
+  document.getElementById("btnRecenterMap").classList.add("hidden");
+  document.getElementById("tripBottomSheet").classList.remove("minimized");
+  focusMapOnBusAndNextStop();
+}
+
+function minimizeSheetOnMapExplore() {
+  state.autoFollowMap = false;
+  document.getElementById("btnRecenterMap").classList.remove("hidden");
+  document.getElementById("tripBottomSheet").classList.add("minimized");
 }
 
 function initUI() {
@@ -334,7 +377,7 @@ function initUI() {
     state.alertArrivedTriggered = false;
     saveActiveStateToStorage();
     updateClockAndETA();
-    renderRouteOnFullMap();
+    buildStaticStreetRoute();
   });
 
   populateStopsDropdowns();
@@ -349,6 +392,12 @@ function initUI() {
   document.getElementById("btnFinishTrip").addEventListener("click", finishTrip);
   document.getElementById("btnSaveFavorite").addEventListener("click", saveFavoriteRoute);
 
+  document.getElementById("btnClearFavorites").addEventListener("click", () => {
+    state.favorites = [];
+    localStorage.setItem("favorites", JSON.stringify([]));
+    renderFavorites();
+  });
+
   document.getElementById("btnClearHistory").addEventListener("click", () => {
     state.tripHistory = [];
     localStorage.setItem("tripHistory", JSON.stringify([]));
@@ -362,11 +411,15 @@ function initUI() {
     btn.innerText = isHidden ? t("details") : t("hide");
   });
 
-  document.getElementById("btnRecenterMap").addEventListener("click", () => {
-    state.autoFollowMap = true;
-    document.getElementById("btnRecenterMap").classList.add("hidden");
-    focusMapOnBusAndNextStop();
+  // Al tocar el borde superior del panel minimizado o el botón Centrar micro, sube y centra
+  document.getElementById("sheetTopBar").addEventListener("click", () => {
+    const sheet = document.getElementById("tripBottomSheet");
+    if (sheet.classList.contains("minimized")) {
+      expandSheetAndRecenter();
+    }
   });
+
+  document.getElementById("btnRecenterMap").addEventListener("click", expandSheetAndRecenter);
 
   document.getElementById("compassContainer").addEventListener("click", openPedestrianModal);
   document.getElementById("btnClosePedestrianModal").addEventListener("click", () => {
@@ -417,9 +470,9 @@ function initFullInteractiveMap() {
 
   busMarker = L.marker([startObj.lat, startObj.lng], { icon: busIcon, zIndexOffset: 1000 }).addTo(fullMap);
 
+  // Al mover o hacer zoom en el mapa, minimiza el panel inferior y pausa seguimiento
   fullMap.on('dragstart zoomstart', () => {
-    state.autoFollowMap = false;
-    document.getElementById("btnRecenterMap").classList.remove("hidden");
+    minimizeSheetOnMapExplore();
   });
 }
 
@@ -451,27 +504,41 @@ function updateBusMarkerSignalVisual() {
   }
 }
 
-async function renderRouteOnFullMap() {
+// Construye una ruta fija por calles usando EXCLUSIVAMENTE las paradas oficiales (sin coordenadas crudas GPS)
+async function buildStaticStreetRoute() {
+  if (!fullMap || !stopsLayerGroup) return;
+
+  const startIdx = Math.max(0, ROUTE_STOPS.findIndex(s => s.id === state.startStopId));
+  const endIdx = ROUTE_STOPS.findIndex(s => s.id === state.endStopId);
+  const finalIdx = endIdx >= startIdx ? endIdx : ROUTE_STOPS.length - 1;
+  const tripStops = ROUTE_STOPS.slice(Math.min(startIdx, state.currentBaseIndex), finalIdx + 1);
+
+  if (tripStops.length < 2) return;
+
+  const stopWaypoints = tripStops.map(s => [s.lat, s.lng]);
+  staticStreetCoords = await fetchStreetRouteCoordinates(stopWaypoints);
+
+  if (!fullMap) return;
+  if (routePolyline) fullMap.removeLayer(routePolyline);
+
+  routePolyline = L.polyline(staticStreetCoords, {
+    color: '#087E8B',
+    weight: 6,
+    opacity: 0.88,
+    lineJoin: 'round'
+  }).addTo(fullMap);
+
+  renderStopMarkersOnMap();
+}
+
+function renderStopMarkersOnMap() {
   if (!fullMap || !stopsLayerGroup) return;
   stopsLayerGroup.clearLayers();
-  if (routePolyline) {
-    fullMap.removeLayer(routePolyline);
-    routePolyline = null;
-  }
 
   const endIndex = ROUTE_STOPS.findIndex(s => s.id === state.endStopId);
   const finalIdx = endIndex >= state.currentBaseIndex ? endIndex : ROUTE_STOPS.length - 1;
   const remainingStops = ROUTE_STOPS.slice(state.currentBaseIndex, finalIdx + 1);
 
-  if (remainingStops.length === 0) return;
-
-  const waypoints = [];
-  if (state.lastLat && state.lastLng) {
-    waypoints.push([state.lastLat, state.lastLng]);
-  }
-  remainingStops.forEach(s => waypoints.push([s.lat, s.lng]));
-
-  // Dibujar marcadores interactivos en todas las paradas siguientes
   remainingStops.forEach((stop, idx) => {
     const isNext = idx === 0;
     const isFinal = idx === remainingStops.length - 1;
@@ -502,29 +569,20 @@ async function renderRouteOnFullMap() {
     });
 
     const m = L.marker([stop.lat, stop.lng], { icon }).addTo(stopsLayerGroup);
-    const prefix = isFinal ? '🏁 Destino: ' : (isNext ? '📍 Siguiente: ' : '🚏 Paradero: ');
+    const prefix = isFinal ? '🏁 Destino: ' : (isNext ? '📍 Parada: ' : '🚏 Paradero: ');
     m.bindPopup(`<strong>${prefix}${stop.name}</strong>`);
   });
-
-  // Obtener geometría siguiendo las calles reales (con fallback a línea directa si no hay red)
-  const streetCoords = await fetchStreetRouteCoordinates(waypoints);
-  if (!fullMap) return;
-  if (routePolyline) fullMap.removeLayer(routePolyline);
-
-  routePolyline = L.polyline(streetCoords, {
-    color: '#087E8B',
-    weight: 6,
-    opacity: 0.88,
-    lineJoin: 'round'
-  }).addTo(fullMap);
 }
 
 function focusMapOnBusAndNextStop() {
   if (!fullMap || !state.autoFollowMap) return;
   const targetStop = ROUTE_STOPS[state.currentBaseIndex];
-  if (state.lastLat && state.lastLng && targetStop) {
+  const busLat = state.snappedLat || state.lastLat;
+  const busLng = state.snappedLng || state.lastLng;
+
+  if (busLat && busLng && targetStop) {
     const bounds = L.latLngBounds([
-      [state.lastLat, state.lastLng],
+      [busLat, busLng],
       [targetStop.lat, targetStop.lng]
     ]);
     fullMap.fitBounds(bounds, {
@@ -532,8 +590,8 @@ function focusMapOnBusAndNextStop() {
       paddingBottomRight: [40, 320],
       maxZoom: 16
     });
-  } else if (state.lastLat && state.lastLng) {
-    fullMap.setView([state.lastLat, state.lastLng], 16);
+  } else if (busLat && busLng) {
+    fullMap.setView([busLat, busLng], 16);
   }
 }
 
@@ -650,9 +708,10 @@ function saveFavoriteRoute() {
 
 function renderFavorites() {
   const container = document.getElementById("favoritesList");
+  if (!container) return;
   container.innerHTML = "";
   if (state.favorites.length === 0) {
-    container.innerHTML = `<div style="font-size:0.82rem; color:var(--text-muted);">Aún no tienes rutas favoritas guardadas.</div>`;
+    container.innerHTML = `<div style="font-size:0.82rem; color:var(--text-muted);">${t("noFavsYet")}</div>`;
     return;
   }
   state.favorites.forEach(fav => {
@@ -688,12 +747,14 @@ function recordCompletedTrip(endStopObj) {
   const endObj = endStopObj || ROUTE_STOPS.find(s => s.id === state.endStopId) || ROUTE_STOPS[ROUTE_STOPS.length - 1];
   const startDt = state.tripStartTime ? new Date(state.tripStartTime) : new Date();
   const endDt = new Date();
+  const durationFormatted = formatDurationHMS(endDt.getTime() - startDt.getTime());
 
   const record = {
     id: Date.now(),
     dateStr: startDt.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' }),
     startTimeStr: startDt.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }),
     endTimeStr: endDt.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }),
+    durationStr: durationFormatted,
     startStopId: startObj.id,
     startStopName: startObj.name,
     endStopId: endObj.id,
@@ -720,10 +781,11 @@ function renderTripHistory() {
   state.tripHistory.forEach(item => {
     const card = document.createElement("div");
     card.className = "history-card";
+    const durText = item.durationStr ? `<span class="duration-pill">⏱️ ${item.durationStr}</span>` : '';
     card.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
         <span style="font-size:0.75rem; font-weight:800; color:var(--secondary);">📅 ${item.dateStr}</span>
-        <span style="font-size:0.72rem; font-weight:700; color:var(--text-muted);">${item.direction === 'IDA' ? '→ San Antonio' : '→ El Yeco'}</span>
+        ${durText}
       </div>
       <div style="font-size:0.85rem; line-height:1.45;">
         <div><strong>🟢 ${item.startTimeStr}</strong> · ${item.startStopName}</div>
@@ -779,10 +841,11 @@ function restoreSessionIfExists() {
 function enterActiveTripMode() {
   document.getElementById("mainShell").classList.add("hidden");
   document.getElementById("activeTripScreen").classList.remove("hidden");
+  document.getElementById("tripBottomSheet").classList.remove("minimized");
   requestWakeLock();
   populateActiveChangeEndDropdown();
   initFullInteractiveMap();
-  renderRouteOnFullMap();
+  buildStaticStreetRoute();
   initGPS();
   updateClockAndETA();
 }
@@ -796,8 +859,6 @@ function syncGpsPositionToClosestStop() {
     state.isGpsLive = true;
     updateBusMarkerSignalVisual();
 
-    if (busMarker) busMarker.setLatLng([state.lastLat, state.lastLng]);
-
     let closestIdx = 0;
     let minDistance = Infinity;
     for (let i = 0; i < ROUTE_STOPS.length; i++) {
@@ -805,9 +866,10 @@ function syncGpsPositionToClosestStop() {
       if (d < minDistance) { minDistance = d; closestIdx = i; }
     }
     state.currentBaseIndex = closestIdx;
+    state.atStop = Math.round(minDistance * 1000) <= 50;
     saveActiveStateToStorage();
     populateActiveChangeEndDropdown();
-    renderRouteOnFullMap();
+    renderStopMarkersOnMap();
     focusMapOnBusAndNextStop();
     updateClockAndETA();
   }, () => {
@@ -956,37 +1018,58 @@ function initGPS() {
         document.getElementById("gpsAvgSpeed").innerText = `${formatSpeed(state.avgSpeedKmh)}`;
       }
 
-      if (busMarker) busMarker.setLatLng([state.lastLat, state.lastLng]);
+      // Snap-to-route: proyectar el pin de la micro sobre la línea de la calle para que no salte por cuadras vecinas
+      const snapped = snapPointToPolyline(state.lastLat, state.lastLng, staticStreetCoords, 140);
+      state.snappedLat = snapped.lat;
+      state.snappedLng = snapped.lng;
 
+      if (busMarker) {
+        busMarker.setLatLng([state.snappedLat, state.snappedLng]);
+      }
+
+      // Recortar visualmente la polilínea recorrida para que solo muestre lo que falta hacia adelante
+      if (routePolyline && snapped.snapped && staticStreetCoords.length > 2) {
+        const remainingPoly = [[state.snappedLat, state.snappedLng], ...staticStreetCoords.slice(snapped.index + 1)];
+        routePolyline.setLatLngs(remainingPoly);
+      }
+
+      // Reorientación por salto brusco (ej. salida de túnel o reconexión)
       let closestIdx = state.currentBaseIndex;
       let minDistance = Infinity;
-      for (let i = 0; i < ROUTE_STOPS.length; i++) {
+      for (let i = state.currentBaseIndex; i < ROUTE_STOPS.length; i++) {
         const d = calculateDistanceKm(state.lastLat, state.lastLng, ROUTE_STOPS[i].lat, ROUTE_STOPS[i].lng);
         if (d < minDistance) { minDistance = d; closestIdx = i; }
       }
-      if (Math.round(minDistance * 1000) > 300 || closestIdx > state.currentBaseIndex) {
+      if (Math.round(minDistance * 1000) > 350 && closestIdx > state.currentBaseIndex) {
         state.currentBaseIndex = closestIdx;
+        state.atStop = false;
+        saveActiveStateToStorage();
+        populateActiveChangeEndDropdown();
+        renderStopMarkersOnMap();
       }
 
       let targetStop = ROUTE_STOPS[state.currentBaseIndex];
       if (!targetStop) return;
       let distToTarget = Math.round(calculateDistanceKm(state.lastLat, state.lastLng, targetStop.lat, targetStop.lng) * 1000);
 
-      let routeNeedsRedraw = false;
+      // GEOCERCAS CORREGIDAS:
+      // 1) Al entrar a <= 50m: atStop = true, pero NO incrementa el índice (muestra la parada donde estás bajando).
+      // 2) Al salir a > 75m: atStop = false y AHORA sí avanza el índice a la siguiente parada.
+      let stopIndexChanged = false;
       if (state.atStop) {
         if (distToTarget > 75) {
           state.atStop = false;
-          routeNeedsRedraw = true;
+          if (state.currentBaseIndex < ROUTE_STOPS.length - 1) {
+            state.currentBaseIndex++;
+            stopIndexChanged = true;
+            saveActiveStateToStorage();
+            populateActiveChangeEndDropdown();
+            renderStopMarkersOnMap();
+          }
         }
       } else {
         if (distToTarget <= 50) {
           state.atStop = true;
-          routeNeedsRedraw = true;
-          if (state.currentBaseIndex < ROUTE_STOPS.length - 1) {
-            state.currentBaseIndex++;
-            saveActiveStateToStorage();
-            populateActiveChangeEndDropdown();
-          }
         }
       }
 
@@ -998,6 +1081,7 @@ function initGPS() {
       const distanceContainer = document.getElementById("activeNextStopDistance");
       const statusCard = document.getElementById("stopStatusCard");
       document.getElementById("activeNextStopName").innerText = targetStop.name;
+      document.getElementById("miniStopPreview").innerText = `${state.atStop ? '🛑' : '➡'} ${targetStop.name}`;
 
       if (state.atStop) {
         dynamicLabel.innerText = "🛑 PARADA ACTUAL";
@@ -1016,6 +1100,7 @@ function initGPS() {
         distanceContainer.innerText = `${distToTarget} m`;
       }
 
+      // Cálculo exacto de paradas restantes (sin adelanto)
       const endIndex = ROUTE_STOPS.findIndex(s => s.id === state.endStopId);
       const stopsRemaining = Math.max(0, endIndex - state.currentBaseIndex);
       const destStopName = ROUTE_STOPS[endIndex] ? ROUTE_STOPS[endIndex].name : "tu destino";
@@ -1031,31 +1116,27 @@ function initGPS() {
           playAlertBeep(880, 0.8);
           triggerSystemNotification("📍 ¡LLEGASTE A TU DESTINO!", `¡Bájate aquí en: ${destStopName}!`, [500, 200, 500, 200, 500]);
         }
-      } else if (stopsRemaining <= 2) {
+      } else if (stopsRemaining === 1 && !state.atStop) {
         sheet.classList.add("alert-approaching");
-        dynamicLabel.innerText = `🔔 ¡PREPÁRATE PARA BAJAR! (${stopsRemaining === 1 ? 'Siguiente parada' : 'Faltan 2 paradas'})`;
-        if (stopsRemaining === 2 && !state.alert2StopsTriggered) {
-          state.alert2StopsTriggered = true;
-          playAlertBeep(440, 0.3);
-          triggerSystemNotification("🔔 ¡PREPÁRATE PARA BAJAR!", `Faltan 2 paradas para: ${destStopName}`, [200, 100, 200]);
-        } else if (stopsRemaining === 1 && !state.alert1StopTriggered) {
+        dynamicLabel.innerText = "🔔 ¡PREPÁRATE PARA BAJAR! (Siguiente parada)";
+        if (!state.alert1StopTriggered) {
           state.alert1StopTriggered = true;
           playAlertBeep(660, 0.5);
           triggerSystemNotification("⚠️ ¡ATENCIÓN! PRÓXIMA PARADA", `Te bajas en la siguiente parada: ${destStopName}`, [400, 150, 400]);
         }
-      }
-
-      if (routeNeedsRedraw) {
-        renderRouteOnFullMap();
-      } else if (routePolyline) {
-        const latLngs = routePolyline.getLatLngs();
-        if (latLngs.length > 0) {
-          latLngs[0] = L.latLng(state.lastLat, state.lastLng);
-          routePolyline.setLatLngs(latLngs);
+      } else if (stopsRemaining === 2 && !state.atStop) {
+        sheet.classList.add("alert-approaching");
+        dynamicLabel.innerText = "🔔 ¡PREPÁRATE PARA BAJAR! (Faltan 2 paradas)";
+        if (!state.alert2StopsTriggered) {
+          state.alert2StopsTriggered = true;
+          playAlertBeep(440, 0.3);
+          triggerSystemNotification("🔔 ¡PREPÁRATE PARA BAJAR!", `Faltan 2 paradas para: ${destStopName}`, [200, 100, 200]);
         }
       }
 
-      focusMapOnBusAndNextStop();
+      if (stopIndexChanged || state.autoFollowMap) {
+        focusMapOnBusAndNextStop();
+      }
     }, () => {
       state.isGpsLive = false;
       updateBusMarkerSignalVisual();
@@ -1078,7 +1159,10 @@ function updateClockAndETA() {
   });
 
   const etaTime = new Date(new Date().getTime() + etaResult.minutes * 60000);
-  document.getElementById("etaBoxTime").innerText = `${etaTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}`;
+  const formattedEta = etaTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+
+  document.getElementById("etaBoxTime").innerText = formattedEta;
+  document.getElementById("miniEtaPreview").innerText = `${formattedEta} · ▲`;
   document.getElementById("topStopsLeft").innerText = stopsRemaining;
 
   const unitStr = state.speedUnit === "mph" ? "mi" : "km";
