@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Micro Litoral v5.1.1</title>
+  <title>Micro Litoral v5.1.2</title>
   <meta name="theme-color" content="#102A43">
   <link rel="manifest" href="./manifest.json">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -327,7 +327,7 @@
     .btn-recenter {
       position: absolute;
       right: 16px;
-      bottom: 305px;
+      bottom: 84px;
       z-index: 15;
       background: var(--surface);
       color: var(--text-main);
@@ -343,6 +343,7 @@
       gap: 6px;
     }
 
+    /* BOTTOM SHEET RETRÁCTIL */
     .bottom-sheet {
       position: absolute;
       bottom: 0;
@@ -354,12 +355,30 @@
       border-radius: 28px 28px 0 0;
       box-shadow: var(--shadow-lg);
       border-top: 1px solid var(--border);
-      padding: 14px 20px calc(20px + env(safe-area-inset-bottom)) 20px;
+      padding: 12px 20px calc(20px + env(safe-area-inset-bottom)) 20px;
       z-index: 20;
       display: flex;
       flex-direction: column;
       gap: 14px;
-      transition: background 0.35s ease, border-color 0.35s ease;
+      transition: all 0.32s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    /* Estado minimizado al mover el mapa */
+    .bottom-sheet.minimized {
+      padding: 10px 18px calc(14px + env(safe-area-inset-bottom)) 18px;
+      gap: 0;
+      cursor: pointer;
+    }
+    .bottom-sheet.minimized .sheet-body {
+      display: none;
+    }
+
+    .sheet-top-bar {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
     }
 
     .sheet-handle {
@@ -367,7 +386,23 @@
       height: 5px;
       border-radius: 99px;
       background: var(--border);
-      margin: 0 auto 2px auto;
+    }
+
+    .sheet-mini-preview {
+      display: none;
+      width: 100%;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 2px;
+    }
+    .bottom-sheet.minimized .sheet-mini-preview {
+      display: flex;
+    }
+
+    .sheet-body {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
     }
 
     .bottom-sheet.alert-approaching {
@@ -495,6 +530,16 @@
       flex-direction: column;
       gap: 8px;
       border: 1px solid var(--border);
+    }
+
+    .duration-pill {
+      background: rgba(8, 126, 139, 0.14);
+      color: var(--secondary);
+      padding: 3px 9px;
+      border-radius: 99px;
+      font-size: 0.72rem;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
     }
 
     .modal-overlay {
@@ -630,18 +675,18 @@
       </div>
     </main>
 
-    <!-- PESTAÑA 2: MIS VIAJES (HISTORIAL DE ÚLTIMOS 10) -->
+    <!-- PESTAÑA 2: MIS VIAJES -->
     <section id="tabMisViajes" class="tab-view hidden">
       <div class="card">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <span class="section-label" data-i18n="myTripsTitle">Últimos 10 Viajes</span>
-          <button class="btn-secondary" id="btnClearHistory" style="padding:6px 12px; min-height:32px; font-size:0.75rem;">Limpiar</button>
+          <button class="btn-secondary" id="btnClearHistory" style="padding:6px 12px; min-height:32px; font-size:0.75rem;" data-i18n="clearBtn">Limpiar</button>
         </div>
         <div id="tripHistoryList" style="display:flex; flex-direction:column; gap:10px;"></div>
       </div>
     </section>
 
-    <!-- PESTAÑA 3: FAVORITOS (INCLUYE DESTINOS RECIENTES) -->
+    <!-- PESTAÑA 3: FAVORITOS -->
     <section id="tabFavoritos" class="tab-view hidden">
       <div id="recentDestinationsContainer" class="card hidden">
         <span class="section-label" data-i18n="recentDestinations">Destinos Recientes</span>
@@ -657,7 +702,10 @@
       </div>
 
       <div class="card">
-        <span class="section-label" data-i18n="savedRoutes">Mis Rutas Guardadas</span>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span class="section-label" data-i18n="savedRoutes">Mis Rutas Guardadas</span>
+          <button class="btn-secondary" id="btnClearFavorites" style="padding:6px 12px; min-height:32px; font-size:0.75rem;" data-i18n="clearBtn">Limpiar</button>
+        </div>
         <div id="favoritesList" style="display:flex; flex-direction:column; gap:10px;"></div>
       </div>
     </section>
@@ -695,11 +743,11 @@
       </div>
 
       <div class="card" id="permissionBanner">
-        <span class="section-label" data-i18n="notificationsGps">Notificaciones y GPS</span>
+        <span class="section-label" data-i18n="notificationsGps">Notificaciones y Push</span>
         <p style="font-size:0.82rem; color:var(--text-muted); line-height:1.4;">
-          Activa las alertas del sistema para recibir avisos sonoros y vibración cuando falten 2 paradas para bajar.
+          Activa las notificaciones push y alertas de sistema para recibir avisos con vibración en segundo plano y Google Play.
         </p>
-        <button class="btn-secondary" id="btnGrantPermissions">🔔 Activar Permisos de Alerta</button>
+        <button class="btn-secondary" id="btnGrantPermissions">🔔 Activar Notificaciones Push</button>
       </div>
 
       <div class="card">
@@ -715,7 +763,7 @@
     </section>
 
     <footer>
-      <strong>Micro Litoral PWA v5.1.0</strong><br>
+      <strong>Micro Litoral PWA v5.1.2</strong><br>
       Desarrollado por <strong>Jaime Bustamante L.</strong>
     </footer>
 
@@ -757,55 +805,63 @@
     <button id="btnRecenterMap" class="btn-recenter hidden">🎯 <span data-i18n="recenter">Centrar micro</span></button>
 
     <div class="bottom-sheet" id="tripBottomSheet">
-      <div class="sheet-handle"></div>
-
-      <div class="stop-status-card" id="stopStatusCard">
-        <div class="stop-status-tag" id="stopDynamicLabel">➡ PARADA SIGUIENTE</div>
-        <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;">
-          <div class="stop-status-name" id="activeNextStopName">---</div>
-          <div id="activeNextStopDistance" style="font-size:0.95rem; font-weight:900; color:var(--secondary); white-space:nowrap;">-- m</div>
+      <div class="sheet-top-bar" id="sheetTopBar">
+        <div class="sheet-handle"></div>
+        <div class="sheet-mini-preview">
+          <div style="font-size:0.85rem; font-weight:900; color:var(--text-main); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:65%;" id="miniStopPreview">---</div>
+          <div style="font-size:0.85rem; font-weight:900; color:var(--secondary);" id="miniEtaPreview">--:-- · ▲ Subir</div>
         </div>
       </div>
 
-      <div class="eta-hero-row">
-        <div>
-          <div class="section-label" data-i18n="estArrival">Llegada Estimada</div>
-          <div class="eta-big" id="etaBoxTime">--:--</div>
-          <div id="punctualityBadge" class="punctuality-badge punctuality-ontime">🟢 A tiempo</div>
-        </div>
-        <div class="eta-sub-metrics">
-          <div style="font-size:1.1rem; font-weight:900; color:var(--secondary);" id="etaTimeLeft">-- min</div>
-          <div style="font-size:0.82rem; font-weight:700; color:var(--text-muted);" id="etaDistRemainingText">-- km restantes</div>
-        </div>
-      </div>
-
-      <div id="telemetryDrawer" class="telemetry-drawer hidden">
-        <div class="summary-strip">
-          <div>
-            <div class="summary-val" id="gpsCurrentSpeed">0</div>
-            <div class="summary-lbl" id="lblCurrentSpeedUnit">km/h Act.</div>
-          </div>
-          <div>
-            <div class="summary-val" id="gpsAvgSpeed">0</div>
-            <div class="summary-lbl" id="lblAvgSpeedUnit">km/h Prom.</div>
-          </div>
-          <div>
-            <div class="summary-val" id="segmentTime">0</div>
-            <div class="summary-lbl" data-i18n="tripMins">Min Viaje</div>
+      <div class="sheet-body" id="sheetBody">
+        <div class="stop-status-card" id="stopStatusCard">
+          <div class="stop-status-tag" id="stopDynamicLabel">➡ PARADA SIGUIENTE</div>
+          <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;">
+            <div class="stop-status-name" id="activeNextStopName">---</div>
+            <div id="activeNextStopDistance" style="font-size:0.95rem; font-weight:900; color:var(--secondary); white-space:nowrap;">-- m</div>
           </div>
         </div>
 
-        <div>
-          <label class="section-label" style="display:block; margin-bottom:4px;" data-i18n="changeStop">Cambiar parada de bajada</label>
-          <select id="activeChangeEndStop"></select>
+        <div class="eta-hero-row">
+          <div>
+            <div class="section-label" data-i18n="estArrival">Llegada Estimada</div>
+            <div class="eta-big" id="etaBoxTime">--:--</div>
+            <div id="punctualityBadge" class="punctuality-badge punctuality-ontime">🔵 A tiempo</div>
+          </div>
+          <div class="eta-sub-metrics">
+            <div style="font-size:1.1rem; font-weight:900; color:var(--secondary);" id="etaTimeLeft">-- min</div>
+            <div style="font-size:0.82rem; font-weight:700; color:var(--text-muted);" id="etaDistRemainingText">-- km restantes</div>
+          </div>
         </div>
 
-        <button class="btn-cancel-sm" id="btnCancelTrip" style="width:100%;" data-i18n="cancelTracking">❌ Cancelar Seguimiento</button>
-      </div>
+        <div id="telemetryDrawer" class="telemetry-drawer hidden">
+          <div class="summary-strip">
+            <div>
+              <div class="summary-val" id="gpsCurrentSpeed">0</div>
+              <div class="summary-lbl" id="lblCurrentSpeedUnit">km/h Act.</div>
+            </div>
+            <div>
+              <div class="summary-val" id="gpsAvgSpeed">0</div>
+              <div class="summary-lbl" id="lblAvgSpeedUnit">km/h Prom.</div>
+            </div>
+            <div>
+              <div class="summary-val" id="segmentTime">0</div>
+              <div class="summary-lbl" data-i18n="tripMins">Min Viaje</div>
+            </div>
+          </div>
 
-      <div class="sheet-actions">
-        <button class="btn-secondary" id="btnToggleTelemetry" data-i18n="details">📊 Detalles</button>
-        <button class="btn-finish" id="btnFinishTrip" data-i18n="finishTrip">🏁 Terminar Viaje</button>
+          <div>
+            <label class="section-label" style="display:block; margin-bottom:4px;" data-i18n="changeStop">Cambiar parada de bajada</label>
+            <select id="activeChangeEndStop"></select>
+          </div>
+
+          <button class="btn-cancel-sm" id="btnCancelTrip" style="width:100%;" data-i18n="cancelTracking">❌ Cancelar Seguimiento</button>
+        </div>
+
+        <div class="sheet-actions">
+          <button class="btn-secondary" id="btnToggleTelemetry" data-i18n="details">📊 Detalles</button>
+          <button class="btn-finish" id="btnFinishTrip" data-i18n="finishTrip">🏁 Terminar Viaje</button>
+        </div>
       </div>
     </div>
   </div>
